@@ -171,12 +171,10 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // ĐÃ SỬA LỖI TẠI ĐÂY: Xóa location.reload() để không bị tải lại trang
         modeButton.addEventListener('click', () => {
             isDualMode = !isDualMode;
             modeButton.textContent = isDualMode ? "Chế độ: 2 Nguồn (Lần lượt)" : "Chế độ: 1 Nguồn";
             
-            // Reset dữ liệu mềm thay vì reload web
             isPaused = true;
             clearTimeout(stopTimer);
             pauseButton.textContent = "2. Đo / Dừng";
@@ -189,7 +187,6 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             
-            // Cập nhật lại hướng dẫn
             if (!startButton.disabled) {
                 infoText.textContent = "Trạng thái: Đang chờ bật Micro...";
                 infoText.style.color = "#d93025";
@@ -460,6 +457,7 @@
             let period = 1.0 / freqForCalc;
             let totalTimeOnScreen = 5 * period * zoomX; 
 
+            // 1. Vẽ nền và lưới trước tiên
             canvasCtx.fillStyle = '#e6f7ff'; 
             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -477,6 +475,7 @@
             }
             canvasCtx.stroke();
 
+            // 2. Vẽ trục tọa độ
             canvasCtx.lineWidth = 2;
             canvasCtx.strokeStyle = '#000000'; 
             canvasCtx.beginPath();
@@ -496,23 +495,102 @@
             }
             canvasCtx.stroke();
 
-            canvasCtx.font = 'bold 15px Arial';
-            if (isDualMode) {
-                canvasCtx.fillStyle = '#ff0000';
-                let txt1 = "■ Nguồn 1 (Đỏ)";
-                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
-                canvasCtx.fillText(txt1, 15, 20);
+            // 3. VẼ ĐƯỜNG SÓNG ÂM (Tránh đè lên chữ ở bước sau)
+            if (!isReset) {
+                const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
+                const sliceWidth = canvas.width / samplesNeeded;
 
-                canvasCtx.fillStyle = '#0000ff';
-                let txt2 = "■ Nguồn 2 (Xanh)";
-                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
-                canvasCtx.fillText(txt2, 230, 20);
-            } else {
-                canvasCtx.fillStyle = '#ff0000';
-                canvasCtx.fillText("■ Sóng âm (Đỏ)", 15, 20);
+                if (!isDualMode) {
+                    let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
+                    if (activeData[0] !== 0) {
+                        let offset = findTriggerOffset(activeData);
+                        
+                        canvasCtx.lineWidth = 3; 
+                        canvasCtx.strokeStyle = '#ff0000'; 
+                        canvasCtx.beginPath();
+                        let x = 0, hasMoved = false;
+
+                        for (let i = 0; i < samplesNeeded && (i + offset) < bufferLength; i++) {
+                            const v = activeData[i + offset] / 128.0; 
+                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+
+                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                            else { canvasCtx.lineTo(x, y); }
+                            x += sliceWidth;
+                            if (x > canvas.width) break; 
+                        }
+                        canvasCtx.stroke();
+                    }
+                } else {
+                    let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
+                    if (drawData1 && drawData1[0] !== 0) {
+                        let offset1 = findTriggerOffset(drawData1);
+                        
+                        canvasCtx.lineWidth = 2.5; 
+                        canvasCtx.strokeStyle = '#ff0000'; 
+                        canvasCtx.beginPath();
+                        let x = 0, hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && (i + offset1) < bufferLength; i++) {
+                            const v = drawData1[i + offset1] / 128.0; 
+                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                            else { canvasCtx.lineTo(x, y); }
+                            x += sliceWidth;
+                            if (x > canvas.width) break; 
+                        }
+                        canvasCtx.stroke();
+                    }
+
+                    let drawData2 = (!isPaused && currentMeasuringStep === 2) ? dataArray : savedData2;
+                    if (drawData2 && drawData2[0] !== 0) {
+                        let offset2 = findTriggerOffset(drawData2);
+                        
+                        canvasCtx.lineWidth = 2.5; 
+                        canvasCtx.strokeStyle = '#0000ff'; 
+                        canvasCtx.beginPath();
+                        let x = 0, hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && (i + offset2) < bufferLength; i++) {
+                            const v = drawData2[i + offset2] / 128.0; 
+                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                            else { canvasCtx.lineTo(x, y); }
+                            x += sliceWidth;
+                            if (x > canvas.width) break; 
+                        }
+                        canvasCtx.stroke();
+                    }
+                }
             }
 
-            canvasCtx.fillStyle = '#000000';
+            // 4. VẼ CHỮ, SỐ TRỤC VÀ CHÚ THÍCH LÊN TRÊN CÙNG
+            canvasCtx.font = 'bold 15px Arial';
+
+            // Hàm phụ để tạo viền trắng cho chữ (chống bị vạch sóng đè mất nét)
+            function drawTextWithOutline(txt, x, y, color = '#000000') {
+                canvasCtx.strokeStyle = '#e6f7ff'; // Viền cùng màu nền
+                canvasCtx.lineWidth = 4;
+                canvasCtx.strokeText(txt, x, y); // Vẽ viền trước
+                canvasCtx.fillStyle = color;
+                canvasCtx.fillText(txt, x, y);   // Tô chữ đè lên viền
+            }
+
+            // Chú thích Nguồn
+            if (isDualMode) {
+                let txt1 = "■ Nguồn 1 (Đỏ)";
+                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
+                drawTextWithOutline(txt1, 15, 20, '#ff0000');
+
+                let txt2 = "■ Nguồn 2 (Xanh)";
+                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
+                drawTextWithOutline(txt2, 230, 20, '#0000ff');
+            } else {
+                drawTextWithOutline("■ Sóng âm (Đỏ)", 15, 20, '#ff0000');
+            }
+
+            // Ghi số liệu lên Trục X
             canvasCtx.textAlign = 'center';
             canvasCtx.textBaseline = 'top';
             let timePerGrid = totalTimeOnScreen / 10;
@@ -520,12 +598,13 @@
                 if (i !== 5) { 
                     let t_val = parseFloat(((i - 5) * timePerGrid).toFixed(4));
                     let t_str = (t_val * 1000).toFixed(1).replace('.', ','); 
-                    canvasCtx.fillText(t_str, i * stepX, canvas.height / 2 + 10);
+                    drawTextWithOutline(t_str, i * stepX, canvas.height / 2 + 10);
                 }
             }
             canvasCtx.textAlign = 'right';
-            canvasCtx.fillText("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
+            drawTextWithOutline("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
             
+            // Ghi số liệu lên Trục Y
             canvasCtx.textAlign = 'left';
             canvasCtx.textBaseline = 'middle';
             const maxY = 1.0 / zoomY; 
@@ -534,81 +613,12 @@
                 if (i !== 4) { 
                     let val = maxY - (i * valPerStep);
                     let val_str = parseFloat(val.toFixed(2)).toString().replace('.', ',');
-                    canvasCtx.fillText(val_str, canvas.width / 2 + 10, i * stepY);
+                    drawTextWithOutline(val_str, canvas.width / 2 + 10, i * stepY);
                 }
             }
-            canvasCtx.fillText("0", canvas.width / 2 + 8, canvas.height / 2 + 15); 
+            drawTextWithOutline("0", canvas.width / 2 + 8, canvas.height / 2 + 15); 
             canvasCtx.textBaseline = 'top';
-            canvasCtx.fillText("Biên độ", canvas.width / 2 + 10, isDualMode ? 40 : 40);
-
-            if (isReset) return;
-
-            const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
-            const sliceWidth = canvas.width / samplesNeeded;
-
-            if (!isDualMode) {
-                let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
-                if (activeData[0] !== 0) {
-                    let offset = findTriggerOffset(activeData);
-                    
-                    canvasCtx.lineWidth = 3; 
-                    canvasCtx.strokeStyle = '#ff0000'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-
-                    for (let i = 0; i < samplesNeeded && (i + offset) < bufferLength; i++) {
-                        const v = activeData[i + offset] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
-                    }
-                    canvasCtx.stroke();
-                }
-            } else {
-                let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
-                if (drawData1 && drawData1[0] !== 0) {
-                    let offset1 = findTriggerOffset(drawData1);
-                    
-                    canvasCtx.lineWidth = 2.5; 
-                    canvasCtx.strokeStyle = '#ff0000'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-                    for (let i = 0; i < samplesNeeded && (i + offset1) < bufferLength; i++) {
-                        const v = drawData1[i + offset1] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
-                    }
-                    canvasCtx.stroke();
-                }
-
-                let drawData2 = (!isPaused && currentMeasuringStep === 2) ? dataArray : savedData2;
-                if (drawData2 && drawData2[0] !== 0) {
-                    let offset2 = findTriggerOffset(drawData2);
-                    
-                    canvasCtx.lineWidth = 2.5; 
-                    canvasCtx.strokeStyle = '#0000ff'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-                    for (let i = 0; i < samplesNeeded && (i + offset2) < bufferLength; i++) {
-                        const v = drawData2[i + offset2] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
-                    }
-                    canvasCtx.stroke();
-                }
-            }
+            drawTextWithOutline("Biên độ", canvas.width / 2 + 10, isDualMode ? 40 : 40);
         }
 
         function draw() {
