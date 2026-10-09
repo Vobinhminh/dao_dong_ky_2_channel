@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dao động ký - Thực hành đo sóng âm (Có Trigger)</title>
+    <title>Dao động ký (Oscilloscope) - Sóng âm</title>
     <style>
         html, body {
             margin: 0;
@@ -68,7 +68,7 @@
             padding: 6px 12px;
             border-radius: 6px;
             border: 1px solid #ccc;
-            min-width: 220px;
+            min-width: 200px;
             text-align: center;
             flex-grow: 1; 
         }
@@ -86,19 +86,20 @@
             transition: background-color 0.2s;
             white-space: nowrap;
         }
-        button:hover { filter: brightness(0.9); }
+        button:hover { background-color: #0056b3; }
         button:disabled {
             background-color: #999;
             cursor: not-allowed;
             box-shadow: none;
         }
-        #modeButton { background-color: #6f42c1; }
-        #startButton { background-color: #007bff; }
         #pauseButton { background-color: #28a745; }
-        #triggerButton { background-color: #20c997; } /* Màu xanh ngọc cho Trigger */
         #resetButton { background-color: #fd7e14; }
         #saveButton { background-color: #17a2b8; }
         #fullscreenButton { background-color: #6c757d; }
+        
+        #pauseButton:hover, #resetButton:hover, #saveButton:hover, #fullscreenButton:hover { 
+            filter: brightness(0.9); 
+        }
 
         canvas {
             flex-grow: 1;
@@ -111,13 +112,11 @@
 <body>
     <div class="controls-wrapper">
         <div class="btn-group">
-            <button id="modeButton">Chế độ: 1 Nguồn</button>
             <button id="startButton">1. Bật Micro</button>
             <button id="pauseButton" disabled>2. Đo / Dừng</button>
-            <button id="triggerButton">3. Trigger: BẬT</button>
-            <button id="resetButton" disabled>4. Làm mới</button>
-            <button id="saveButton" disabled>5. Chụp ảnh</button>
-            <button id="fullscreenButton">6. Toàn màn hình</button>
+            <button id="resetButton" disabled>3. Làm mới</button>
+            <button id="saveButton" disabled>4. Chụp ảnh đồ thị</button>
+            <button id="fullscreenButton">5. Toàn màn hình</button>
         </div>
         
         <div class="slider-group">
@@ -137,10 +136,8 @@
     <canvas id="oscilloscope"></canvas>
 
     <script>
-        const modeButton = document.getElementById('modeButton');
         const startButton = document.getElementById('startButton');
         const pauseButton = document.getElementById('pauseButton');
-        const triggerButton = document.getElementById('triggerButton');
         const resetButton = document.getElementById('resetButton');
         const saveButton = document.getElementById('saveButton');
         const fullscreenButton = document.getElementById('fullscreenButton');
@@ -150,19 +147,10 @@
         const canvas = document.getElementById('oscilloscope');
         const canvasCtx = canvas.getContext('2d');
         
-        let audioCtx, analyser;
-        let isDualMode = false; 
+        let audioCtx, analyser, highpassFilter, lowpassFilter;
         let isPaused = true; 
-        let useTrigger = true; // Mặc định bật Trigger
         let sampleRate = 48000; 
-        let stopTimer; 
-
         let detectedFrequency = 0; 
-        let freq1 = 0; 
-        let freq2 = 0; 
-        let savedData1 = null; 
-        let savedData2 = null; 
-        let currentMeasuringStep = 1; 
         
         function resizeCanvas() {
             canvas.width = canvas.clientWidth;
@@ -171,39 +159,47 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        modeButton.addEventListener('click', () => {
-            isDualMode = !isDualMode;
-            modeButton.textContent = isDualMode ? "Chế độ: 2 Nguồn (Lần lượt)" : "Chế độ: 1 Nguồn";
-            location.reload(); 
-        });
-
-        triggerButton.addEventListener('click', () => {
-            useTrigger = !useTrigger;
-            triggerButton.textContent = useTrigger ? "3. Trigger: BẬT" : "3. Trigger: TẮT";
-            triggerButton.style.backgroundColor = useTrigger ? "#20c997" : "#6c757d";
-            if (isPaused) drawFrame(false);
-        });
-
+        // Xử lý bật/tắt toàn màn hình tương thích đa nền tảng
         fullscreenButton.addEventListener('click', () => {
             let elem = document.documentElement;
             let isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
 
             if (!isFullscreen) {
-                if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
-                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        alert("Thiết bị này không hỗ trợ Fullscreen (thường gặp trên iPhone). Bạn hãy xoay ngang màn hình điện thoại để đồ thị to hơn nhé!");
+                    });
+                } else if (elem.webkitRequestFullscreen) { 
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { 
+                    elem.msRequestFullscreen();
+                } else {
+                    alert("Trình duyệt điện thoại của bạn không hỗ trợ chức năng toàn màn hình. Hãy xoay ngang điện thoại để xem rõ hơn.");
+                }
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { 
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { 
+                    document.msExitFullscreen();
+                }
             }
         });
 
         function updateFullscreenButton() {
             let isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-            fullscreenButton.textContent = !isFullscreen ? "6. Toàn màn hình" : "6. Thu nhỏ (Thoát)";
+            if (!isFullscreen) {
+                fullscreenButton.textContent = "5. Toàn màn hình";
+            } else {
+                fullscreenButton.textContent = "5. Thu nhỏ (Thoát)";
+            }
             setTimeout(resizeCanvas, 100); 
         }
+
         document.addEventListener('fullscreenchange', updateFullscreenButton);
         document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('MSFullscreenChange', updateFullscreenButton);
 
         function autoCorrelate(buffer, sampleRate) {
             let SIZE = buffer.length;
@@ -222,6 +218,7 @@
             for (let i = 1; i < SIZE / 2; i++) {
                 if (Math.abs((buffer[SIZE - i] - 128) / 128) < thres) { r2 = SIZE - i; break; }
             }
+
             buffer = buffer.slice(r1, r2);
             SIZE = buffer.length;
 
@@ -243,45 +240,6 @@
             return sampleRate / maxpos;
         }
 
-        // Hàm tìm vị trí điểm cắt 0 (đi lên)
-        function findTriggerOffset(buffer) {
-            if (!useTrigger || !buffer) return 0;
-            for (let i = 0; i < buffer.length - 1; i++) {
-                if (buffer[i] <= 128 && buffer[i + 1] > 128) {
-                    return i;
-                }
-            }
-            return 0;
-        }
-
-        function triggerAutoStop() {
-            clearTimeout(stopTimer);
-            if (!isPaused) {
-                stopTimer = setTimeout(() => {
-                    if (!isPaused) {
-                        isPaused = true;
-                        pauseButton.textContent = "2. Đo / Dừng";
-                        pauseButton.style.backgroundColor = "#28a745"; 
-                        
-                        if (isDualMode) {
-                            if (currentMeasuringStep === 1) {
-                                infoText.textContent = "Đã xong Nguồn 1. Bấm Đo để thu Nguồn 2!";
-                                infoText.style.color = "#0000ff";
-                                currentMeasuringStep = 2;
-                                pauseButton.disabled = false;
-                            } else {
-                                infoText.textContent = "Đã xong 2 nguồn - So sánh tần số f1 & f2";
-                                infoText.style.color = "#d93025";
-                            }
-                        } else {
-                            infoText.textContent = "Đã dừng - Hãy xác định chu kỳ T trên đồ thị";
-                            infoText.style.color = "#d93025";
-                        }
-                    }
-                }, 2000); 
-            }
-        }
-
         startButton.addEventListener('click', async () => {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -291,16 +249,17 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const source = audioCtx.createMediaStreamSource(stream);
                 
-                const highpassFilter = audioCtx.createBiquadFilter();
+                highpassFilter = audioCtx.createBiquadFilter();
                 highpassFilter.frequency.value = 80;
                 highpassFilter.type = 'highpass';
 
-                const lowpassFilter = audioCtx.createBiquadFilter();
+                lowpassFilter = audioCtx.createBiquadFilter();
                 lowpassFilter.frequency.value = 3000;
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 8192; // Tăng fftSize để có đủ điểm dữ liệu khi dùng Trigger
+                // NÂNG CẤP BỘ NHỚ LÊN TỐI ĐA 32768 để chống mất sóng trục X khi Zoom X
+                analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -310,20 +269,14 @@
                 resizeCanvas();
                 drawFrame(); 
                 
-                startButton.textContent = "Đã kết nối Micro";
+                startButton.textContent = "Đã kết nối micro";
                 startButton.disabled = true;
-                modeButton.disabled = true;
                 pauseButton.disabled = false;
                 resetButton.disabled = false;
                 saveButton.disabled = false;
                 
-                if (isDualMode) {
-                    infoText.textContent = "Sẵn sàng: Hãy phát Nguồn 1 và bấm Đo";
-                    infoText.style.color = "#ff0000";
-                } else {
-                    infoText.textContent = "Trạng thái: Đã sẵn sàng";
-                    infoText.style.color = "#007bff";
-                }
+                infoText.textContent = "Trạng thái: Đã sẵn sàng";
+                infoText.style.color = "#007bff";
             } catch (err) {
                 alert("Không thể truy cập micro. Lỗi: " + err);
             }
@@ -334,60 +287,33 @@
                 isPaused = false;
                 pauseButton.textContent = "Đang đo...";
                 pauseButton.style.backgroundColor = "#dc3545"; 
-                
-                if (isDualMode) {
-                    if (currentMeasuringStep === 1) infoText.textContent = "Đang ghi Nguồn 1 (Màu Đỏ)...";
-                    else infoText.textContent = "Đang ghi Nguồn 2 (Màu Xanh)...";
-                } else {
-                    infoText.textContent = "Trạng thái: Đang ghi sóng âm...";
-                }
+                infoText.textContent = "Trạng thái: Đang ghi sóng âm...";
                 infoText.style.color = "#dc3545";
-                
                 draw(); 
-                triggerAutoStop(); 
             } else {
                 isPaused = true;
-                clearTimeout(stopTimer); 
                 pauseButton.textContent = "2. Đo / Dừng";
                 pauseButton.style.backgroundColor = "#28a745"; 
-                
-                if (isDualMode && currentMeasuringStep === 1) {
-                    infoText.textContent = "Đã xong Nguồn 1. Bấm Đo để thu Nguồn 2!";
-                    infoText.style.color = "#0000ff";
-                    currentMeasuringStep = 2;
-                } else {
-                    infoText.textContent = "Đã dừng - Hãy xác định chu kỳ T trên đồ thị";
-                    infoText.style.color = "#d93025";
-                }
+                infoText.textContent = "Đã dừng - Hãy xác định chu kỳ T và tần số f";
+                infoText.style.color = "#d93025";
             }
         });
 
         resetButton.addEventListener('click', () => {
             isPaused = true;
-            clearTimeout(stopTimer); 
             pauseButton.textContent = "2. Đo / Dừng";
             pauseButton.style.backgroundColor = "#28a745"; 
             
             detectedFrequency = 0;
-            freq1 = 0;
-            freq2 = 0;
-            savedData1 = null;
-            savedData2 = null;
-            currentMeasuringStep = 1;
-
-            if (isDualMode) {
-                infoText.textContent = "Đã làm mới: Hãy phát Nguồn 1 và bấm Đo";
-                infoText.style.color = "#ff0000";
-            } else {
-                infoText.textContent = "Trạng thái: Đã sẵn sàng";
-                infoText.style.color = "#007bff";
-            }
+            infoText.textContent = "Trạng thái: Đã sẵn sàng";
+            infoText.style.color = "#007bff";
+            
             drawFrame(true);
         });
 
         saveButton.addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = `DoThi_Oscilloscope.png`;
+            link.download = `DoThi_SongAm_ThucHanh.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
@@ -407,37 +333,23 @@
             
             if (!isPaused && !isReset) {
                 analyser.getByteTimeDomainData(dataArray);
-                let freq = autoCorrelate(dataArray, sampleRate);
-                if (freq > 50 && freq < 2000) {
-                    detectedFrequency = freq;
-                    if (!isDualMode) {
-                        freq1 = freq;
-                    } else {
-                        if (currentMeasuringStep === 1) freq1 = freq;
-                        if (currentMeasuringStep === 2) freq2 = freq;
-                    }
-                }
-
-                if (isDualMode) {
-                    if (currentMeasuringStep === 1) savedData1 = new Uint8Array(dataArray);
-                    else if (currentMeasuringStep === 2) savedData2 = new Uint8Array(dataArray);
-                }
+                // Trích xuất 2048 mẫu đầu tiên để tính tần số nhanh, tránh giật lag trình duyệt
+                let freq = autoCorrelate(dataArray.slice(0, 2048), sampleRate);
+                if (freq > 50 && freq < 2000) detectedFrequency = freq;
             }
 
             const zoomY = parseFloat(zoomYSlider.value);
             const zoomX = parseFloat(zoomXSlider.value);
 
-            let freqForCalc = 440;
-            if (freq1 > 0) freqForCalc = freq1;
-            else if (detectedFrequency > 0 && !isReset) freqForCalc = detectedFrequency;
-
+            let freqForCalc = (detectedFrequency > 0 && !isReset) ? detectedFrequency : 440; 
             let period = 1.0 / freqForCalc;
             let totalTimeOnScreen = 5 * period * zoomX; 
 
-            // Vẽ nền và lưới
+            // Xóa nền
             canvasCtx.fillStyle = '#e6f7ff'; 
             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Vẽ lưới
             canvasCtx.strokeStyle = '#b3e0ff'; 
             canvasCtx.lineWidth = 1;
             const stepX = canvas.width / 10;  
@@ -452,7 +364,7 @@
             }
             canvasCtx.stroke();
 
-            // Trục chính
+            // Vẽ trục tọa độ chính
             canvasCtx.lineWidth = 2;
             canvasCtx.strokeStyle = '#000000'; 
             canvasCtx.beginPath();
@@ -461,6 +373,7 @@
             canvasCtx.moveTo(canvas.width / 2, 0);  
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             
+            // Vẽ các vạch chia nhỏ
             const tickSize = 5; 
             for(let i = 0; i <= 10; i++) {
                 canvasCtx.moveTo(i * stepX, canvas.height / 2 - tickSize);
@@ -472,25 +385,9 @@
             }
             canvasCtx.stroke();
 
-            // Chú thích
-            canvasCtx.font = 'bold 15px Arial';
-            if (isDualMode) {
-                canvasCtx.fillStyle = '#ff0000';
-                let txt1 = "■ Nguồn 1 (Đỏ)";
-                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
-                canvasCtx.fillText(txt1, 15, 20);
-
-                canvasCtx.fillStyle = '#0000ff';
-                let txt2 = "■ Nguồn 2 (Xanh)";
-                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
-                canvasCtx.fillText(txt2, 230, 20);
-            } else {
-                canvasCtx.fillStyle = '#ff0000';
-                canvasCtx.fillText("■ Sóng âm (Đỏ)", 15, 20);
-            }
-
-            // Chia trục
-            canvasCtx.fillStyle = '#000000';
+            // Ghi số liệu lên trục X
+            canvasCtx.fillStyle = '#000000'; 
+            canvasCtx.font = 'bold 14px Arial';
             canvasCtx.textAlign = 'center';
             canvasCtx.textBaseline = 'top';
             let timePerGrid = totalTimeOnScreen / 10;
@@ -504,88 +401,61 @@
             canvasCtx.textAlign = 'right';
             canvasCtx.fillText("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
             
+            // Ghi số liệu lên trục Y
             canvasCtx.textAlign = 'left';
             canvasCtx.textBaseline = 'middle';
             const maxY = 1.0 / zoomY; 
             const valPerStep = (maxY * 2) / 8; 
             for(let i = 0; i <= 8; i++) {
-                if (i !== 4) { 
+                if (i !== 4 && i !== 0) { 
                     let val = maxY - (i * valPerStep);
                     let val_str = parseFloat(val.toFixed(2)).toString().replace('.', ',');
                     canvasCtx.fillText(val_str, canvas.width / 2 + 10, i * stepY);
                 }
             }
             canvasCtx.fillText("0", canvas.width / 2 + 8, canvas.height / 2 + 15); 
+            
             canvasCtx.textBaseline = 'top';
-            canvasCtx.fillText("Biên độ", canvas.width / 2 + 10, isDualMode ? 40 : 40);
+            canvasCtx.fillText("Biên độ", canvas.width / 2 + 10, 10);
 
             if (isReset) return;
 
-            const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
-            const sliceWidth = canvas.width / samplesNeeded;
+            // Vẽ đồ thị âm thanh (Clip cắt xén không gian cho CẢ TRỤC X VÀ TRỤC Y)
+            if (!isPaused || dataArray[0] !== 0) {
+                canvasCtx.save(); 
+                
+                // Khung cắt bảo vệ toàn bộ 4 cạnh (Trái, Phải, Trên, Dưới) của màn hình
+                canvasCtx.beginPath();
+                canvasCtx.rect(0, 0, canvas.width, canvas.height);
+                canvasCtx.clip(); 
 
-            if (!isDualMode) {
-                let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
-                if (activeData[0] !== 0) {
-                    let offset = findTriggerOffset(activeData);
+                canvasCtx.lineWidth = 3; 
+                canvasCtx.strokeStyle = '#ff0000'; 
+                canvasCtx.beginPath();
+
+                const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
+                const sliceWidth = canvas.width / samplesNeeded;
+                let x = 0;
+                let hasMoved = false;
+
+                for (let i = 0; i < bufferLength && i < samplesNeeded; i++) {
+                    const v = dataArray[i] ? dataArray[i] / 128.0 : 1.0; 
+                    let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                     
-                    canvasCtx.lineWidth = 3; 
-                    canvasCtx.strokeStyle = '#ff0000'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-
-                    for (let i = 0; i < samplesNeeded && (i + offset) < bufferLength; i++) {
-                        const v = activeData[i + offset] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
+                    if (!hasMoved) {
+                        canvasCtx.moveTo(x, y);
+                        hasMoved = true;
+                    } else {
+                        canvasCtx.lineTo(x, y);
                     }
-                    canvasCtx.stroke();
-                }
-            } else {
-                let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
-                if (drawData1 && drawData1[0] !== 0) {
-                    let offset1 = findTriggerOffset(drawData1);
-                    
-                    canvasCtx.lineWidth = 2.5; 
-                    canvasCtx.strokeStyle = '#ff0000'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-                    for (let i = 0; i < samplesNeeded && (i + offset1) < bufferLength; i++) {
-                        const v = drawData1[i + offset1] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
-                    }
-                    canvasCtx.stroke();
-                }
 
-                let drawData2 = (!isPaused && currentMeasuringStep === 2) ? dataArray : savedData2;
-                if (drawData2 && drawData2[0] !== 0) {
-                    let offset2 = findTriggerOffset(drawData2);
-                    
-                    canvasCtx.lineWidth = 2.5; 
-                    canvasCtx.strokeStyle = '#0000ff'; 
-                    canvasCtx.beginPath();
-                    let x = 0, hasMoved = false;
-                    for (let i = 0; i < samplesNeeded && (i + offset2) < bufferLength; i++) {
-                        const v = drawData2[i + offset2] / 128.0; 
-                        let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                        if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                        if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                        else { canvasCtx.lineTo(x, y); }
-                        x += sliceWidth;
-                        if (x > canvas.width) break; 
-                    }
-                    canvasCtx.stroke();
+                    x += sliceWidth;
+                    // Tự động ngắt vẽ khi sóng đi vượt mép phải màn hình để tối ưu hiệu năng
+                    if (x > canvas.width) break; 
                 }
+                canvasCtx.stroke();
+                
+                canvasCtx.restore(); 
             }
         }
 
