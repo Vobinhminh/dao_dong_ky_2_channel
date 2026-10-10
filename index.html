@@ -190,7 +190,7 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        let totalTimeOnScreen = null; // Tự động căn chuẩn 5T
+        let totalTimeOnScreen = null; 
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
@@ -218,7 +218,6 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // Thuật toán nhận diện tần số thô cực nhanh để căn 5T
         function estimateFrequency(buffer, sampleRate) {
             let SIZE = buffer.length;
             let r1 = 0, r2 = SIZE - 1, thres = 0.2;
@@ -358,7 +357,6 @@
         document.addEventListener('fullscreenchange', updateFullscreenButton);
         document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
-        // Tự động dừng thu âm sau đúng 2 giây
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
@@ -405,7 +403,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 32768; // Bộ đệm sâu 2 giây
+                analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -430,7 +428,6 @@
 
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
-                // XÓA SẠCH DỮ LIỆU CŨ KHI BẮT ĐẦU ĐO MỚI
                 if (!isDualMode) {
                     savedData1 = null;
                 } else {
@@ -444,7 +441,7 @@
 
                 isPaused = false;
                 panX = 0;
-                totalTimeOnScreen = null; // Reset để tính lại 5T cho lần đo mới
+                totalTimeOnScreen = null; 
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (2s)...";
                 infoText.style.color = "#dc3545";
@@ -516,7 +513,6 @@
             if (totalTimeOnScreen === null && activeDataForCalc) {
                 let estFreq = estimateFrequency(activeDataForCalc, sampleRate);
                 if (estFreq < 30) estFreq = 440;
-                // Mặc định hiển thị đúng 5 chu kỳ (5T) trên 10 ô lưới
                 totalTimeOnScreen = 5 * (1.0 / estFreq);
             }
             if (totalTimeOnScreen === null) totalTimeOnScreen = 0.05;
@@ -549,9 +545,11 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM VỚI KỸ THUẬT DOWNSAMPLING SIÊU MƯỢT
+            // 3. VẼ ĐƯỜNG SÓNG ÂM VỚI DOWNSAMPLING
             if (!isReset) {
                 const totalSamples = bufferLength;
+                let samplesInView = totalTimeOnScreen * sampleRate;
+                let step = Math.max(1, Math.floor(samplesInView / canvas.width));
                 
                 if (!isDualMode) {
                     let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
@@ -559,10 +557,6 @@
                         canvasCtx.lineWidth = 3; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        
-                        // Kỹ thuật Downsampling: Lọc bước nhảy mẫu tối ưu theo chiều ngang màn hình
-                        let samplesInView = totalTimeOnScreen * sampleRate;
-                        let step = Math.max(1, Math.floor(samplesInView / canvas.width));
                         let hasMoved = false;
 
                         for (let i = 0; i < totalSamples; i += step) {
@@ -581,10 +575,6 @@
                         canvasCtx.stroke();
                     }
                 } else {
-                    // Chế độ 2 nguồn (Đỏ & Xanh) với Downsampling
-                    let samplesInView = totalTimeOnScreen * sampleRate;
-                    let step = Math.max(1, Math.floor(samplesInView / canvas.width));
-
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
                     if (drawData1 && drawData1.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
@@ -627,7 +617,7 @@
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ CHIA ĐỀU HAI BÊN TRỤC
+            // 4. VẼ SỐ LIỆU (KHÔNG LẶP ĐƠN VỊ TẠI CÁC VẠCH, ĐƠN VỊ ĐẶT TẠI ĐẦU TRỤC)
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
@@ -645,9 +635,9 @@
                     let t_val = (i - 5) * (timePerGrid / 5);
                     let t_str = "";
                     if (Math.abs(t_val) >= 1) {
-                        t_str = t_val.toFixed(2).replace('.', ',') + "s";
+                        t_str = t_val.toFixed(2).replace('.', ',');
                     } else {
-                        t_str = Math.round(t_val * 1000) + "ms";
+                        t_str = Math.round(t_val * 1000);
                     }
                     drawTextWithOutline(t_str, i * stepX, canvas.height / 2 + 5);
                 }
@@ -666,7 +656,7 @@
             }
             drawTextWithOutline("0", canvas.width / 2 + 6, canvas.height / 2 + 8);
 
-            // 5. HIỂN THỊ TÊN ĐẠI LƯỢNG
+            // 5. HIỂN THỊ TÊN ĐẠI LƯỢNG & ĐƠN VỊ TẠI ĐẦU TRỤC
             canvasCtx.textBaseline = 'top';
             if (isDualMode) {
                 canvasCtx.textAlign = 'left';
@@ -678,8 +668,9 @@
                 drawTextWithOutline("■ Sóng âm (Đỏ)", 15, 10, '#ff0000');
             }
 
+            // Đơn vị Trục X (ms) và Trục Y (Biên độ) ở đầu mũi tên
             canvasCtx.textAlign = 'right';
-            drawTextWithOutline("t", canvas.width - 10, canvas.height / 2 - 25);
+            drawTextWithOutline("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
             
             canvasCtx.textAlign = 'right';
             drawTextWithOutline("Biên độ", canvas.width / 2 - 8, 5);
