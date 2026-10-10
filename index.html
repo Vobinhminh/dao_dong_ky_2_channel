@@ -193,7 +193,8 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        let totalTimeOnScreen = 0.2; 
+        // Khởi tạo ban đầu ở chế độ tự động chuẩn 5T (sẽ tự động cập nhật theo tần số mic)
+        let totalTimeOnScreen = null; 
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
@@ -221,8 +222,13 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // 1. Lăn chuột Zoom (Máy tính): Giới hạn từ 0.04s (-0.02s đến 0.02s) đến 2.4s (-1.2s đến 1.2s)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
+            if (totalTimeOnScreen === null) {
+                let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
+                totalTimeOnScreen = 5 * (1.0 / freqForCalc);
+            }
             let step = 0.05;
             if (e.deltaY < 0) {
                 totalTimeOnScreen = Math.max(0.04, totalTimeOnScreen - step); 
@@ -247,6 +253,7 @@
 
         window.addEventListener('mouseup', () => { isDragging = false; });
 
+        // 2. Zoom cảm ứng chạm (Điện thoại & Máy tính bảng)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -268,6 +275,10 @@
                 startX = e.touches[0].clientX;
                 if (isPaused) drawFrame();
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+                if (totalTimeOnScreen === null) {
+                    let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
+                    totalTimeOnScreen = 5 * (1.0 / freqForCalc);
+                }
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
@@ -299,7 +310,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = 0.2;
+            totalTimeOnScreen = null; // Reset về chuẩn 5T tự động theo tần số mới
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -415,7 +426,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 16384; // Cố định chuẩn lũy thừa của 2 hợp lệ (16384) tương thích toàn bộ thiết bị
+                analyser.fftSize = 16384; 
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -441,7 +452,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = 0.2; 
+                totalTimeOnScreen = null; // Kích hoạt tính năng tự động chuẩn 5T khi bắt đầu đo
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
@@ -477,7 +488,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = 0.2;
+            totalTimeOnScreen = null;
 
             infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
             infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
@@ -520,11 +531,9 @@
                 }
             }
 
-            if (!isReset) {
-                let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                if (isPaused && totalTimeOnScreen === 0.2) {
-                    totalTimeOnScreen = 5 * (1.0 / freqForCalc); 
-                }
+            let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
+            if (totalTimeOnScreen === null) {
+                totalTimeOnScreen = 5 * (1.0 / freqForCalc); // Tự động nhận diện chuẩn 5 chu kỳ (5T)
             }
 
             // 1. Vẽ nền
