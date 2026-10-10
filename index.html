@@ -193,7 +193,6 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Tổng thời gian hiển thị trên màn hình (được giới hạn từ 0.04s đến 2.4s tương ứng -0.02s->0.02s và -1.2s->1.2s)
         let totalTimeOnScreen = 0.2; 
         let zoomY = 2.0;
         let panX = 0;
@@ -222,14 +221,13 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính): Giới hạn từ 0.04s đến 2.4s
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             let step = 0.05;
             if (e.deltaY < 0) {
-                totalTimeOnScreen = Math.max(0.04, totalTimeOnScreen - step); // Phóng to kịch kim tới 0.04s (-0.02s đến 0.02s)
+                totalTimeOnScreen = Math.max(0.04, totalTimeOnScreen - step); 
             } else {
-                totalTimeOnScreen = Math.min(2.4, totalTimeOnScreen + step);   // Thu nhỏ kịch kim tới 2.4s (-1.2s đến 1.2s)
+                totalTimeOnScreen = Math.min(2.4, totalTimeOnScreen + step);   
             }
             if (isPaused) drawFrame();
         }, { passive: false });
@@ -249,7 +247,6 @@
 
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // 2. Zoom cảm ứng chạm (Điện thoại & Máy tính bảng)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -418,7 +415,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 65536; // Deep Buffer cực sâu để quét mượt mà dải rộng 2.4s
+                analyser.fftSize = 16384; // Cố định chuẩn lũy thừa của 2 hợp lệ (16384) tương thích toàn bộ thiết bị
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -444,7 +441,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = 0.2; // Mặc định chuẩn ban đầu khi bấm đo
+                totalTimeOnScreen = 0.2; 
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
@@ -526,7 +523,7 @@
             if (!isReset) {
                 let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
                 if (isPaused && totalTimeOnScreen === 0.2) {
-                    totalTimeOnScreen = 5 * (1.0 / freqForCalc); // Tự động nhận diện chuẩn 5 chu kỳ (5T) khi dừng đo
+                    totalTimeOnScreen = 5 * (1.0 / freqForCalc); 
                 }
             }
 
@@ -622,7 +619,7 @@
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI (Chia đều đặn từ âm sang dương cho 10 ô)
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
