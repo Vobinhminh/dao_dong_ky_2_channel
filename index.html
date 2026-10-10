@@ -189,7 +189,7 @@
         let detectedFrequency = 0; 
         let freq1 = 0; 
         let freq2 = 0; 
-        let savedData1 = null; 
+        let savedData1 = null;  // Lưu mảng 32768 mẫu đầy đủ trong 2 giây
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
@@ -221,15 +221,15 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính): Giới hạn 0.01s đến 2.4s chia đều 10 ô
+        // 1. Lăn chuột Zoom (Máy tính): Cho phép phóng to tối đa đến 0.01s và thu nhỏ toàn cảnh đến 2.0s
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (totalTimeOnScreen === null) {
                 let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc)));
             }
             let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
-            totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * zoomMultiplier)); 
+            totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
             
             if (isPaused) drawFrame();
         }, { passive: false });
@@ -273,14 +273,14 @@
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
                 if (totalTimeOnScreen === null) {
                     let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                    totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
+                    totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc)));
                 }
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 let factor = initialPinchDistance / currentDistance;
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * factor));
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * factor));
                 initialPinchDistance = currentDistance;
                 if (isPaused) drawFrame();
             }
@@ -377,10 +377,10 @@
             return sampleRate / maxpos;
         }
 
+        // Tự động dừng thu âm sau đúng 2 giây
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
-                // Đã chỉnh thời gian thu âm tự động dừng sau đúng 2 giây
                 stopTimer = setTimeout(() => {
                     if (!isPaused) {
                         isPaused = true;
@@ -401,7 +401,7 @@
                             infoText.style.color = "#d93025";
                         }
                     }
-                }, 2000); 
+                }, 2000); // 2000ms = 2 giây
             }
         }
 
@@ -423,6 +423,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
+                // Lõi Deep Buffer 32768 mẫu (lưu trữ đầy đủ 2 giây dữ liệu sóng âm)
                 analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
@@ -449,7 +450,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = null; 
+                totalTimeOnScreen = null; // Kích hoạt tính năng chuẩn 5T tự động khi bấm đo
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (2s)...";
@@ -506,7 +507,7 @@
                 return;
             }
             
-            const bufferLength = analyser.frequencyBinCount; 
+            const bufferLength = analyser.frequencyBinCount; // 16384 giá trị tương đương 2 giây dữ liệu
             const dataArray = new Uint8Array(bufferLength);
             
             if (!isPaused && !isReset) {
@@ -525,12 +526,15 @@
                 if (isDualMode) {
                     if (currentMeasuringStep === 1) savedData1 = new Uint8Array(dataArray);
                     else if (currentMeasuringStep === 2) savedData2 = new Uint8Array(dataArray);
+                } else {
+                    savedData1 = new Uint8Array(dataArray);
                 }
             }
 
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             if (totalTimeOnScreen === null) {
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc))); 
+                // Tự động căn mặc định chuẩn 5 chu kỳ (5T)
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc))); 
             }
 
             // 1. Vẽ nền
