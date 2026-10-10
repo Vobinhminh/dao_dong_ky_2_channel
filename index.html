@@ -24,42 +24,41 @@
         
         .controls-wrapper {
             display: flex;
-            flex-direction: column;
             background-color: #f0f4f8;
             border-bottom: 2px solid #333;
-            padding: 6px 8px;
-            gap: 6px;
-            flex-shrink: 0; 
+            padding: 8px 10px;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: stretch; 
         }
 
-        .top-row {
+        .controls-left {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             gap: 6px;
-            width: 100%;
+            flex-grow: 1;
         }
 
         .btn-group {
             display: flex; 
-            flex-wrap: wrap; 
-            gap: 5px; 
+            flex-wrap: nowrap; 
+            gap: 6px; 
             align-items: center;
-            flex-grow: 1;
+            width: 100%;
         }
 
         .btn-group button {
-            flex: 1 1 calc(33.333% - 5px);
-            min-width: 90px;
-            height: 38px;
+            flex-grow: 1;
+            flex-basis: 0;
+            height: 40px;
         }
 
         .info-panel {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             color: #d93025;
             background: #fff;
-            padding: 0 8px;
+            padding: 0 10px;
             border-radius: 6px;
             border: 1px solid #ccc;
             text-align: center;
@@ -68,11 +67,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 36px;
+            height: 40px;
         }
 
         button {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             color: white;
@@ -90,12 +89,12 @@
             box-shadow: none;
         }
         
-        #modeButton { background-color: #6f42c1 !important; }      /* Tím */
-        #startButton { background-color: #007bff !important; }     /* Xanh dương */
-        #pauseButton { background-color: #28a745 !important; }     /* Xanh lá */
-        #resetButton { background-color: #fd7e14 !important; }     /* Cam */
-        #saveButton { background-color: #17a2b8 !important; }      /* Xanh ngọc */
-        #fullscreenButton { background-color: #343a40 !important; } /* Đen xám */
+        #modeButton { background-color: #6f42c1 !important; }      
+        #startButton { background-color: #007bff !important; }     
+        #pauseButton { background-color: #28a745 !important; }     
+        #resetButton { background-color: #fd7e14 !important; }     
+        #saveButton { background-color: #17a2b8 !important; }      
+        #fullscreenButton { background-color: #343a40 !important; } 
 
         canvas {
             flex-grow: 1;
@@ -104,56 +103,52 @@
             touch-action: none;
         }
 
+        /* Mặc định trên máy tính: Hiển thị mã QR */
         .qr-toolbar-box {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background: #ffffff;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             border: 2px solid #007bff;
             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
             flex-shrink: 0;
+            align-self: stretch; 
         }
         #toolbarQrcode canvas, #toolbarQrcode img {
             display: block;
         }
         .qr-toolbar-label {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: bold;
             color: #007bff;
             line-height: 1.2;
             text-align: center;
         }
 
-        /* Tối ưu riêng cho màn hình máy tính / màn hình rộng */
-        @media (min-width: 768px) {
-            .controls-wrapper {
-                flex-direction: row;
-                align-items: stretch;
+        /* Trên điện thoại và máy tính bảng (màn hình nhỏ hơn hoặc bằng 900px): Tự động ẩn mã QR đi */
+        @media (max-width: 900px) {
+            .qr-toolbar-box {
+                display: none !important;
             }
-            .controls-left {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                flex-grow: 1;
+            .btn-group {
+                flex-wrap: wrap;
             }
             .btn-group button {
-                flex: 1 1 auto;
-                height: 40px;
+                flex-grow: unset;
+                flex-basis: calc(33.333% - 4px);
+                height: 38px;
             }
             .info-panel {
-                height: 40px;
-            }
-            .qr-toolbar-box {
-                align-self: stretch;
+                height: 38px;
             }
         }
     </style>
 </head>
 <body>
     <div class="controls-wrapper">
-        <div class="controls-left" style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
+        <div class="controls-left">
             <div class="btn-group">
                 <button id="modeButton">1 Nguồn</button>
                 <button id="startButton">Bật Mic</button>
@@ -210,8 +205,8 @@
 
             new QRCode(document.getElementById("toolbarQrcode"), {
                 text: qrText,
-                width: 65,
-                height: 65,
+                width: 86,
+                height: 86,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.M
@@ -307,7 +302,6 @@
         function updateFullscreenButton() {
             let isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
             fullscreenButton.textContent = !isFullscreen ? "Toàn màn hình" : "Thu nhỏ";
-            qrToolBox.style.display = isFullscreen ? "none" : "flex";
             setTimeout(resizeCanvas, 100); 
         }
         document.addEventListener('fullscreenchange', updateFullscreenButton);
