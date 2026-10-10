@@ -186,14 +186,11 @@
         let sampleRate = 48000; 
         let stopTimer; 
 
-        let detectedFrequency = 0; 
-        let freq1 = 0; 
-        let freq2 = 0; 
         let savedData1 = null;  
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        let totalTimeOnScreen = null; 
+        let totalTimeOnScreen = 0.05; // Mặc định hiển thị trực quan dải thời gian gọn gàng
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
@@ -224,13 +221,8 @@
         // 1. Lăn chuột Zoom (Máy tính)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            if (totalTimeOnScreen === null) {
-                let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc)));
-            }
             let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
-            totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
-            
+            totalTimeOnScreen = Math.max(0.005, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
             drawFrame();
         }, { passive: false });
 
@@ -271,16 +263,12 @@
                 startX = e.touches[0].clientX;
                 drawFrame();
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
-                if (totalTimeOnScreen === null) {
-                    let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                    totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc)));
-                }
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 let factor = initialPinchDistance / currentDistance;
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * factor));
+                totalTimeOnScreen = Math.max(0.005, Math.min(2.0, totalTimeOnScreen * factor));
                 initialPinchDistance = currentDistance;
                 drawFrame();
             }
@@ -299,14 +287,11 @@
             clearTimeout(stopTimer);
             pauseButton.textContent = "Đo / Dừng";
             
-            detectedFrequency = 0;
-            freq1 = 0;
-            freq2 = 0;
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = null;
+            totalTimeOnScreen = 0.05;
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -339,45 +324,7 @@
         document.addEventListener('fullscreenchange', updateFullscreenButton);
         document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
-        function autoCorrelate(buffer, sampleRate) {
-            let SIZE = buffer.length;
-            let sumSq = 0;
-            for (let i = 0; i < SIZE; i++) {
-                let val = (buffer[i] - 128) / 128;
-                sumSq += val * val;
-            }
-            let rootMeanSq = Math.sqrt(sumSq / SIZE);
-            if (rootMeanSq < 0.01) return -1; 
-
-            let r1 = 0, r2 = SIZE - 1, thres = 0.2;
-            for (let i = 0; i < SIZE / 2; i++) {
-                if (Math.abs((buffer[i] - 128) / 128) < thres) { r1 = i; break; }
-            }
-            for (let i = 1; i < SIZE / 2; i++) {
-                if (Math.abs((buffer[SIZE - i] - 128) / 128) < thres) { r2 = SIZE - i; break; }
-            }
-            buffer = buffer.slice(r1, r2);
-            SIZE = buffer.length;
-
-            let c = new Array(SIZE).fill(0);
-            for (let i = 0; i < SIZE; i++) {
-                for (let j = 0; j < SIZE - i; j++) {
-                    let v1 = (buffer[j] - 128) / 128;
-                    let v2 = (buffer[j + i] - 128) / 128;
-                    c[i] += v1 * v2;
-                }
-            }
-
-            let d = 0;
-            while (c[d] > c[d + 1]) d++;
-            let maxval = -1, maxpos = -1;
-            for (let i = d; i < SIZE; i++) {
-                if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
-            }
-            return sampleRate / maxpos;
-        }
-
-        // Tự động dừng thu âm sau đúng 2 giây và hiển thị kết quả mượt mà
+        // Tự động dừng thu âm sau đúng 2 giây và hiển thị tĩnh mượt mà
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
@@ -393,14 +340,14 @@
                                 currentMeasuringStep = 2;
                                 pauseButton.disabled = false;
                             } else {
-                                infoText.textContent = "Đã xong 2 nguồn - So sánh f1 & f2";
+                                infoText.textContent = "Đã xong 2 nguồn - So sánh";
                                 infoText.style.color = "#d93025";
                             }
                         } else {
                             infoText.textContent = "Đã dừng - Quan sát đồ thị sóng âm";
                             infoText.style.color = "#d93025";
                         }
-                        drawFrame(); // Vẽ tĩnh một lần duy nhất, loại bỏ hoàn toàn giật lag
+                        drawFrame(); 
                     }
                 }, 2000); 
             }
@@ -424,7 +371,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 32768; 
+                analyser.fftSize = 32768; // Bộ đệm sâu 2 giây
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -450,7 +397,6 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = null; 
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (2s)...";
@@ -480,14 +426,11 @@
             clearTimeout(stopTimer); 
             pauseButton.textContent = "Đo / Dừng";
             
-            detectedFrequency = 0;
-            freq1 = 0;
-            freq2 = 0;
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = null;
+            totalTimeOnScreen = 0.05;
 
             infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
             infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
@@ -513,28 +456,12 @@
             
             if (!isPaused && !isReset) {
                 analyser.getByteTimeDomainData(dataArray);
-                let freq = autoCorrelate(dataArray, sampleRate);
-                if (freq > 30 && freq < 4000) {
-                    detectedFrequency = freq;
-                    if (!isDualMode) {
-                        freq1 = freq;
-                    } else {
-                        if (currentMeasuringStep === 1) freq1 = freq;
-                        if (currentMeasuringStep === 2) freq2 = freq;
-                    }
-                }
-
                 if (isDualMode) {
                     if (currentMeasuringStep === 1) savedData1 = new Uint8Array(dataArray);
                     else if (currentMeasuringStep === 2) savedData2 = new Uint8Array(dataArray);
                 } else {
                     savedData1 = new Uint8Array(dataArray);
                 }
-            }
-
-            let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-            if (totalTimeOnScreen === null) {
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc))); 
             }
 
             // 1. Vẽ nền
@@ -565,9 +492,9 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM TỐI ƯU HÓA TỐC ĐỘ (DOWNSAMPLING)
+            // 3. VẼ ĐƯỜNG SÓNG ÂM DÀN ĐỀU HAI BÊN TRỤC (ĐỐI XỨNG QUA TÂM MÀN HÌNH)
             if (!isReset) {
-                const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
+                const totalSamples = bufferLength;
                 
                 if (!isDualMode) {
                     let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
@@ -576,40 +503,41 @@
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
                         
-                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
                         let hasMoved = false;
+                        for (let i = 0; i < totalSamples; i++) {
+                            let timeOffset = (i / sampleRate) - 1.0; // Căn giữa mốc 2 giây ở t = 0
+                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
+                            
+                            // Chỉ vẽ các điểm nằm trong khung hình canvas để tối ưu tốc độ
+                            if (x >= 0 && x <= canvas.width) {
+                                const v = activeData[i] / 128.0; 
+                                let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                                if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
 
-                        for (let i = 0; i < samplesNeeded && i < activeData.length; i += step) {
-                            const v = activeData[i] / 128.0; 
-                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-
-                            // Tính toán tọa độ X dựa theo thời gian và độ dịch chuyển panX
-                            let timeIndex = i / sampleRate;
-                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
-
-                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                            else { canvasCtx.lineTo(x, y); }
+                                if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                                else { canvasCtx.lineTo(x, y); }
+                            }
                         }
                         canvasCtx.stroke();
                     }
                 } else {
-                    // Chế độ 2 nguồn
+                    // Chế độ 2 nguồn (Đỏ & Xanh)
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
                     if (drawData1 && drawData1.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
                         let hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < drawData1.length; i += step) {
-                            const v = drawData1[i] / 128.0; 
-                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                            let timeIndex = i / sampleRate;
-                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
-                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                            else { canvasCtx.lineTo(x, y); }
+                        for (let i = 0; i < totalSamples; i++) {
+                            let timeOffset = (i / sampleRate) - 1.0;
+                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
+                            if (x >= 0 && x <= canvas.width) {
+                                const v = drawData1[i] / 128.0; 
+                                let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                                if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                                if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                                else { canvasCtx.lineTo(x, y); }
+                            }
                         }
                         canvasCtx.stroke();
                     }
@@ -619,23 +547,24 @@
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#0000ff'; 
                         canvasCtx.beginPath();
-                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
                         let hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < drawData2.length; i += step) {
-                            const v = drawData2[i] / 128.0; 
-                            let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
-                            if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
-                            let timeIndex = i / sampleRate;
-                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
-                            if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
-                            else { canvasCtx.lineTo(x, y); }
+                        for (let i = 0; i < totalSamples; i++) {
+                            let timeOffset = (i / sampleRate) - 1.0;
+                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
+                            if (x >= 0 && x <= canvas.width) {
+                                const v = drawData2[i] / 128.0; 
+                                let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
+                                if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                                if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
+                                else { canvasCtx.lineTo(x, y); }
+                            }
                         }
                         canvasCtx.stroke();
                     }
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ CHIA ĐỀU TRÊN 10 Ô LƯỚI
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ CHIA ĐỀU HAI BÊN TRỤC
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
@@ -645,17 +574,17 @@
                 canvasCtx.fillText(txt, x, y);   
             }
 
-            let timePerGrid = totalTimeOnScreen / 10;
+            let timePerGrid = totalTimeOnScreen;
             canvasCtx.textAlign = 'center';
             canvasCtx.textBaseline = 'top';
             for(let i = 0; i <= 10; i++) {
                 if (i !== 5) { 
-                    let t_val = (i - 5) * timePerGrid;
+                    let t_val = (i - 5) * (timePerGrid / 5);
                     let t_str = "";
                     if (Math.abs(t_val) >= 1) {
                         t_str = t_val.toFixed(2).replace('.', ',') + "s";
                     } else {
-                        t_str = (t_val * 1000).toFixed(1).replace('.', ',') + "ms";
+                        t_str = Math.round(t_val * 1000) + "ms";
                     }
                     drawTextWithOutline(t_str, i * stepX, canvas.height / 2 + 5);
                 }
@@ -674,18 +603,13 @@
             }
             drawTextWithOutline("0", canvas.width / 2 + 6, canvas.height / 2 + 8);
 
-            // 5. HIỂN THỊ TÊN ĐẠI LƯỢNG & TẦN SỐ
+            // 5. HIỂN THỊ TÊN ĐẠI LƯỢNG
             canvasCtx.textBaseline = 'top';
             if (isDualMode) {
                 canvasCtx.textAlign = 'left';
-                let txt1 = "■ Nguồn 1 (Đỏ)";
-                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
-                drawTextWithOutline(txt1, 15, 10, '#ff0000');
-
+                drawTextWithOutline("■ Nguồn 1 (Đỏ)", 15, 10, '#ff0000');
                 canvasCtx.textAlign = 'right';
-                let txt2 = "■ Nguồn 2 (Xanh)";
-                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
-                drawTextWithOutline(txt2, canvas.width - 15, 10, '#0000ff');
+                drawTextWithOutline("■ Nguồn 2 (Xanh)", canvas.width - 15, 10, '#0000ff');
             } else {
                 canvasCtx.textAlign = 'left';
                 drawTextWithOutline("■ Sóng âm (Đỏ)", 15, 10, '#ff0000');
