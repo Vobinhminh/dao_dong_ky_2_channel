@@ -193,7 +193,7 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Khởi tạo ban đầu ở chế độ tự động chuẩn 5T (sẽ tự động cập nhật theo tần số mic)
+        // Tổng thời gian trên 10 ô (Mặc định null để tự nhận diện 5T khi đo)
         let totalTimeOnScreen = null; 
         let zoomY = 2.0;
         let panX = 0;
@@ -227,7 +227,7 @@
             e.preventDefault();
             if (totalTimeOnScreen === null) {
                 let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                totalTimeOnScreen = 5 * (1.0 / freqForCalc);
+                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc)));
             }
             let step = 0.05;
             if (e.deltaY < 0) {
@@ -277,7 +277,7 @@
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
                 if (totalTimeOnScreen === null) {
                     let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                    totalTimeOnScreen = 5 * (1.0 / freqForCalc);
+                    totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc)));
                 }
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
@@ -310,7 +310,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = null; // Reset về chuẩn 5T tự động theo tần số mới
+            totalTimeOnScreen = null;
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -404,7 +404,7 @@
                             infoText.style.color = "#d93025";
                         }
                     }
-                }, 2000); 
+                }, 200); // Tự động dừng sau đúng 0.2s
             }
         }
 
@@ -426,7 +426,8 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 16384; 
+                // FIX LỖI MICRO: Đã đặt giá trị fftSize thành 32768 (chuẩn lũy thừa 2 tối đa được cấp quyền)
+                analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -452,10 +453,10 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = null; // Kích hoạt tính năng tự động chuẩn 5T khi bắt đầu đo
+                totalTimeOnScreen = null; 
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
-                infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
+                infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (0.2s)...";
                 infoText.style.color = "#dc3545";
                 
                 draw(); 
@@ -533,7 +534,7 @@
 
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             if (totalTimeOnScreen === null) {
-                totalTimeOnScreen = 5 * (1.0 / freqForCalc); // Tự động nhận diện chuẩn 5 chu kỳ (5T)
+                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc))); 
             }
 
             // 1. Vẽ nền
@@ -628,7 +629,7 @@
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ CHIA ĐỀU TRÊN 10 Ô LƯỚI
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
