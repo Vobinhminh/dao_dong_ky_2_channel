@@ -30,12 +30,23 @@
         .btn-group button {
             flex-grow: 1; flex-basis: 0; height: 40px;
         }
+        .status-row {
+            display: flex; gap: 6px; align-items: center; width: 100%;
+        }
         .info-panel {
             font-weight: bold; font-size: 14px; color: #d93025; background: #fff;
             padding: 0 10px; border-radius: 6px; border: 1px solid #ccc;
-            text-align: center; width: 100%; box-sizing: border-box;
+            text-align: center; flex-grow: 1; box-sizing: border-box;
             display: flex; align-items: center; justify-content: center; height: 40px;
         }
+        .mic-select {
+            height: 40px; border-radius: 6px; border: 1px solid #ccc; padding: 0 10px;
+            font-size: 13px; font-weight: bold; color: #333; cursor: pointer;
+            background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 250px; outline: none;
+        }
+        .mic-select:disabled { background-color: #e9ecef; cursor: not-allowed; }
+
         button {
             font-size: 13px; font-weight: bold; cursor: pointer; color: white;
             border: none; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -65,6 +76,8 @@
             .qr-toolbar-box { display: none !important; }
             .btn-group { flex-wrap: wrap; }
             .btn-group button { flex-grow: unset; flex-basis: calc(33.333% - 4px); height: 38px; }
+            .status-row { flex-wrap: wrap; }
+            .mic-select { max-width: 100%; width: 100%; height: 38px; }
             .info-panel { height: 38px; }
         }
     </style>
@@ -80,7 +93,12 @@
                 <button id="saveButton" disabled>Chụp ảnh</button>
                 <button id="fullscreenButton">Toàn màn hình</button>
             </div>
-            <div class="info-panel" id="infoText">Đang chờ bật Micro...</div>
+            <div class="status-row">
+                <select id="micSelect" class="mic-select">
+                    <option value="default">Micro mặc định</option>
+                </select>
+                <div class="info-panel" id="infoText">Đang chờ bật Micro...</div>
+            </div>
         </div>
         <div class="qr-toolbar-box" id="qrToolBox">
             <div id="toolbarQrcode"></div>
@@ -97,12 +115,18 @@
         const saveButton = document.getElementById('saveButton');
         const fullscreenButton = document.getElementById('fullscreenButton');
         const infoText = document.getElementById('infoText');
+        const micSelect = document.getElementById('micSelect');
         const canvas = document.getElementById('oscilloscope');
         const canvasCtx = canvas.getContext('2d');
         
         let audioCtx, sampleRate = 48000;
         let isDualMode = false; 
         
+        // Audio Graph Nodes
+        let currentStream = null;
+        let sourceNode = null;
+        let highpassFilter, lowpassFilter, scriptNode, gainNode;
+
         let isRecording = false;
         let maxRecordSamples = 0;
         let recordIndex = 0;
@@ -123,8 +147,6 @@
             new QRCode(document.getElementById("toolbarQrcode"), {
                 text: qrText, width: 86, height: 86, colorDark: "#000000", colorLight: "#ffffff"
             });
-            
-            // Lấy kích thước thật trước khi vẽ lần đầu (chống nhòe, lệch form)
             resizeCanvas(); 
         });
         
@@ -135,23 +157,127 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // QUẢN LÝ THIẾT BỊ MICROPHONE
+        async function populateMicList() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioInputs = devices.filter(device => device.kind === 'audioinput');
+                
+                const currentValue = micSelect.value;
+                micSelect.innerHTML = '<option value="default">Micro mặc định</option>';
+                
+                let hasCurrentValue = false;
+                audioInputs.forEach((device, index) => {
+                    if (device.deviceId) {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Microphone USB/Rời ${index + 1}`;
+                        micSelect.appendChild(option);
+                        if (device.deviceId === currentValue) hasCurrentValue = true;
+                    }
+                });
+                
+                if (hasCurrentValue) micSelect.value = currentValue;
+            } catch (err) {
+                console.error("Không thể lấy danh sách thiết bị:", err);
+            }
+        }
+
+        async function initAudio(deviceId = 'default') {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                sampleRate = audioCtx.sampleRate; 
+                
+                // Khởi tạo các bộ lọc 1 lần duy nhất
+                highpassFilter = audioCtx.createBiquadFilter();
+                highpassFilter.frequency.value = 80; highpassFilter.type = 'highpass';
+                
+                lowpassFilter = audioCtx.createBiquadFilter();
+                lowpassFilter.frequency.value = 3000; lowpassFilter.type = 'lowpass';
+
+                scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+                
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // Chống tiếng rú rít ra loa
+
+                highpassFilter.connect(lowpassFilter);
+                lowpassFilter.connect(scriptNode);
+                scriptNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                scriptNode.onaudioprocess = (e) => {
+                    if (!isRecording) return;
+                    let input = e.inputBuffer.getChannelData(0);
+                    for (let i = 0; i < input.length && recordIndex < maxRecordSamples; i++) {
+                        currentRecordBuffer[recordIndex++] = input[i];
+                    }
+                    if (recordIndex >= maxRecordSamples) {
+                        isRecording = false;
+                        processRecordedData();
+                    }
+                };
+            }
+
+            try {
+                // Ngắt kết nối Mic cũ nếu có
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+                if (sourceNode) {
+                    sourceNode.disconnect();
+                }
+
+                // Kết nối Mic mới
+                const constraints = {
+                    audio: deviceId === 'default' ? true : { deviceId: { exact: deviceId } }
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = stream;
+                
+                sourceNode = audioCtx.createMediaStreamSource(stream);
+                sourceNode.connect(highpassFilter);
+
+                // Cập nhật lại danh sách Mic sau khi có quyền truy cập
+                await populateMicList();
+
+                startButton.textContent = "Đã kết nối";
+                startButton.disabled = true; 
+                pauseButton.disabled = false;
+                resetButton.disabled = false; 
+                saveButton.disabled = false;
+                
+                infoText.textContent = isDualMode ? "Sẵn sàng: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
+                infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
+            } catch (err) {
+                alert("Không thể truy cập Micro. Vui lòng cấp quyền! Lỗi: " + err);
+                startButton.disabled = false;
+                startButton.textContent = "Bật Mic";
+            }
+        }
+
+        // Lắng nghe sự kiện chuyển đổi Micro từ Dropdown
+        micSelect.addEventListener('change', () => {
+            if (audioCtx) {
+                initAudio(micSelect.value);
+            }
+        });
+
+        startButton.addEventListener('click', () => {
+            initAudio(micSelect.value);
+        });
+
         // ZOOM CHUỘT
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            
-            // Khóa zoom nếu đang đo hoặc chưa có dữ liệu
             if (isRecording || (!savedData1 && !savedData2)) return;
 
             let zoomIn = e.deltaY < 0; 
-            
             let factorX = zoomIn ? 0.9 : 1.1; 
             let factorY = zoomIn ? 1.11 : 0.9; 
 
             if (!totalTimeOnScreen) totalTimeOnScreen = 0.05;
-            
             totalTimeOnScreen = Math.max(0.002, Math.min(1.5, totalTimeOnScreen * factorX)); 
             zoomY = Math.max(0.5, Math.min(10.0, zoomY * factorY)); 
-
             drawFrame();
         }, { passive: false });
 
@@ -168,8 +294,6 @@
         canvas.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialPinchDistance !== null) {
                 e.preventDefault(); 
-                
-                // Khóa zoom nếu đang đo hoặc chưa có dữ liệu
                 if (isRecording || (!savedData1 && !savedData2)) return;
 
                 let currentDistance = Math.hypot(
@@ -178,7 +302,6 @@
                 );
                 
                 let factor = initialPinchDistance / currentDistance;
-
                 if (!totalTimeOnScreen) totalTimeOnScreen = 0.05;
                 
                 totalTimeOnScreen = Math.max(0.002, Math.min(1.5, totalTimeOnScreen * factor));
@@ -248,55 +371,6 @@
             return 0;
         }
 
-        startButton.addEventListener('click', async () => {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                sampleRate = audioCtx.sampleRate; 
-            }
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const source = audioCtx.createMediaStreamSource(stream);
-                
-                const highpassFilter = audioCtx.createBiquadFilter();
-                highpassFilter.frequency.value = 80; highpassFilter.type = 'highpass';
-                const lowpassFilter = audioCtx.createBiquadFilter();
-                lowpassFilter.frequency.value = 3000; lowpassFilter.type = 'lowpass';
-
-                const scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
-                
-                source.connect(highpassFilter);
-                highpassFilter.connect(lowpassFilter);
-                lowpassFilter.connect(scriptNode);
-                
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 0;
-                scriptNode.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                scriptNode.onaudioprocess = (e) => {
-                    if (!isRecording) return;
-                    let input = e.inputBuffer.getChannelData(0);
-                    for (let i = 0; i < input.length && recordIndex < maxRecordSamples; i++) {
-                        currentRecordBuffer[recordIndex++] = input[i];
-                    }
-                    if (recordIndex >= maxRecordSamples) {
-                        isRecording = false;
-                        processRecordedData();
-                    }
-                };
-
-                resizeCanvas();
-                startButton.textContent = "Đã kết nối Mic";
-                startButton.disabled = true; pauseButton.disabled = false;
-                resetButton.disabled = false; saveButton.disabled = false;
-                
-                infoText.textContent = isDualMode ? "Sẵn sàng: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
-                infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
-            } catch (err) {
-                alert("Không thể truy cập micro. Lỗi: " + err);
-            }
-        });
-
         pauseButton.addEventListener('click', () => {
             if (isRecording) return; 
             
@@ -345,7 +419,6 @@
             if (activeData) {
                 let freq = estimateFrequency(activeData, sampleRate);
                 if (freq < 20) freq = 440;
-                // Căn chuẩn khít 5 Chu kỳ (5T)
                 totalTimeOnScreen = Math.max(0.002, Math.min(1.5, 5 * (1.0 / freq))); 
             }
             drawFrame();
