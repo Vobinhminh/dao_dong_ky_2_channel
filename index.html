@@ -221,14 +221,10 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính) với giới hạn an toàn tuyệt đối
+        // 1. Lăn chuột Zoom (Máy tính) với hệ số mượt mà
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-            let defaultPeriod5T = 5 * (1.0 / freqForCalc);
-            let maxZoomLimit = 1.2 / defaultPeriod5T;
-
-            zoomFactor = Math.max(0.02, Math.min(maxZoomLimit, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
+            zoomFactor = Math.max(0.02, Math.min(25.0, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
             if (isPaused) drawFrame();
         }, { passive: false });
 
@@ -274,11 +270,7 @@
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 let factor = initialPinchDistance / currentDistance;
-                let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                let defaultPeriod5T = 5 * (1.0 / freqForCalc);
-                let maxZoomLimit = 1.2 / defaultPeriod5T;
-
-                zoomFactor = Math.max(0.02, Math.min(maxZoomLimit, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
+                zoomFactor = Math.max(0.02, Math.min(25.0, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
                 initialPinchDistance = currentDistance;
                 if (isPaused) drawFrame();
             }
@@ -420,7 +412,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 32768; // Deep Buffer tối ưu sâu
+                analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -560,7 +552,7 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM (Đảm bảo an toàn dữ liệu, không bị mất khi zoom)
+            // 3. VẼ ĐƯỜNG SÓNG ÂM
             if (!isReset) {
                 const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
                 const sliceWidth = canvas.width / Math.max(1, samplesNeeded);
@@ -624,7 +616,7 @@
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI (Phân chia đều đặn trên 10 ô)
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
@@ -640,8 +632,14 @@
             for(let i = 0; i <= 10; i++) {
                 if (i !== 5) { 
                     let t_val = parseFloat(((i - 5) * timePerGrid).toFixed(4));
-                    let t_str = (t_val * 1000).toFixed(1).replace('.', ',');
-                    drawTextWithOutline(t_str + "ms", i * stepX, canvas.height / 2 + 5);
+                    let t_str = "";
+                    // Tự động chuyển đổi đơn vị hiển thị phù hợp (ms hoặc s) chia đều trên 10 ô
+                    if (Math.abs(t_val) >= 1) {
+                        t_str = t_val.toFixed(2).replace('.', ',') + "s";
+                    } else {
+                        t_str = (t_val * 1000).toFixed(1).replace('.', ',') + "ms";
+                    }
+                    drawTextWithOutline(t_str, i * stepX, canvas.height / 2 + 5);
                 }
             }
 
@@ -676,7 +674,7 @@
             }
 
             canvasCtx.textAlign = 'right';
-            drawTextWithOutline("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
+            drawTextWithOutline("t", canvas.width - 10, canvas.height / 2 - 25);
             
             canvasCtx.textAlign = 'right';
             drawTextWithOutline("Biên độ", canvas.width / 2 - 8, 5);
