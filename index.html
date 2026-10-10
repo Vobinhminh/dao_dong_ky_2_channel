@@ -103,7 +103,7 @@
             touch-action: none;
         }
 
-        /* Mặc định trên máy tính: Hiển thị mã QR */
+        /* Chỉ hiển thị mã QR trên máy tính */
         .qr-toolbar-box {
             display: flex;
             align-items: center;
@@ -127,7 +127,7 @@
             text-align: center;
         }
 
-        /* Trên điện thoại và máy tính bảng: Tự động ẩn mã QR đi */
+        /* Ẩn mã QR trên điện thoại và máy tính bảng */
         @media (max-width: 900px) {
             .qr-toolbar-box {
                 display: none !important;
@@ -193,12 +193,12 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Biến điều khiển Zoom (Giới hạn từ 0.02s đến 1.2s) và Dịch chuyển
         let zoomFactor = 1.0; 
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
         let startX = 0;
+        let initialPinchDistance = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             let currentUrl = window.location.href;
@@ -221,13 +221,14 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // Tích hợp lăn chuột Zoom trong khoảng 0.02s đến 1.2s
+        // 1. Lăn chuột Zoom (Dành riêng cho Máy tính)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             zoomFactor = Math.max(0.02, Math.min(1.2, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
             if (isPaused) drawFrame();
         }, { passive: false });
 
+        // Dịch chuyển đồ thị bằng chuột (PC)
         canvas.addEventListener('mousedown', (e) => {
             isDragging = true;
             startX = e.clientX;
@@ -243,23 +244,43 @@
 
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        let touchStartX = 0;
+        // 2. Zoom và cảm ứng chạm (Dành riêng cho Điện thoại & Máy tính bảng)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
-                touchStartX = e.touches[0].clientX;
+                startX = e.touches[0].clientX;
+                initialPinchDistance = null;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
             }
         });
 
         canvas.addEventListener('touchmove', (e) => {
-            if (!isDragging || e.touches.length !== 1) return;
-            let dx = e.touches[0].clientX - touchStartX;
-            panX += dx;
-            touchStartX = e.touches[0].clientX;
-            if (isPaused) drawFrame();
+            if (e.touches.length === 1 && isDragging) {
+                let dx = e.touches[0].clientX - startX;
+                panX += dx;
+                startX = e.touches[0].clientX;
+                if (isPaused) drawFrame();
+            } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+                let currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                let factor = initialPinchDistance / currentDistance;
+                zoomFactor = Math.max(0.02, Math.min(1.2, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
+                initialPinchDistance = currentDistance;
+                if (isPaused) drawFrame();
+            }
         });
 
-        canvas.addEventListener('touchend', () => { isDragging = false; });
+        canvas.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) initialPinchDistance = null;
+            if (e.touches.length === 0) isDragging = false;
+        });
 
         modeButton.addEventListener('click', () => {
             isDualMode = !isDualMode;
