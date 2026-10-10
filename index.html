@@ -124,7 +124,7 @@
                 text: qrText, width: 86, height: 86, colorDark: "#000000", colorLight: "#ffffff"
             });
             
-            // Lấy chính xác kích thước thật của canvas trước khi vẽ lần đầu để tránh nhòe chữ
+            // Lấy kích thước thật trước khi vẽ lần đầu (chống nhòe, lệch form)
             resizeCanvas(); 
         });
         
@@ -135,16 +135,15 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // ZOOM BẰNG CHUỘT (ĐỒNG BỘ 2 TRỤC)
+        // ZOOM CHUỘT
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             
-            // CHỈ cho phép zoom sau khi đã đo xong và có dữ liệu
+            // Khóa zoom nếu đang đo hoặc chưa có dữ liệu
             if (isRecording || (!savedData1 && !savedData2)) return;
 
             let zoomIn = e.deltaY < 0; 
             
-            // Khi zoom In (phóng to): Thời gian giảm (sóng giãn ra) & Biên độ tăng (sóng cao lên)
             let factorX = zoomIn ? 0.9 : 1.1; 
             let factorY = zoomIn ? 1.11 : 0.9; 
 
@@ -156,7 +155,7 @@
             drawFrame();
         }, { passive: false });
 
-        // ZOOM BẰNG CẢM ỨNG (ĐỒNG BỘ 2 TRỤC)
+        // ZOOM CẢM ỨNG ĐA ĐIỂM
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 initialPinchDistance = Math.hypot(
@@ -170,7 +169,7 @@
             if (e.touches.length === 2 && initialPinchDistance !== null) {
                 e.preventDefault(); 
                 
-                // CHỈ cho phép zoom sau khi đã đo xong và có dữ liệu
+                // Khóa zoom nếu đang đo hoặc chưa có dữ liệu
                 if (isRecording || (!savedData1 && !savedData2)) return;
 
                 let currentDistance = Math.hypot(
@@ -182,7 +181,6 @@
 
                 if (!totalTimeOnScreen) totalTimeOnScreen = 0.05;
                 
-                // Thu phóng đồng thời trục X và Y theo tỉ lệ vuốt
                 totalTimeOnScreen = Math.max(0.002, Math.min(1.5, totalTimeOnScreen * factor));
                 zoomY = Math.max(0.5, Math.min(10.0, zoomY / factor));
                 
@@ -347,7 +345,7 @@
             if (activeData) {
                 let freq = estimateFrequency(activeData, sampleRate);
                 if (freq < 20) freq = 440;
-                // Căn hiển thị chuẩn xác 5 Chu kỳ (5T) ngay khi đo xong
+                // Căn chuẩn khít 5 Chu kỳ (5T)
                 totalTimeOnScreen = Math.max(0.002, Math.min(1.5, 5 * (1.0 / freq))); 
             }
             drawFrame();
