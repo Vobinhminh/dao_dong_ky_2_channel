@@ -193,7 +193,6 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Biến điều khiển Zoom và Dịch chuyển (Zoom tối đa cho phép hiển thị đến 1.2s)
         let zoomFactor = 1.0; 
         let zoomY = 2.0;
         let panX = 0;
@@ -222,14 +221,14 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Dành riêng cho Máy tính) với giới hạn mở rộng đến 1.2s
+        // 1. Lăn chuột Zoom (Máy tính) với giới hạn an toàn tuyệt đối
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             let defaultPeriod5T = 5 * (1.0 / freqForCalc);
-            let maxZoomLimit = 1.2 / defaultPeriod5T; // Cho phép zoom rộng kịch kim ra tận 1.2s
+            let maxZoomLimit = 1.2 / defaultPeriod5T;
 
-            zoomFactor = Math.max(0.05, Math.min(maxZoomLimit, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
+            zoomFactor = Math.max(0.02, Math.min(maxZoomLimit, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
             if (isPaused) drawFrame();
         }, { passive: false });
 
@@ -248,7 +247,7 @@
 
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // 2. Zoom và cảm ứng chạm (Dành riêng cho Điện thoại & Máy tính bảng)
+        // 2. Zoom cảm ứng chạm (Điện thoại & Máy tính bảng)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -279,7 +278,7 @@
                 let defaultPeriod5T = 5 * (1.0 / freqForCalc);
                 let maxZoomLimit = 1.2 / defaultPeriod5T;
 
-                zoomFactor = Math.max(0.05, Math.min(maxZoomLimit, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
+                zoomFactor = Math.max(0.02, Math.min(maxZoomLimit, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
                 initialPinchDistance = currentDistance;
                 if (isPaused) drawFrame();
             }
@@ -421,7 +420,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 16384; // Lõi thu âm sâu (Deep Buffer) lưu trọn vẹn dải rộng
+                analyser.fftSize = 32768; // Deep Buffer tối ưu sâu
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -447,7 +446,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                zoomFactor = 1.0; // Reset về mặc định chuẩn 5 Chu kỳ (5T) khi bắt đầu đo
+                zoomFactor = 1.0; 
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
@@ -510,7 +509,7 @@
             if (!isPaused && !isReset) {
                 analyser.getByteTimeDomainData(dataArray);
                 let freq = autoCorrelate(dataArray, sampleRate);
-                if (freq > 50 && freq < 4000) {
+                if (freq > 30 && freq < 4000) {
                     detectedFrequency = freq;
                     if (!isDualMode) {
                         freq1 = freq;
@@ -531,7 +530,7 @@
             else if (detectedFrequency > 0 && !isReset) freqForCalc = detectedFrequency;
 
             let period = 1.0 / freqForCalc;
-            let totalTimeOnScreen = 5 * period * zoomFactor; // Mặc định hiển thị đúng 5 chu kỳ (5T)
+            let totalTimeOnScreen = 5 * period * zoomFactor; 
 
             // 1. Vẽ nền
             canvasCtx.fillStyle = '#e6f7ff'; 
@@ -561,20 +560,20 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM
+            // 3. VẼ ĐƯỜNG SÓNG ÂM (Đảm bảo an toàn dữ liệu, không bị mất khi zoom)
             if (!isReset) {
                 const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
-                const sliceWidth = canvas.width / samplesNeeded;
+                const sliceWidth = canvas.width / Math.max(1, samplesNeeded);
 
                 if (!isDualMode) {
                     let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
-                    if (activeData[0] !== 0) {
+                    if (activeData && activeData.length > 0) {
                         canvasCtx.lineWidth = 3; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
                         let x = panX, hasMoved = false;
 
-                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                        for (let i = 0; i < samplesNeeded && i < activeData.length; i++) {
                             const v = activeData[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
@@ -588,12 +587,12 @@
                     }
                 } else {
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
-                    if (drawData1 && drawData1[0] !== 0) {
+                    if (drawData1 && drawData1.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
                         let x = panX, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                        for (let i = 0; i < samplesNeeded && i < drawData1.length; i++) {
                             const v = drawData1[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
@@ -606,12 +605,12 @@
                     }
 
                     let drawData2 = (!isPaused && currentMeasuringStep === 2) ? dataArray : savedData2;
-                    if (drawData2 && drawData2[0] !== 0) {
+                    if (drawData2 && drawData2.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#0000ff'; 
                         canvasCtx.beginPath();
                         let x = panX, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                        for (let i = 0; i < samplesNeeded && i < drawData2.length; i++) {
                             const v = drawData2[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
