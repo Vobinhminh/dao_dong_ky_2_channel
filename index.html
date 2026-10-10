@@ -127,7 +127,7 @@
             text-align: center;
         }
 
-        /* Trên điện thoại và máy tính bảng (màn hình nhỏ hơn hoặc bằng 900px): Tự động ẩn mã QR đi */
+        /* Trên điện thoại và máy tính bảng: Tự động ẩn mã QR đi */
         @media (max-width: 900px) {
             .qr-toolbar-box {
                 display: none !important;
@@ -193,6 +193,7 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
+        // Biến điều khiển Zoom (Giới hạn từ 0.02s đến 1.2s) và Dịch chuyển
         let zoomFactor = 1.0; 
         let zoomY = 2.0;
         let panX = 0;
@@ -220,6 +221,7 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // Tích hợp lăn chuột Zoom trong khoảng 0.02s đến 1.2s
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             zoomFactor = Math.max(0.02, Math.min(1.2, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
