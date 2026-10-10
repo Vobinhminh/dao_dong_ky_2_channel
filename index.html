@@ -24,12 +24,20 @@
         
         .controls-wrapper {
             display: flex;
+            flex-direction: column;
             background-color: #f0f4f8;
             border-bottom: 2px solid #333;
             padding: 8px 10px;
+            gap: 6px;
+            flex-shrink: 0; 
+        }
+
+        .controls-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 8px;
-            flex-shrink: 0;
-            align-items: stretch; 
+            width: 100%;
         }
 
         .controls-left {
@@ -127,7 +135,7 @@
             text-align: center;
         }
 
-        /* Ẩn mã QR trên điện thoại và máy tính bảng */
+        /* Trên điện thoại và máy tính bảng: Ẩn mã QR hoàn toàn và dàn nút gọn gàng */
         @media (max-width: 900px) {
             .qr-toolbar-box {
                 display: none !important;
@@ -148,22 +156,24 @@
 </head>
 <body>
     <div class="controls-wrapper">
-        <div class="controls-left">
-            <div class="btn-group">
-                <button id="modeButton">1 Nguồn</button>
-                <button id="startButton">Bật Mic</button>
-                <button id="pauseButton" disabled>Đo / Dừng</button>
-                <button id="resetButton" disabled>Làm mới</button>
-                <button id="saveButton" disabled>Chụp ảnh</button>
-                <button id="fullscreenButton">Toàn màn hình</button>
+        <div class="controls-top">
+            <div class="controls-left">
+                <div class="btn-group">
+                    <button id="modeButton">1 Nguồn</button>
+                    <button id="startButton">Bật Mic</button>
+                    <button id="pauseButton" disabled>Đo / Dừng</button>
+                    <button id="resetButton" disabled>Làm mới</button>
+                    <button id="saveButton" disabled>Chụp ảnh</button>
+                    <button id="fullscreenButton">Toàn màn hình</button>
+                </div>
             </div>
-            <div class="info-panel" id="infoText">Đang chờ bật Micro...</div>
-        </div>
 
-        <div class="qr-toolbar-box" id="qrToolBox">
-            <div id="toolbarQrcode"></div>
-            <div class="qr-toolbar-label">SCAN<br>ME</div>
+            <div class="qr-toolbar-box" id="qrToolBox">
+                <div id="toolbarQrcode"></div>
+                <div class="qr-toolbar-label">SCAN<br>ME</div>
+            </div>
         </div>
+        <div class="info-panel" id="infoText">Đang chờ bật Micro...</div>
     </div>
 
     <canvas id="oscilloscope"></canvas>
@@ -221,14 +231,12 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Dành riêng cho Máy tính)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             zoomFactor = Math.max(0.02, Math.min(1.2, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
             if (isPaused) drawFrame();
         }, { passive: false });
 
-        // Dịch chuyển đồ thị bằng chuột (PC)
         canvas.addEventListener('mousedown', (e) => {
             isDragging = true;
             startX = e.clientX;
@@ -244,7 +252,6 @@
 
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // 2. Zoom và cảm ứng chạm (Dành riêng cho Điện thoại & Máy tính bảng)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
