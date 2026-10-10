@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dao động ký - Thực hành đo sóng âm (QR trên thanh công cụ)</title>
-    <!-- Thư viện tạo mã QR tự động (QRCode.js) từ CDN -->
+    <title>Dao động ký - Thực hành sóng âm</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         html, body {
@@ -14,111 +13,109 @@
             height: 100%;
             background-color: #e6f7ff;
             font-family: sans-serif;
+            box-sizing: border-box;
         }
 
         body {
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden;
         }
         
         .controls-wrapper {
             display: flex;
-            flex-wrap: wrap; 
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
             background-color: #f0f4f8;
-            border-bottom: 3px solid #000;
-            box-sizing: border-box;
-            gap: 15px;
-            z-index: 10;
-            flex-shrink: 0; 
+            border-bottom: 2px solid #333;
+            padding: 8px 10px;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: stretch; 
+        }
+
+        .controls-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
         }
 
         .btn-group {
             display: flex; 
-            flex-wrap: wrap; 
-            gap: 10px; 
+            flex-wrap: nowrap; 
+            gap: 6px; 
             align-items: center;
+            width: 100%;
         }
 
-        .slider-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            background: #fff;
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .slider-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
+        .btn-group button {
+            flex-grow: 1;
+            flex-basis: 0;
+            height: 40px; /* Cố định chiều cao đồng đều cho các nút */
         }
 
         .info-panel {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             color: #d93025;
             background: #fff;
-            padding: 6px 12px;
+            padding: 0 10px;
             border-radius: 6px;
             border: 1px solid #ccc;
-            min-width: 220px;
             text-align: center;
-            flex-grow: 1; 
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px; /* Cố định chiều cao bằng dòng nút phía trên */
         }
 
         button {
-            padding: 8px 15px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 6px;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
-            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: filter 0.2s;
             white-space: nowrap;
+            text-align: center;
         }
         button:hover { filter: brightness(0.9); }
         button:disabled {
-            background-color: #999;
+            background-color: #999 !important;
             cursor: not-allowed;
             box-shadow: none;
         }
-        #modeButton { background-color: #6f42c1; }
-        #startButton { background-color: #007bff; }
-        #pauseButton { background-color: #28a745; }
-        #triggerButton { background-color: #20c997; } 
-        #resetButton { background-color: #fd7e14; }
-        #saveButton { background-color: #17a2b8; }
-        #fullscreenButton { background-color: #6c757d; }
+        
+        /* Màu sắc chuẩn riêng biệt cho từng nút */
+        #modeButton { background-color: #6f42c1 !important; }      /* Tím */
+        #startButton { background-color: #007bff !important; }     /* Xanh dương */
+        #pauseButton { background-color: #28a745 !important; }     /* Xanh lá */
+        #resetButton { background-color: #fd7e14 !important; }     /* Cam */
+        #saveButton { background-color: #17a2b8 !important; }      /* Xanh ngọc */
+        #fullscreenButton { background-color: #343a40 !important; } /* Đen xám */
 
         canvas {
             flex-grow: 1;
             width: 100%;
-            min-height: 400px; 
             display: block;
+            touch-action: none;
         }
 
-        /* Khung chứa mã QR nhỏ gọn nằm trực tiếp trên thanh công cụ */
+        /* Khung mã QR tự động cao khớp hoàn toàn với khối bên trái */
         .qr-toolbar-box {
             display: flex;
             align-items: center;
             gap: 8px;
             background: #ffffff;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             border: 2px solid #007bff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+            align-self: stretch; 
         }
         #toolbarQrcode canvas, #toolbarQrcode img {
             display: block;
@@ -126,41 +123,47 @@
         .qr-toolbar-label {
             font-size: 12px;
             font-weight: bold;
-            color: #333;
+            color: #007bff;
             line-height: 1.2;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .controls-wrapper {
+                flex-direction: column;
+            }
+            .btn-group {
+                flex-wrap: wrap;
+            }
+            .btn-group button {
+                flex-grow: unset;
+                flex-basis: auto;
+                height: 38px;
+            }
+            .info-panel {
+                height: 38px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="controls-wrapper">
-        <div class="btn-group">
-            <button id="modeButton">Chế độ: 1 Nguồn</button>
-            <button id="startButton">1. Bật Micro</button>
-            <button id="pauseButton" disabled>2. Đo / Dừng</button>
-            <button id="triggerButton">3. Trigger: BẬT</button>
-            <button id="resetButton" disabled>4. Làm mới</button>
-            <button id="saveButton" disabled>5. Chụp ảnh</button>
-            <button id="fullscreenButton">6. Toàn màn hình</button>
-            
-            <!-- Mã QR tích hợp thẳng vào thanh công cụ -->
-            <div class="qr-toolbar-box" id="qrToolBox">
-                <div id="toolbarQrcode"></div>
-                <div class="qr-toolbar-label">Quét mở<br>phần mềm</div>
+        <div class="controls-left">
+            <div class="btn-group">
+                <button id="modeButton">1 Nguồn</button>
+                <button id="startButton">Bật Mic</button>
+                <button id="pauseButton" disabled>Đo / Dừng</button>
+                <button id="resetButton" disabled>Làm mới</button>
+                <button id="saveButton" disabled>Chụp ảnh</button>
+                <button id="fullscreenButton">Toàn màn hình</button>
             </div>
-        </div>
-        
-        <div class="slider-group">
-            <label>
-                Trục Y (Biên độ): 
-                <input type="range" id="zoomY" min="0.5" max="5.0" step="0.1" value="2.0">
-            </label>
-            <label>
-                Trục X (Thời gian): 
-                <input type="range" id="zoomX" min="0.2" max="3.0" step="0.1" value="1.0">
-            </label>
+            <div class="info-panel" id="infoText">Đang chờ bật Micro...</div>
         </div>
 
-        <div class="info-panel" id="infoText">Trạng thái: Đang chờ bật Micro...</div>
+        <div class="qr-toolbar-box" id="qrToolBox">
+            <div id="toolbarQrcode"></div>
+            <div class="qr-toolbar-label">SCAN<br>ME</div>
+        </div>
     </div>
 
     <canvas id="oscilloscope"></canvas>
@@ -169,13 +172,10 @@
         const modeButton = document.getElementById('modeButton');
         const startButton = document.getElementById('startButton');
         const pauseButton = document.getElementById('pauseButton');
-        const triggerButton = document.getElementById('triggerButton');
         const resetButton = document.getElementById('resetButton');
         const saveButton = document.getElementById('saveButton');
         const fullscreenButton = document.getElementById('fullscreenButton');
         const infoText = document.getElementById('infoText');
-        const zoomYSlider = document.getElementById('zoomY');
-        const zoomXSlider = document.getElementById('zoomX');
         const canvas = document.getElementById('oscilloscope');
         const canvasCtx = canvas.getContext('2d');
         const qrToolBox = document.getElementById('qrToolBox');
@@ -183,7 +183,6 @@
         let audioCtx, analyser;
         let isDualMode = false; 
         let isPaused = true; 
-        let useTrigger = true; 
         let sampleRate = 48000; 
         let stopTimer; 
 
@@ -194,15 +193,20 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Tự động sinh mã QR trực tiếp lên thanh công cụ khi tải trang
+        let zoomFactor = 1.0; 
+        let zoomY = 2.0;
+        let panX = 0;
+        let isDragging = false;
+        let startX = 0;
+
         window.addEventListener('DOMContentLoaded', () => {
             let currentUrl = window.location.href;
             let qrText = currentUrl.startsWith("file:///") ? "https://github.com" : currentUrl;
 
             new QRCode(document.getElementById("toolbarQrcode"), {
                 text: qrText,
-                width: 45,
-                height: 45,
+                width: 86,
+                height: 86,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.M
@@ -216,14 +220,52 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoomFactor = Math.max(0.02, Math.min(1.2, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
+            if (isPaused) drawFrame();
+        }, { passive: false });
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            let dx = e.clientX - startX;
+            panX += dx;
+            startX = e.clientX;
+            if (isPaused) drawFrame();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        let touchStartX = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                touchStartX = e.touches[0].clientX;
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            let dx = e.touches[0].clientX - touchStartX;
+            panX += dx;
+            touchStartX = e.touches[0].clientX;
+            if (isPaused) drawFrame();
+        });
+
+        canvas.addEventListener('touchend', () => { isDragging = false; });
+
         modeButton.addEventListener('click', () => {
             isDualMode = !isDualMode;
-            modeButton.textContent = isDualMode ? "Chế độ: 2 Nguồn (Lần lượt)" : "Chế độ: 1 Nguồn";
+            modeButton.textContent = isDualMode ? "2 Nguồn" : "1 Nguồn";
             
             isPaused = true;
             clearTimeout(stopTimer);
-            pauseButton.textContent = "2. Đo / Dừng";
-            pauseButton.style.backgroundColor = "#28a745";
+            pauseButton.textContent = "Đo / Dừng";
             
             detectedFrequency = 0;
             freq1 = 0;
@@ -231,27 +273,17 @@
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
+            panX = 0;
+            zoomFactor = 1.0;
             
             if (!startButton.disabled) {
-                infoText.textContent = "Trạng thái: Đang chờ bật Micro...";
+                infoText.textContent = "Đang chờ bật Micro...";
                 infoText.style.color = "#d93025";
             } else {
-                if (isDualMode) {
-                    infoText.textContent = "Sẵn sàng: Hãy phát Nguồn 1 và bấm Đo";
-                    infoText.style.color = "#ff0000";
-                } else {
-                    infoText.textContent = "Trạng thái: Đã sẵn sàng";
-                    infoText.style.color = "#007bff";
-                }
+                infoText.textContent = isDualMode ? "Sẵn sàng: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
+                infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
             }
             drawFrame(true); 
-        });
-
-        triggerButton.addEventListener('click', () => {
-            useTrigger = !useTrigger;
-            triggerButton.textContent = useTrigger ? "3. Trigger: BẬT" : "3. Trigger: TẮT";
-            triggerButton.style.backgroundColor = useTrigger ? "#20c997" : "#6c757d";
-            if (isPaused) drawFrame(false);
         });
 
         fullscreenButton.addEventListener('click', () => {
@@ -269,15 +301,8 @@
 
         function updateFullscreenButton() {
             let isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-            fullscreenButton.textContent = !isFullscreen ? "6. Toàn màn hình" : "6. Thu nhỏ (Thoát)";
-            
-            // Ẩn QR trên thanh công cụ khi vào chế độ toàn màn hình để giao diện thoáng tuyệt đối
-            if (isFullscreen) {
-                qrToolBox.style.display = "none";
-            } else {
-                qrToolBox.style.display = "flex";
-            }
-
+            fullscreenButton.textContent = !isFullscreen ? "Toàn màn hình" : "Thu nhỏ";
+            qrToolBox.style.display = isFullscreen ? "none" : "flex";
             setTimeout(resizeCanvas, 100); 
         }
         document.addEventListener('fullscreenchange', updateFullscreenButton);
@@ -321,37 +346,26 @@
             return sampleRate / maxpos;
         }
 
-        function findTriggerOffset(buffer) {
-            if (!useTrigger || !buffer) return 0;
-            for (let i = 0; i < buffer.length - 1; i++) {
-                if (buffer[i] <= 128 && buffer[i + 1] > 128) {
-                    return i;
-                }
-            }
-            return 0;
-        }
-
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
                 stopTimer = setTimeout(() => {
                     if (!isPaused) {
                         isPaused = true;
-                        pauseButton.textContent = "2. Đo / Dừng";
-                        pauseButton.style.backgroundColor = "#28a745"; 
+                        pauseButton.textContent = "Đo / Dừng";
                         
                         if (isDualMode) {
                             if (currentMeasuringStep === 1) {
-                                infoText.textContent = "Đã xong Nguồn 1. Bấm Đo để thu Nguồn 2!";
+                                infoText.textContent = "Xong Nguồn 1. Bấm Đo thu Nguồn 2!";
                                 infoText.style.color = "#0000ff";
                                 currentMeasuringStep = 2;
                                 pauseButton.disabled = false;
                             } else {
-                                infoText.textContent = "Đã xong 2 nguồn - So sánh tần số f1 & f2";
+                                infoText.textContent = "Đã xong 2 nguồn - So sánh f1 & f2";
                                 infoText.style.color = "#d93025";
                             }
                         } else {
-                            infoText.textContent = "Đã dừng - Hãy xác định chu kỳ T trên đồ thị";
+                            infoText.textContent = "Đã dừng - Quan sát đồ thị sóng âm";
                             infoText.style.color = "#d93025";
                         }
                     }
@@ -387,19 +401,14 @@
                 resizeCanvas();
                 drawFrame(); 
                 
-                startButton.textContent = "Đã kết nối Micro";
+                startButton.textContent = "Đã kết nối Mic";
                 startButton.disabled = true;
                 pauseButton.disabled = false;
                 resetButton.disabled = false;
                 saveButton.disabled = false;
                 
-                if (isDualMode) {
-                    infoText.textContent = "Sẵn sàng: Hãy phát Nguồn 1 và bấm Đo";
-                    infoText.style.color = "#ff0000";
-                } else {
-                    infoText.textContent = "Trạng thái: Đã sẵn sàng";
-                    infoText.style.color = "#007bff";
-                }
+                infoText.textContent = isDualMode ? "Sẵn sàng: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
+                infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
             } catch (err) {
                 alert("Không thể truy cập micro. Lỗi: " + err);
             }
@@ -409,14 +418,7 @@
             if (isPaused) {
                 isPaused = false;
                 pauseButton.textContent = "Đang đo...";
-                pauseButton.style.backgroundColor = "#dc3545"; 
-                
-                if (isDualMode) {
-                    if (currentMeasuringStep === 1) infoText.textContent = "Đang ghi Nguồn 1 (Màu Đỏ)...";
-                    else infoText.textContent = "Đang ghi Nguồn 2 (Màu Xanh)...";
-                } else {
-                    infoText.textContent = "Trạng thái: Đang ghi sóng âm...";
-                }
+                infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
                 infoText.style.color = "#dc3545";
                 
                 draw(); 
@@ -424,15 +426,14 @@
             } else {
                 isPaused = true;
                 clearTimeout(stopTimer); 
-                pauseButton.textContent = "2. Đo / Dừng";
-                pauseButton.style.backgroundColor = "#28a745"; 
+                pauseButton.textContent = "Đo / Dừng";
                 
                 if (isDualMode && currentMeasuringStep === 1) {
-                    infoText.textContent = "Đã xong Nguồn 1. Bấm Đo để thu Nguồn 2!";
+                    infoText.textContent = "Xong Nguồn 1. Bấm Đo thu Nguồn 2!";
                     infoText.style.color = "#0000ff";
                     currentMeasuringStep = 2;
                 } else {
-                    infoText.textContent = "Đã dừng - Hãy xác định chu kỳ T trên đồ thị";
+                    infoText.textContent = "Đã dừng - Quan sát đồ thị sóng âm";
                     infoText.style.color = "#d93025";
                 }
             }
@@ -441,8 +442,7 @@
         resetButton.addEventListener('click', () => {
             isPaused = true;
             clearTimeout(stopTimer); 
-            pauseButton.textContent = "2. Đo / Dừng";
-            pauseButton.style.backgroundColor = "#28a745"; 
+            pauseButton.textContent = "Đo / Dừng";
             
             detectedFrequency = 0;
             freq1 = 0;
@@ -450,14 +450,11 @@
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
+            panX = 0;
+            zoomFactor = 1.0;
 
-            if (isDualMode) {
-                infoText.textContent = "Đã làm mới: Hãy phát Nguồn 1 và bấm Đo";
-                infoText.style.color = "#ff0000";
-            } else {
-                infoText.textContent = "Trạng thái: Đã sẵn sàng";
-                infoText.style.color = "#007bff";
-            }
+            infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
+            infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
             drawFrame(true);
         });
 
@@ -467,9 +464,6 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
-
-        zoomXSlider.addEventListener('input', () => { if(isPaused) drawFrame(); });
-        zoomYSlider.addEventListener('input', () => { if(isPaused) drawFrame(); });
 
         function drawFrame(isReset = false) {
             if (!analyser) {
@@ -500,20 +494,18 @@
                 }
             }
 
-            const zoomY = parseFloat(zoomYSlider.value);
-            const zoomX = parseFloat(zoomXSlider.value);
-
             let freqForCalc = 440;
             if (freq1 > 0) freqForCalc = freq1;
             else if (detectedFrequency > 0 && !isReset) freqForCalc = detectedFrequency;
 
             let period = 1.0 / freqForCalc;
-            let totalTimeOnScreen = 5 * period * zoomX; 
+            let totalTimeOnScreen = 5 * period * zoomFactor; 
 
-            // 1. Vẽ nền và lưới trước tiên
+            // 1. Vẽ nền
             canvasCtx.fillStyle = '#e6f7ff'; 
             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // 2. Vẽ lưới và hệ trục tọa độ
             canvasCtx.strokeStyle = '#b3e0ff'; 
             canvasCtx.lineWidth = 1;
             const stepX = canvas.width / 10;  
@@ -528,7 +520,6 @@
             }
             canvasCtx.stroke();
 
-            // 2. Vẽ trục tọa độ
             canvasCtx.lineWidth = 2;
             canvasCtx.strokeStyle = '#000000'; 
             canvasCtx.beginPath();
@@ -536,16 +527,6 @@
             canvasCtx.lineTo(canvas.width, canvas.height / 2);
             canvasCtx.moveTo(canvas.width / 2, 0);  
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
-            
-            const tickSize = 5; 
-            for(let i = 0; i <= 10; i++) {
-                canvasCtx.moveTo(i * stepX, canvas.height / 2 - tickSize);
-                canvasCtx.lineTo(i * stepX, canvas.height / 2 + tickSize);
-            }
-            for(let i = 0; i <= 8; i++) {
-                canvasCtx.moveTo(canvas.width / 2 - tickSize, i * stepY);
-                canvasCtx.lineTo(canvas.width / 2 + tickSize, i * stepY);
-            }
             canvasCtx.stroke();
 
             // 3. VẼ ĐƯỜNG SÓNG ÂM
@@ -556,118 +537,83 @@
                 if (!isDualMode) {
                     let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
                     if (activeData[0] !== 0) {
-                        let offset = findTriggerOffset(activeData);
-                        
                         canvasCtx.lineWidth = 3; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        let x = 0, hasMoved = false;
+                        let x = panX, hasMoved = false;
 
-                        for (let i = 0; i < samplesNeeded && (i + offset) < bufferLength; i++) {
-                            const v = activeData[i + offset] / 128.0; 
+                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                            const v = activeData[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
 
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
                             x += sliceWidth;
-                            if (x > canvas.width) break; 
+                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
                 } else {
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
                     if (drawData1 && drawData1[0] !== 0) {
-                        let offset1 = findTriggerOffset(drawData1);
-                        
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        let x = 0, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && (i + offset1) < bufferLength; i++) {
-                            const v = drawData1[i + offset1] / 128.0; 
+                        let x = panX, hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                            const v = drawData1[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
                             x += sliceWidth;
-                            if (x > canvas.width) break; 
+                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
 
                     let drawData2 = (!isPaused && currentMeasuringStep === 2) ? dataArray : savedData2;
                     if (drawData2 && drawData2[0] !== 0) {
-                        let offset2 = findTriggerOffset(drawData2);
-                        
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#0000ff'; 
                         canvasCtx.beginPath();
-                        let x = 0, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && (i + offset2) < bufferLength; i++) {
-                            const v = drawData2[i + offset2] / 128.0; 
+                        let x = panX, hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && i < bufferLength; i++) {
+                            const v = drawData2[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
                             x += sliceWidth;
-                            if (x > canvas.width) break; 
+                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
                 }
             }
 
-            // 4. VẼ CHỮ, SỐ TRỤC VÀ CHÚ THÍCH LÊN TRÊN CÙNG
-            canvasCtx.font = 'bold 15px Arial';
-
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI
+            canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
-                canvasCtx.lineWidth = 4;
+                canvasCtx.lineWidth = 3;
                 canvasCtx.strokeText(txt, x, y); 
                 canvasCtx.fillStyle = color;
                 canvasCtx.fillText(txt, x, y);   
             }
 
-            canvasCtx.textBaseline = 'top';
-            if (isDualMode) {
-                canvasCtx.textAlign = 'left';
-                let txt1 = "■ Nguồn 1 (Đỏ)";
-                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
-                drawTextWithOutline(txt1, 15, 20, '#ff0000');
-
-                canvasCtx.textAlign = 'right';
-                let txt2 = "■ Nguồn 2 (Xanh)";
-                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
-                drawTextWithOutline(txt2, canvas.width - 15, 20, '#0000ff');
-            } else {
-                canvasCtx.textAlign = 'left';
-                drawTextWithOutline("■ Sóng âm (Đỏ)", 15, 20, '#ff0000');
-            }
-
-            // Ghi số liệu lên Trục X
+            let timePerGrid = totalTimeOnScreen / 10;
             canvasCtx.textAlign = 'center';
             canvasCtx.textBaseline = 'top';
-            let timePerGrid = totalTimeOnScreen / 10;
             for(let i = 0; i <= 10; i++) {
                 if (i !== 5) { 
                     let t_val = parseFloat(((i - 5) * timePerGrid).toFixed(4));
                     let t_str = (t_val * 1000).toFixed(1).replace('.', ',');
-                    let textX = i * stepX;
-                    if (i === 10) {
-                        canvasCtx.textAlign = 'right';
-                        textX = canvas.width - 5;
-                    }
-                    drawTextWithOutline(t_str, textX, canvas.height / 2 + 10);
-                    canvasCtx.textAlign = 'center';
+                    drawTextWithOutline(t_str + "ms", i * stepX, canvas.height / 2 + 5);
                 }
             }
-            
-            canvasCtx.textAlign = 'right';
-            canvasCtx.textBaseline = 'bottom';
-            drawTextWithOutline("t (ms)", canvas.width - 5, canvas.height / 2 - 5);
-            
-            // Ghi số liệu lên Trục Y
+
             canvasCtx.textAlign = 'left';
             canvasCtx.textBaseline = 'middle';
             const maxY = 1.0 / zoomY; 
@@ -676,15 +622,32 @@
                 if (i !== 4) { 
                     let val = maxY - (i * valPerStep);
                     let val_str = parseFloat(val.toFixed(2)).toString().replace('.', ',');
-                    let textY = i * stepY;
-                    if (i === 0) textY = 12;
-                    drawTextWithOutline(val_str, canvas.width / 2 + 10, textY);
+                    drawTextWithOutline(val_str, canvas.width / 2 + 8, i * stepY);
                 }
             }
-            drawTextWithOutline("0", canvas.width / 2 + 8, canvas.height / 2 + 15); 
+            drawTextWithOutline("0", canvas.width / 2 + 6, canvas.height / 2 + 8);
+
+            // 5. HIỂN THỊ TÊN ĐẠI LƯỢNG & TẦN SỐ
+            canvasCtx.textBaseline = 'top';
+            if (isDualMode) {
+                canvasCtx.textAlign = 'left';
+                let txt1 = "■ Nguồn 1 (Đỏ)";
+                if (freq1 > 0) txt1 += ` - f: ${Math.round(freq1)} Hz`;
+                drawTextWithOutline(txt1, 15, 10, '#ff0000');
+
+                canvasCtx.textAlign = 'right';
+                let txt2 = "■ Nguồn 2 (Xanh)";
+                if (freq2 > 0) txt2 += ` - f: ${Math.round(freq2)} Hz`;
+                drawTextWithOutline(txt2, canvas.width - 15, 10, '#0000ff');
+            } else {
+                canvasCtx.textAlign = 'left';
+                drawTextWithOutline("■ Sóng âm (Đỏ)", 15, 10, '#ff0000');
+            }
+
+            canvasCtx.textAlign = 'right';
+            drawTextWithOutline("t (ms)", canvas.width - 10, canvas.height / 2 - 25);
             
             canvasCtx.textAlign = 'right';
-            canvasCtx.textBaseline = 'top';
             drawTextWithOutline("Biên độ", canvas.width / 2 - 8, 5);
         }
 
