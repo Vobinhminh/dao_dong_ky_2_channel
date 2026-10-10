@@ -189,7 +189,7 @@
         let detectedFrequency = 0; 
         let freq1 = 0; 
         let freq2 = 0; 
-        let savedData1 = null;  // Lưu mảng 32768 mẫu đầy đủ trong 2 giây
+        let savedData1 = null;  
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
@@ -221,7 +221,7 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính): Cho phép phóng to tối đa đến 0.01s và thu nhỏ toàn cảnh đến 2.0s
+        // 1. Lăn chuột Zoom (Máy tính)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (totalTimeOnScreen === null) {
@@ -231,7 +231,7 @@
             let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
             totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
             
-            if (isPaused) drawFrame();
+            drawFrame();
         }, { passive: false });
 
         canvas.addEventListener('mousedown', (e) => {
@@ -244,7 +244,7 @@
             let dx = e.clientX - startX;
             panX += dx;
             startX = e.clientX;
-            if (isPaused) drawFrame();
+            drawFrame();
         });
 
         window.addEventListener('mouseup', () => { isDragging = false; });
@@ -269,7 +269,7 @@
                 let dx = e.touches[0].clientX - startX;
                 panX += dx;
                 startX = e.touches[0].clientX;
-                if (isPaused) drawFrame();
+                drawFrame();
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
                 if (totalTimeOnScreen === null) {
                     let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
@@ -282,7 +282,7 @@
                 let factor = initialPinchDistance / currentDistance;
                 totalTimeOnScreen = Math.max(0.01, Math.min(2.0, totalTimeOnScreen * factor));
                 initialPinchDistance = currentDistance;
-                if (isPaused) drawFrame();
+                drawFrame();
             }
         });
 
@@ -377,7 +377,7 @@
             return sampleRate / maxpos;
         }
 
-        // Tự động dừng thu âm sau đúng 2 giây
+        // Tự động dừng thu âm sau đúng 2 giây và hiển thị kết quả mượt mà
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
@@ -400,8 +400,9 @@
                             infoText.textContent = "Đã dừng - Quan sát đồ thị sóng âm";
                             infoText.style.color = "#d93025";
                         }
+                        drawFrame(); // Vẽ tĩnh một lần duy nhất, loại bỏ hoàn toàn giật lag
                     }
-                }, 2000); // 2000ms = 2 giây
+                }, 2000); 
             }
         }
 
@@ -423,7 +424,6 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                // Lõi Deep Buffer 32768 mẫu (lưu trữ đầy đủ 2 giây dữ liệu sóng âm)
                 analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
@@ -450,7 +450,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = null; // Kích hoạt tính năng chuẩn 5T tự động khi bấm đo
+                totalTimeOnScreen = null; 
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (2s)...";
@@ -471,6 +471,7 @@
                     infoText.textContent = "Đã dừng - Quan sát đồ thị sóng âm";
                     infoText.style.color = "#d93025";
                 }
+                drawFrame();
             }
         });
 
@@ -507,7 +508,7 @@
                 return;
             }
             
-            const bufferLength = analyser.frequencyBinCount; // 16384 giá trị tương đương 2 giây dữ liệu
+            const bufferLength = analyser.frequencyBinCount; 
             const dataArray = new Uint8Array(bufferLength);
             
             if (!isPaused && !isReset) {
@@ -533,7 +534,6 @@
 
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             if (totalTimeOnScreen === null) {
-                // Tự động căn mặc định chuẩn 5 chu kỳ (5T)
                 totalTimeOnScreen = Math.max(0.01, Math.min(2.0, 5 * (1.0 / freqForCalc))); 
             }
 
@@ -565,46 +565,51 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM
+            // 3. VẼ ĐƯỜNG SÓNG ÂM TỐI ƯU HÓA TỐC ĐỘ (DOWNSAMPLING)
             if (!isReset) {
                 const samplesNeeded = Math.floor(totalTimeOnScreen * sampleRate);
-                const sliceWidth = canvas.width / Math.max(1, samplesNeeded);
-
+                
                 if (!isDualMode) {
                     let activeData = !isPaused ? dataArray : (savedData1 || dataArray);
                     if (activeData && activeData.length > 0) {
                         canvasCtx.lineWidth = 3; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        let x = panX, hasMoved = false;
+                        
+                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
+                        let hasMoved = false;
 
-                        for (let i = 0; i < samplesNeeded && i < activeData.length; i++) {
+                        for (let i = 0; i < samplesNeeded && i < activeData.length; i += step) {
                             const v = activeData[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
 
+                            // Tính toán tọa độ X dựa theo thời gian và độ dịch chuyển panX
+                            let timeIndex = i / sampleRate;
+                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
+
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
-                            x += sliceWidth;
-                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
                 } else {
+                    // Chế độ 2 nguồn
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
                     if (drawData1 && drawData1.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
-                        let x = panX, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < drawData1.length; i++) {
+                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
+                        let hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && i < drawData1.length; i += step) {
                             const v = drawData1[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                            let timeIndex = i / sampleRate;
+                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
-                            x += sliceWidth;
-                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
@@ -614,15 +619,16 @@
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#0000ff'; 
                         canvasCtx.beginPath();
-                        let x = panX, hasMoved = false;
-                        for (let i = 0; i < samplesNeeded && i < drawData2.length; i++) {
+                        let step = Math.max(1, Math.floor(samplesNeeded / canvas.width));
+                        let hasMoved = false;
+                        for (let i = 0; i < samplesNeeded && i < drawData2.length; i += step) {
                             const v = drawData2[i] / 128.0; 
                             let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                             if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
+                            let timeIndex = i / sampleRate;
+                            let x = (timeIndex / (totalTimeOnScreen / 10)) * stepX + (canvas.width / 2) + panX;
                             if (!hasMoved) { canvasCtx.moveTo(x, y); hasMoved = true; }
                             else { canvasCtx.lineTo(x, y); }
-                            x += sliceWidth;
-                            if (x > canvas.width + Math.abs(panX)) break; 
                         }
                         canvasCtx.stroke();
                     }
