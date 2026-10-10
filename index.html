@@ -193,7 +193,8 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        let zoomFactor = 1.0; 
+        // Tổng thời gian hiển thị trên màn hình (được giới hạn từ 0.04s đến 2.4s tương ứng -0.02s->0.02s và -1.2s->1.2s)
+        let totalTimeOnScreen = 0.2; 
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
@@ -221,10 +222,15 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính) với hệ số mượt mà
+        // 1. Lăn chuột Zoom (Máy tính): Giới hạn từ 0.04s đến 2.4s
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            zoomFactor = Math.max(0.02, Math.min(25.0, zoomFactor + (e.deltaY < 0 ? 0.05 : -0.05)));
+            let step = 0.05;
+            if (e.deltaY < 0) {
+                totalTimeOnScreen = Math.max(0.04, totalTimeOnScreen - step); // Phóng to kịch kim tới 0.04s (-0.02s đến 0.02s)
+            } else {
+                totalTimeOnScreen = Math.min(2.4, totalTimeOnScreen + step);   // Thu nhỏ kịch kim tới 2.4s (-1.2s đến 1.2s)
+            }
             if (isPaused) drawFrame();
         }, { passive: false });
 
@@ -270,7 +276,7 @@
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 let factor = initialPinchDistance / currentDistance;
-                zoomFactor = Math.max(0.02, Math.min(25.0, zoomFactor * (factor > 1 ? 1.03 : 0.97)));
+                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, totalTimeOnScreen * (factor > 1 ? 1.05 : 0.95)));
                 initialPinchDistance = currentDistance;
                 if (isPaused) drawFrame();
             }
@@ -296,7 +302,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            zoomFactor = 1.0;
+            totalTimeOnScreen = 0.2;
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -412,7 +418,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 32768; 
+                analyser.fftSize = 65536; // Deep Buffer cực sâu để quét mượt mà dải rộng 2.4s
                 
                 source.connect(highpassFilter);
                 highpassFilter.connect(lowpassFilter);
@@ -438,7 +444,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                zoomFactor = 1.0; 
+                totalTimeOnScreen = 0.2; // Mặc định chuẩn ban đầu khi bấm đo
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm...";
@@ -474,7 +480,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            zoomFactor = 1.0;
+            totalTimeOnScreen = 0.2;
 
             infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
             infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
@@ -517,12 +523,12 @@
                 }
             }
 
-            let freqForCalc = 440;
-            if (freq1 > 0) freqForCalc = freq1;
-            else if (detectedFrequency > 0 && !isReset) freqForCalc = detectedFrequency;
-
-            let period = 1.0 / freqForCalc;
-            let totalTimeOnScreen = 5 * period * zoomFactor; 
+            if (!isReset) {
+                let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
+                if (isPaused && totalTimeOnScreen === 0.2) {
+                    totalTimeOnScreen = 5 * (1.0 / freqForCalc); // Tự động nhận diện chuẩn 5 chu kỳ (5T) khi dừng đo
+                }
+            }
 
             // 1. Vẽ nền
             canvasCtx.fillStyle = '#e6f7ff'; 
@@ -616,7 +622,7 @@
                 }
             }
 
-            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI (Phân chia đều đặn trên 10 ô)
+            // 4. VẼ CÁC SỐ LIỆU TỈ LỆ TRÊN 10 Ô LƯỚI (Chia đều đặn từ âm sang dương cho 10 ô)
             canvasCtx.font = 'bold 12px Arial';
             function drawTextWithOutline(txt, x, y, color = '#000000') {
                 canvasCtx.strokeStyle = '#e6f7ff'; 
@@ -631,9 +637,8 @@
             canvasCtx.textBaseline = 'top';
             for(let i = 0; i <= 10; i++) {
                 if (i !== 5) { 
-                    let t_val = parseFloat(((i - 5) * timePerGrid).toFixed(4));
+                    let t_val = (i - 5) * timePerGrid;
                     let t_str = "";
-                    // Tự động chuyển đổi đơn vị hiển thị phù hợp (ms hoặc s) chia đều trên 10 ô
                     if (Math.abs(t_val) >= 1) {
                         t_str = t_val.toFixed(2).replace('.', ',') + "s";
                     } else {
