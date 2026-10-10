@@ -185,16 +185,19 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        // Khởi tạo các biến thu phóng
         let totalTimeOnScreen = null; 
         let zoomY = 2.0; 
         let panX = 0;
         let isDragging = false;
         let startX = 0;
         
-        // Tách riêng khoảng cách chụm ngón tay cho 2 trục X và Y
-        let initialPinchDistX = null;
-        let initialPinchDistY = null;
+        // Quản lý vuốt đa điểm thông minh (khóa trục)
+        let basePinchDistX = null;
+        let basePinchDistY = null;
+        let pinchAxis = null; // 'X' hoặc 'Y'
+        let baseTime = null;
+        let baseZoomY = null;
+        let lastTapTime = 0; // Để tính chạm kép
 
         window.addEventListener('DOMContentLoaded', () => {
             let currentUrl = window.location.href;
@@ -212,26 +215,38 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // --- DOUBLE CLICK / CHẠM KÉP (Máy tính & Điện thoại) ---
+        function resetView() {
+            panX = 0;
+            zoomY = 2.0;
+            totalTimeOnScreen = null; // Tự tính lại chuẩn 5T
+            if (isPaused) drawFrame(true);
+        }
+
+        canvas.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            resetView();
+        });
+
         // --- CẢM BIẾN LĂN CHUỘT ---
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.shiftKey) {
-                // Giữ Shift + Lăn chuột = Zoom trục Y (Biên độ)
                 let zoomMultiplier = e.deltaY < 0 ? 1.1 : 0.9; 
                 zoomY = Math.max(0.5, Math.min(20.0, zoomY * zoomMultiplier)); 
             } else {
-                // Lăn chuột bình thường = Zoom trục X (Thời gian)
                 if (totalTimeOnScreen === null) {
                     let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                    totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
+                    totalTimeOnScreen = Math.max(0.01, Math.min(0.6, 5 * (1.0 / freqForCalc)));
                 }
                 let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * zoomMultiplier)); 
+                // Capped max time at 0.6s to ensure the 32768 buffer fills the screen
+                totalTimeOnScreen = Math.max(0.01, Math.min(0.6, totalTimeOnScreen * zoomMultiplier)); 
             }
             if (isPaused) drawFrame();
         }, { passive: false });
 
-        // --- CẢM BIẾN VUỐT DI CHUYỂN (PAN) ---
+        // --- CẢM BIẾN CHẠM ĐA ĐIỂM ---
         canvas.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX; });
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
@@ -241,17 +256,39 @@
         });
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // --- CẢM BIẾN CHẠM ĐA ĐIỂM (ĐIỆN THOẠI/TABLET) ---
         canvas.addEventListener('touchstart', (e) => {
+            let currentTime = new Date().getTime();
+            let tapLength = currentTime - lastTapTime;
+            
             if (e.touches.length === 1) {
+                if (tapLength < 300 && tapLength > 0) { // Phát hiện Double Tap trên cảm ứng
+                    resetView();
+                    e.preventDefault();
+                    lastTapTime = 0;
+                    return;
+                }
+                lastTapTime = currentTime;
+                
                 isDragging = true;
                 startX = e.touches[0].clientX;
-                initialPinchDistX = null;
-                initialPinchDistY = null;
+                basePinchDistX = null;
             } else if (e.touches.length === 2) {
                 isDragging = false;
-                initialPinchDistX = Math.abs(e.touches[0].clientX - e.touches[1].clientX);
-                initialPinchDistY = Math.abs(e.touches[0].clientY - e.touches[1].clientY);
+                let dx = Math.abs(e.touches[0].clientX - e.touches[1].clientX);
+                let dy = Math.abs(e.touches[0].clientY - e.touches[1].clientY);
+                
+                basePinchDistX = dx;
+                basePinchDistY = dy;
+                // Nhận diện đang có xu hướng chụm ngang hay chụm dọc để KHÓA TRỤC
+                pinchAxis = dx > dy ? 'X' : 'Y';
+                
+                if (totalTimeOnScreen === null) {
+                    let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
+                    baseTime = Math.max(0.01, Math.min(0.6, 5 * (1.0 / freqForCalc)));
+                } else {
+                    baseTime = totalTimeOnScreen;
+                }
+                baseZoomY = zoomY;
             }
         });
 
@@ -260,34 +297,22 @@
                 panX += (e.touches[0].clientX - startX);
                 startX = e.touches[0].clientX;
                 if (isPaused) drawFrame();
-            } else if (e.touches.length === 2 && initialPinchDistX !== null && initialPinchDistY !== null) {
-                let currentDistX = Math.abs(e.touches[0].clientX - e.touches[1].clientX);
-                let currentDistY = Math.abs(e.touches[0].clientY - e.touches[1].clientY);
-                
-                let dxChange = Math.abs(currentDistX - initialPinchDistX);
-                let dyChange = Math.abs(currentDistY - initialPinchDistY);
-                
-                // Thuật toán nhận diện hướng ngón tay: Ngang (Trục X) hoặc Dọc (Trục Y)
-                if (dxChange > dyChange) {
-                    if (totalTimeOnScreen === null) {
-                        let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                        totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
-                    }
-                    let factor = initialPinchDistX / (currentDistX || 1);
-                    totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * factor));
-                } else {
-                    let factor = currentDistY / (initialPinchDistY || 1);
-                    zoomY = Math.max(0.5, Math.min(20.0, zoomY * factor));
+            } else if (e.touches.length === 2 && basePinchDistX !== null) {
+                if (pinchAxis === 'X') {
+                    let currentDistX = Math.abs(e.touches[0].clientX - e.touches[1].clientX);
+                    let scaleX = currentDistX / (basePinchDistX || 1);
+                    totalTimeOnScreen = Math.max(0.01, Math.min(0.6, baseTime / scaleX));
+                } else if (pinchAxis === 'Y') {
+                    let currentDistY = Math.abs(e.touches[0].clientY - e.touches[1].clientY);
+                    let scaleY = currentDistY / (basePinchDistY || 1);
+                    zoomY = Math.max(0.5, Math.min(20.0, baseZoomY * scaleY));
                 }
-                
-                initialPinchDistX = currentDistX;
-                initialPinchDistY = currentDistY;
                 if (isPaused) drawFrame();
             }
         });
 
         canvas.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) { initialPinchDistX = null; initialPinchDistY = null; }
+            if (e.touches.length < 2) { basePinchDistX = null; }
             if (e.touches.length === 0) isDragging = false;
         });
 
@@ -305,9 +330,7 @@
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
-            panX = 0;
-            totalTimeOnScreen = null;
-            zoomY = 2.0; 
+            resetView(); // Tự động căn lại khi đổi chế độ
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -484,9 +507,7 @@
             savedData1 = null;
             savedData2 = null;
             currentMeasuringStep = 1;
-            panX = 0;
-            totalTimeOnScreen = null;
-            zoomY = 2.0;
+            resetView(); // Tự đưa đồ thị về chính giữa ngay lập tức
 
             infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
             infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
@@ -507,7 +528,8 @@
                 return;
             }
             
-            const bufferLength = analyser.frequencyBinCount; 
+            // Fix lấy TOÀN BỘ 32768 mẫu thay vì bị cắt nửa, giúp sóng dài hơn gấp đôi
+            const bufferLength = analyser.fftSize; 
             const dataArray = new Uint8Array(bufferLength);
             
             if (!isPaused && !isReset) {
@@ -531,7 +553,7 @@
 
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             if (totalTimeOnScreen === null) {
-                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc))); 
+                totalTimeOnScreen = Math.max(0.01, Math.min(0.6, 5 * (1.0 / freqForCalc))); 
             }
 
             // 1. Vẽ nền
@@ -646,7 +668,7 @@
                     if (Math.abs(t_val) >= 1) {
                         t_str = t_val.toFixed(2).replace('.', ',') + "s";
                     } else {
-                        t_str = (t_val * 1000).toFixed(1).replace('.', ',') + "ms";
+                        t_str = Math.round(t_val * 1000) + "ms"; // Làm tròn ms để không bị đè chữ
                     }
                     drawTextWithOutline(t_str, i * stepX, canvas.height / 2 + 5);
                 }
