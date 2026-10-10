@@ -190,7 +190,7 @@
         let savedData2 = null; 
         let currentMeasuringStep = 1; 
 
-        let totalTimeOnScreen = 0.05; // Mặc định hiển thị trực quan dải thời gian gọn gàng
+        let totalTimeOnScreen = null; // Tự động căn chuẩn 5T
         let zoomY = 2.0;
         let panX = 0;
         let isDragging = false;
@@ -218,11 +218,44 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // Thuật toán nhận diện tần số thô cực nhanh để căn 5T
+        function estimateFrequency(buffer, sampleRate) {
+            let SIZE = buffer.length;
+            let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+            for (let i = 0; i < SIZE / 2; i++) {
+                if (Math.abs((buffer[i] - 128) / 128) < thres) { r1 = i; break; }
+            }
+            for (let i = 1; i < SIZE / 2; i++) {
+                if (Math.abs((buffer[SIZE - i] - 128) / 128) < thres) { r2 = SIZE - i; break; }
+            }
+            buffer = buffer.slice(r1, r2);
+            SIZE = buffer.length;
+
+            let c = new Array(SIZE).fill(0);
+            for (let i = 0; i < Math.min(SIZE, 2000); i++) {
+                for (let j = 0; j < SIZE - i; j++) {
+                    let v1 = (buffer[j] - 128) / 128;
+                    let v2 = (buffer[j + i] - 128) / 128;
+                    c[i] += v1 * v2;
+                }
+            }
+
+            let d = 0;
+            while (d < c.length - 1 && c[d] > c[d + 1]) d++;
+            let maxval = -1, maxpos = -1;
+            for (let i = d; i < c.length; i++) {
+                if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
+            }
+            if (maxpos <= 0) return 440;
+            return sampleRate / maxpos;
+        }
+
         // 1. Lăn chuột Zoom (Máy tính)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
+            if (totalTimeOnScreen === null) totalTimeOnScreen = 0.05;
             let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
-            totalTimeOnScreen = Math.max(0.005, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
+            totalTimeOnScreen = Math.max(0.001, Math.min(2.0, totalTimeOnScreen * zoomMultiplier)); 
             drawFrame();
         }, { passive: false });
 
@@ -263,12 +296,13 @@
                 startX = e.touches[0].clientX;
                 drawFrame();
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+                if (totalTimeOnScreen === null) totalTimeOnScreen = 0.05;
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
                 let factor = initialPinchDistance / currentDistance;
-                totalTimeOnScreen = Math.max(0.005, Math.min(2.0, totalTimeOnScreen * factor));
+                totalTimeOnScreen = Math.max(0.001, Math.min(2.0, totalTimeOnScreen * factor));
                 initialPinchDistance = currentDistance;
                 drawFrame();
             }
@@ -291,7 +325,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = 0.05;
+            totalTimeOnScreen = null;
             
             if (!startButton.disabled) {
                 infoText.textContent = "Đang chờ bật Micro...";
@@ -324,7 +358,7 @@
         document.addEventListener('fullscreenchange', updateFullscreenButton);
         document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
-        // Tự động dừng thu âm sau đúng 2 giây và hiển thị tĩnh mượt mà
+        // Tự động dừng thu âm sau đúng 2 giây
         function triggerAutoStop() {
             clearTimeout(stopTimer);
             if (!isPaused) {
@@ -396,8 +430,21 @@
 
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
+                // XÓA SẠCH DỮ LIỆU CŨ KHI BẮT ĐẦU ĐO MỚI
+                if (!isDualMode) {
+                    savedData1 = null;
+                } else {
+                    if (currentMeasuringStep === 1) {
+                        savedData1 = null;
+                        savedData2 = null; 
+                    } else if (currentMeasuringStep === 2) {
+                        savedData2 = null; 
+                    }
+                }
+
                 isPaused = false;
                 panX = 0;
+                totalTimeOnScreen = null; // Reset để tính lại 5T cho lần đo mới
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (2s)...";
                 infoText.style.color = "#dc3545";
@@ -430,7 +477,7 @@
             savedData2 = null;
             currentMeasuringStep = 1;
             panX = 0;
-            totalTimeOnScreen = 0.05;
+            totalTimeOnScreen = null;
 
             infoText.textContent = isDualMode ? "Đã làm mới: Phát Nguồn 1 và bấm Đo" : "Đã sẵn sàng";
             infoText.style.color = isDualMode ? "#ff0000" : "#007bff";
@@ -464,6 +511,16 @@
                 }
             }
 
+            let activeDataForCalc = (!isDualMode) ? (savedData1 || dataArray) : (currentMeasuringStep === 1 ? (savedData1 || dataArray) : (savedData2 || dataArray));
+            
+            if (totalTimeOnScreen === null && activeDataForCalc) {
+                let estFreq = estimateFrequency(activeDataForCalc, sampleRate);
+                if (estFreq < 30) estFreq = 440;
+                // Mặc định hiển thị đúng 5 chu kỳ (5T) trên 10 ô lưới
+                totalTimeOnScreen = 5 * (1.0 / estFreq);
+            }
+            if (totalTimeOnScreen === null) totalTimeOnScreen = 0.05;
+
             // 1. Vẽ nền
             canvasCtx.fillStyle = '#e6f7ff'; 
             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
@@ -492,7 +549,7 @@
             canvasCtx.lineTo(canvas.width / 2, canvas.height);
             canvasCtx.stroke();
 
-            // 3. VẼ ĐƯỜNG SÓNG ÂM DÀN ĐỀU HAI BÊN TRỤC (ĐỐI XỨNG QUA TÂM MÀN HÌNH)
+            // 3. VẼ ĐƯỜNG SÓNG ÂM VỚI KỸ THUẬT DOWNSAMPLING SIÊU MƯỢT
             if (!isReset) {
                 const totalSamples = bufferLength;
                 
@@ -503,13 +560,16 @@
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
                         
+                        // Kỹ thuật Downsampling: Lọc bước nhảy mẫu tối ưu theo chiều ngang màn hình
+                        let samplesInView = totalTimeOnScreen * sampleRate;
+                        let step = Math.max(1, Math.floor(samplesInView / canvas.width));
                         let hasMoved = false;
-                        for (let i = 0; i < totalSamples; i++) {
-                            let timeOffset = (i / sampleRate) - 1.0; // Căn giữa mốc 2 giây ở t = 0
-                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
+
+                        for (let i = 0; i < totalSamples; i += step) {
+                            let timeOffset = i / sampleRate; 
+                            let x = (timeOffset / totalTimeOnScreen) * (canvas.width / 2) + (canvas.width / 2) + panX;
                             
-                            // Chỉ vẽ các điểm nằm trong khung hình canvas để tối ưu tốc độ
-                            if (x >= 0 && x <= canvas.width) {
+                            if (x >= -50 && x <= canvas.width + 50) {
                                 const v = activeData[i] / 128.0; 
                                 let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                                 if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
@@ -521,17 +581,20 @@
                         canvasCtx.stroke();
                     }
                 } else {
-                    // Chế độ 2 nguồn (Đỏ & Xanh)
+                    // Chế độ 2 nguồn (Đỏ & Xanh) với Downsampling
+                    let samplesInView = totalTimeOnScreen * sampleRate;
+                    let step = Math.max(1, Math.floor(samplesInView / canvas.width));
+
                     let drawData1 = (!isPaused && currentMeasuringStep === 1) ? dataArray : savedData1;
                     if (drawData1 && drawData1.length > 0) {
                         canvasCtx.lineWidth = 2.5; 
                         canvasCtx.strokeStyle = '#ff0000'; 
                         canvasCtx.beginPath();
                         let hasMoved = false;
-                        for (let i = 0; i < totalSamples; i++) {
-                            let timeOffset = (i / sampleRate) - 1.0;
-                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
-                            if (x >= 0 && x <= canvas.width) {
+                        for (let i = 0; i < totalSamples; i += step) {
+                            let timeOffset = i / sampleRate;
+                            let x = (timeOffset / totalTimeOnScreen) * (canvas.width / 2) + (canvas.width / 2) + panX;
+                            if (x >= -50 && x <= canvas.width + 50) {
                                 const v = drawData1[i] / 128.0; 
                                 let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                                 if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
@@ -548,10 +611,10 @@
                         canvasCtx.strokeStyle = '#0000ff'; 
                         canvasCtx.beginPath();
                         let hasMoved = false;
-                        for (let i = 0; i < totalSamples; i++) {
-                            let timeOffset = (i / sampleRate) - 1.0;
-                            let x = (timeOffset / totalTimeOnScreen) * canvas.width + (canvas.width / 2) + panX;
-                            if (x >= 0 && x <= canvas.width) {
+                        for (let i = 0; i < totalSamples; i += step) {
+                            let timeOffset = i / sampleRate;
+                            let x = (timeOffset / totalTimeOnScreen) * (canvas.width / 2) + (canvas.width / 2) + panX;
+                            if (x >= -50 && x <= canvas.width + 50) {
                                 const v = drawData2[i] / 128.0; 
                                 let y = (v - 1.0) * zoomY * (canvas.height / 2) + (canvas.height / 2);
                                 if (y < 0) y = 0; if (y > canvas.height) y = canvas.height;
