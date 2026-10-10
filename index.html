@@ -194,6 +194,7 @@
         let currentMeasuringStep = 1; 
 
         // Tổng thời gian trên 10 ô (Mặc định null để tự nhận diện 5T khi đo)
+        // Giới hạn zoom: 0.01s (phóng to soi sát đỉnh) đến 2.4s (thu nhỏ toàn cảnh)
         let totalTimeOnScreen = null; 
         let zoomY = 2.0;
         let panX = 0;
@@ -222,19 +223,17 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // 1. Lăn chuột Zoom (Máy tính): Giới hạn từ 0.04s (-0.02s đến 0.02s) đến 2.4s (-1.2s đến 1.2s)
+        // 1. Lăn chuột Zoom (Máy tính): Giới hạn 0.01s đến 2.4s chia đều 10 ô
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (totalTimeOnScreen === null) {
                 let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc)));
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
             }
-            let step = 0.05;
-            if (e.deltaY < 0) {
-                totalTimeOnScreen = Math.max(0.04, totalTimeOnScreen - step); 
-            } else {
-                totalTimeOnScreen = Math.min(2.4, totalTimeOnScreen + step);   
-            }
+            // Dùng hệ số nhân (0.9 và 1.1) để zoom mượt mà theo tỉ lệ thực tế
+            let zoomMultiplier = e.deltaY < 0 ? 0.9 : 1.1; 
+            totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * zoomMultiplier)); 
+            
             if (isPaused) drawFrame();
         }, { passive: false });
 
@@ -277,14 +276,15 @@
             } else if (e.touches.length === 2 && initialPinchDistance !== null) {
                 if (totalTimeOnScreen === null) {
                     let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
-                    totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc)));
+                    totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc)));
                 }
                 let currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
+                // Cập nhật hệ số thu/phóng liên tục giúp zoom cảm ứng cực êm
                 let factor = initialPinchDistance / currentDistance;
-                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, totalTimeOnScreen * (factor > 1 ? 1.05 : 0.95)));
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, totalTimeOnScreen * factor));
                 initialPinchDistance = currentDistance;
                 if (isPaused) drawFrame();
             }
@@ -426,7 +426,7 @@
                 lowpassFilter.type = 'lowpass';
 
                 analyser = audioCtx.createAnalyser();
-                // FIX LỖI MICRO: Đã đặt giá trị fftSize thành 32768 (chuẩn lũy thừa 2 tối đa được cấp quyền)
+                // BỘ ĐỆM DEEP BUFFER: Giá trị 32768 chuẩn lũy thừa 2 hỗ trợ thu âm sâu 2 giây không bị lỗi IndexSizeError
                 analyser.fftSize = 32768; 
                 
                 source.connect(highpassFilter);
@@ -453,7 +453,7 @@
         pauseButton.addEventListener('click', () => {
             if (isPaused) {
                 isPaused = false;
-                totalTimeOnScreen = null; 
+                totalTimeOnScreen = null; // Kích hoạt tính năng chuẩn 5T tự động khi bấm đo
                 panX = 0;
                 pauseButton.textContent = "Đang đo...";
                 infoText.textContent = isDualMode ? (currentMeasuringStep === 1 ? "Đang ghi Nguồn 1 (Đỏ)..." : "Đang ghi Nguồn 2 (Xanh)...") : "Đang ghi sóng âm (0.2s)...";
@@ -534,7 +534,8 @@
 
             let freqForCalc = freq1 > 0 ? freq1 : (detectedFrequency > 0 ? detectedFrequency : 440);
             if (totalTimeOnScreen === null) {
-                totalTimeOnScreen = Math.max(0.04, Math.min(2.4, 5 * (1.0 / freqForCalc))); 
+                // Tự động chuẩn 5 chu kỳ (5T) giới hạn trong khoảng [0.01s, 2.4s]
+                totalTimeOnScreen = Math.max(0.01, Math.min(2.4, 5 * (1.0 / freqForCalc))); 
             }
 
             // 1. Vẽ nền
