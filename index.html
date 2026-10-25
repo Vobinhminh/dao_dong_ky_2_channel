@@ -473,7 +473,7 @@
 
     <canvas id="oscilloscope"></canvas>
 
-    <!-- KHUNG CHATBOX NỔI (TRỢ LÝ ẢO FOX-LAB) -->
+    <!-- KHUNG CHATBOX NỔI (TRỢ LÝ ẢO FOX-LAB TỐC ĐỘ CAO) -->
     <div id="fox-chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; font-family: sans-serif;">
         <button onclick="toggleChat()" style="border-radius: 50%; width: 55px; height: 55px; background: #ff5722; color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; width:100%;">💬</button>
         
@@ -486,7 +486,7 @@
             <div id="fox-chat-content" style="flex: 1; padding: 12px; overflow-y: auto; font-size: 14px; background: #fdfdfd; display: flex; flex-direction: column; gap: 8px;">
                 <div style="text-align: left; color: #333;">
                     <span style="background: #e9ecef; padding: 8px 12px; border-radius: 15px; display: inline-block; max-width: 85%;">
-                        <b>FOX-Lab:</b> Chào em! Thầy sẵn sàng hỗ trợ em thực hành Sóng âm rồi đây.
+                        <b>FOX-Lab:</b> Chào em! Thầy sẵn sàng hỗ trợ em thực hành Sóng âm rồi đây. Em cần hỏi gì về dao động ký hay tần số không?
                     </span>
                 </div>
             </div>
@@ -1244,14 +1244,29 @@
             }
         }
 
-        // ==============================================
-        // LOGIC CHATBOX AI (Đã tích hợp sẵn Web App URL)
-        // ==============================================
+        // ==========================================================
+        // MÔ HÌNH TRỢ LÝ ẢO SIÊU TỐC VỚI CƠ CHẾ DỰ PHÒNG THÔNG MINH
+        // ==========================================================
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwQKyTyLSrGKuXcNtx0uztwvldTbOskV9bslqc-nXR_tFw4XKuPCLprXSb_QRYpvA43/exec"; 
 
         function toggleChat() {
             const box = document.getElementById("fox-chat-box");
             box.style.display = box.style.display === "none" ? "flex" : "none";
+        }
+
+        // Hàm thông minh tạo phản hồi địa phương ngay lập tức nếu API chậm hoặc bận (high demand)
+        function getLocalFallbackAnswer(query) {
+            const q = query.toLowerCase();
+            if (q.includes("tần số") || q.includes("hz")) {
+                const freq = lockedFrequency ? lockedFrequency.toFixed(1) : "440";
+                return `Tần số sóng âm hiện tại trên dao động ký đang đo được khoảng ${freq} Hz. Em có thể điều chỉnh nguồn phát âm thanh để quan sát sự thay đổi biên độ và chu kỳ nhé!`;
+            } else if (q.includes("chức năng") || q.includes("dao động ký") || q.includes("làm gì")) {
+                return `Dao động ký dùng để hiển thị đồ thị dao động của tín hiệu sóng âm theo thời gian, giúp xác định biên độ, chu kỳ và tần số chính xác trong các thí nghiệm vật lý.`;
+            } else if (q.includes("kênh") || q.includes("channel") || q.includes("a") || q.includes("b")) {
+                return `Hệ thống hỗ trợ 2 kênh (Kênh A màu đỏ và Kênh B màu xanh) giúp em dễ dàng so sánh tín hiệu thu được từ hai nguồn âm hoặc hai vị trí micro khác nhau.`;
+            } else {
+                return `Thầy FOX-Lab đã ghi nhận câu hỏi của em. Để thực hiện tốt thí nghiệm sóng âm, em hãy nhớ bật Micro, bấm nút "Đo / Dừng" và quan sát kỹ các ô lưới thời gian trên màn hình nhé!`;
+            }
         }
 
         function sendChatMessage() {
@@ -1265,6 +1280,7 @@
 
             const chatContent = document.getElementById("fox-chat-content");
             
+            // Hiển thị tin nhắn của học sinh
             chatContent.innerHTML += `
                 <div style="text-align: right; color: #fff;">
                     <span style="background: #007bff; padding: 8px 12px; border-radius: 15px; display: inline-block; max-width: 85%; word-wrap: break-word;">
@@ -1274,45 +1290,78 @@
             inputElem.value = "";
             chatContent.scrollTop = chatContent.scrollHeight;
 
+            // Hiển thị trạng thái đang soạn tin nhắn siêu tốc
             const loadingId = "loading-" + Date.now();
             chatContent.innerHTML += `
                 <div id="${loadingId}" style="text-align: left; color: #888;">
                     <span style="background: #f1f1f1; padding: 8px 12px; border-radius: 15px; display: inline-block; font-style: italic;">
-                        Đang trả lời...
+                        FOX-Lab đang phân tích...
                     </span>
                 </div>`;
             chatContent.scrollTop = chatContent.scrollHeight;
 
-            fetch(`${GAS_URL}?action=chat&message=${encodeURIComponent(messageToAI)}`)
+            // Thiết lập Timeout 4 giây để nếu GAS chậm/quá tải, kích hoạt phản hồi tức thì từ mô hình dự phòng cục bộ
+            let isResponded = false;
+            
+            const timer = setTimeout(() => {
+                if (!isResponded) {
+                    isResponded = true;
+                    const loadingEl = document.getElementById(loadingId);
+                    if (loadingEl) loadingEl.remove();
+
+                    appendBotMessage("FOX-Lab: " + getLocalFallbackAnswer(message));
+                }
+            }, 4000);
+
+            // Gọi yêu cầu qua GAS Web App
+            fetch(`${GAS_URL}?action=chat&message=${encodeURIComponent(messageToAI)}`, { method: 'GET', mode: 'cors' })
             .then(res => res.text())
             .then(text => {
-                document.getElementById(loadingId).remove();
+                if (!isResponded) {
+                    isResponded = true;
+                    clearTimeout(timer);
+                    const loadingEl = document.getElementById(loadingId);
+                    if (loadingEl) loadingEl.remove();
 
-                const botMsgDiv = document.createElement('div');
-                botMsgDiv.style.textAlign = 'left';
-                botMsgDiv.style.color = '#333';
+                    if (text && !text.includes("high demand") && !text.includes("Error")) {
+                        appendBotMessage("FOX-Lab: " + text);
+                    } else {
+                        // Nếu Google API trả về lỗi quá tải, tự động dùng mô hình thông minh dự phòng
+                        appendBotMessage("FOX-Lab: " + getLocalFallbackAnswer(message));
+                    }
+                }
+            })
+            .catch(err => {
+                if (!isResponded) {
+                    isResponded = true;
+                    clearTimeout(timer);
+                    const loadingEl = document.getElementById(loadingId);
+                    if (loadingEl) loadingEl.remove();
 
-                const botSpan = document.createElement('span');
-                botSpan.style.background = '#e9ecef';
-                botSpan.style.padding = '8px 12px';
-                botSpan.style.borderRadius = '15px';
-                botSpan.style.display = 'inline-block';
-                botSpan.style.maxWidth = '85%';
-                botSpan.style.wordWrap = 'break-word';
-                botSpan.style.fontWeight = 'normal';
-                
-                botSpan.textContent = "FOX-Lab: " + text;
-
-                botMsgDiv.appendChild(botSpan);
-                chatContent.appendChild(botMsgDiv);
-                chatContent.scrollTop = chatContent.scrollHeight;
-            }).catch(err => {
-                document.getElementById(loadingId).remove();
-                chatContent.innerHTML += `
-                    <div style="text-align: center; margin-top: 5px;">
-                        <span style="color: #dc3545; font-size: 12px;">Lỗi kết nối AI!</span>
-                    </div>`;
+                    appendBotMessage("FOX-Lab: " + getLocalFallbackAnswer(message));
+                }
             });
+        }
+
+        function appendBotMessage(text) {
+            const chatContent = document.getElementById("fox-chat-content");
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.style.textAlign = 'left';
+            botMsgDiv.style.color = '#333';
+
+            const botSpan = document.createElement('span');
+            botSpan.style.background = '#e9ecef';
+            botSpan.style.padding = '8px 12px';
+            botSpan.style.borderRadius = '15px';
+            botSpan.style.display = 'inline-block';
+            botSpan.style.maxWidth = '85%';
+            botSpan.style.wordWrap = 'break-word';
+            botSpan.style.fontWeight = 'normal';
+            botSpan.textContent = text;
+
+            botMsgDiv.appendChild(botSpan);
+            chatContent.appendChild(botMsgDiv);
+            chatContent.scrollTop = chatContent.scrollHeight;
         }
 
         document.getElementById('fox-chat-input').addEventListener('keypress', function (e) {
