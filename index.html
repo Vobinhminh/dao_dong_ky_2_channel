@@ -132,7 +132,6 @@
             }
         }
 
-        /* Khắc phục lỗi chữ dính sát nhau do display:flex lấy mất khoảng trắng quanh thẻ <b> */
         .info-panel {
             font-weight: 600;
             font-size: 13.5px;
@@ -150,7 +149,6 @@
             letter-spacing: 0.2px;
         }
 
-        /* Badge nổi bật cho tên nút hoặc kênh bên trong thanh thông báo */
         .info-badge {
             display: inline-block;
             padding: 1px 7px;
@@ -512,8 +510,6 @@
     <!-- ============================================== -->
 
     <script>
-        // ... (Giữ nguyên toàn bộ script cấu hình thiết bị, vẽ Canvas và DSP của bạn ở trên) ...
-        
         // Tạo QR Code
         window.addEventListener('DOMContentLoaded', () => {
             const qrImage = document.getElementById('qrImage');
@@ -1266,8 +1262,9 @@
         // ==============================================
         // LOGIC XỬ LÝ CHATBOT AI NHẬN BIẾT NGỮ CẢNH
         // ==============================================
-        // Dán link Web vào đây:
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwQKyTyLSrGKuXcNtx0uztwvldTbOskV9bslqc-nXR_tFw4XKuPCLprXSb_QRYpvA43/exec";
+        
+        // Đã dán link Web App của bạn vào đây:
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwQKyTyLSrGKuXcNtx0uztwvldTbOskV9bslqc-nXR_tFw4XKuPCLprXSb_QRYpvA43/exec"; 
 
         function toggleChat() {
             const box = document.getElementById("fox-chat-box");
@@ -1313,7 +1310,7 @@
                 </div>`;
             chatContent.scrollTop = chatContent.scrollHeight;
 
-            // Gửi dữ liệu qua Google Apps Script (bạn nhớ thay GAS_URL ở trên)
+            // Gửi dữ liệu qua Google Apps Script
             fetch(`${GAS_URL}?action=chat&message=${encodeURIComponent(messageToAI)}`)
             .then(res => res.text())
             .then(text => {
