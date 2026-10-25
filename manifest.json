@@ -8,9 +8,10 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Orange_square.svg/512px-Orange_square.svg.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
