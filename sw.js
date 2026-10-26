@@ -1,4 +1,4 @@
-const CACHE_NAME = 'foxlab-oscillo-v1';
+const CACHE_NAME = 'foxlab-oscillo-v2';
 
 // Danh sách các file cần lưu cache (giả sử file giao diện của bạn tên là index.html)
 const urlsToCache = [
