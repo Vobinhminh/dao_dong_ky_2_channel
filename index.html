@@ -873,7 +873,6 @@
             
             const freqVal = (typeof lockedFrequency !== 'undefined' && lockedFrequency > 0) ? lockedFrequency.toFixed(1) + " Hz" : ((typeof detectedFrequency !== 'undefined' && detectedFrequency > 0) ? detectedFrequency.toFixed(1) + " Hz" : "440.0 Hz");
             
-            // Tách biệt rõ ràng thông số máy và câu hỏi học sinh để AI đọc cực kỳ chính xác
             const messageToAI = `[THÔNG SỐ MÁY: Tần số = ${freqVal}] | NỘI DUNG HỌC SINH HỎI: ${message}`;
             
             const chatContent = document.getElementById("fox-chat-content");
