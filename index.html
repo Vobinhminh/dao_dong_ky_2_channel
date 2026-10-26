@@ -6,64 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dao động ký (Oscilloscope) - Sóng âm</title>
     
-    <!-- KHAI BÁO ICON CHO TRÌNH DUYỆT VÀ APPLE IOS -->
     <link rel="icon" type="image/png" href="./icon-512.png">
     <link rel="apple-touch-icon" href="./icon-512.png">
-    
-    <!-- KHAI BÁO PWA ĐỂ CÀI ĐẶT APP VÀ CHẠY OFFLINE -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#f97316">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Google Fonts: Be Vietnam Pro & Inter chuyên dụng tiếng Việt chuẩn 100% không lỗi dấu -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; background-color: #e6f7ff;
-            font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow: hidden;
-        }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #e6f7ff; font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow: hidden; }
         button, input, select, textarea { font-family: inherit; }
         body { display: flex; flex-direction: column; }
-
-        .top-bar {
-            display: flex; background-color: #f0f4f8; border-bottom: 3px solid #000; z-index: 10; padding: 8px; gap: 8px; align-items: stretch;
-        }
+        .top-bar { display: flex; background-color: #f0f4f8; border-bottom: 3px solid #000; z-index: 10; padding: 8px; gap: 8px; align-items: stretch; }
         .controls-wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 8px; }
         .settings-row { display: flex; gap: 6px; width: 100%; }
         .btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 100%; }
-
-        .custom-select {
-            padding: 6px 8px; font-size: 13px; font-weight: bold; color: #0056b3; border-radius: 6px; border: 1px solid #ccc; background-color: #fff;
-            width: 100%; cursor: pointer; outline: none; box-sizing: border-box; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .qr-panel {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff;
-            border: 1px solid #ccc; border-radius: 6px; padding: 6px; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); width: 94px; flex-shrink: 0;
-        }
+        .custom-select { padding: 6px 8px; font-size: 13px; font-weight: bold; color: #0056b3; border-radius: 6px; border: 1px solid #ccc; background-color: #fff; width: 100%; cursor: pointer; outline: none; box-sizing: border-box; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); }
+        .qr-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 6px; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); width: 94px; flex-shrink: 0; }
         .qr-panel img { width: 65px; height: 65px; border: 1px solid #eee; }
         .qr-panel .scan-title { font-size: 9px; font-weight: bold; color: #d93025; margin-top: 4px; line-height: 1; white-space: nowrap; }
 
-        @media (max-width: 800px) {
-            .top-bar { padding: 0; gap: 0; }
-            .controls-wrapper { padding: 8px; }
-            .qr-panel { display: none; }
-            .btn-group { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (max-width: 500px) {
-            .btn-group { grid-template-columns: 1fr 1fr; }
-            #fullscreenButton { grid-column: span 2; }
-            .settings-row { flex-direction: column; }
-        }
+        @media (max-width: 800px) { .top-bar { padding: 0; gap: 0; } .controls-wrapper { padding: 8px; } .qr-panel { display: none; } .btn-group { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 500px) { .btn-group { grid-template-columns: 1fr 1fr; } #fullscreenButton { grid-column: span 2; } .settings-row { flex-direction: column; } }
 
-        .info-panel {
-            font-weight: 600; font-size: 13.5px; color: #d93025; background: #fff; padding: 7px 12px; border-radius: 6px;
-            border: 1px solid #ccc; width: 100%; text-align: center; box-sizing: border-box; display: block; line-height: 1.45; min-height: 34px; letter-spacing: 0.2px;
-        }
+        .info-panel { font-weight: 600; font-size: 13.5px; color: #d93025; background: #fff; padding: 7px 12px; border-radius: 6px; border: 1px solid #ccc; width: 100%; text-align: center; box-sizing: border-box; display: block; line-height: 1.45; min-height: 34px; letter-spacing: 0.2px; }
         .info-badge { display: inline-block; padding: 1px 7px; margin: 0 4px; border-radius: 4px; font-weight: 700; background-color: rgba(40, 167, 69, 0.15); color: #1e7e34; border: 1px solid rgba(40, 167, 69, 0.35); }
         .channel-tag-a { display: inline-block; padding: 1px 7px; margin: 0 3px; border-radius: 4px; font-weight: 700; color: #dc3545; background-color: rgba(220, 53, 69, 0.12); }
         .channel-tag-b { display: inline-block; padding: 1px 7px; margin: 0 3px; border-radius: 4px; font-weight: 700; color: #0d6efd; background-color: rgba(13, 110, 253, 0.12); }
@@ -80,12 +49,8 @@
         #pauseButton:hover, #resetButton:hover, #saveButton:hover, #fullscreenButton:hover { filter: brightness(0.9); }
 
         canvas { flex-grow: 1; width: 100%; height: 0; display: block; cursor: crosshair; touch-action: none; }
-
         .settings-dropdown { position: relative; flex: 1; }
-        .settings-dropdown-toggle {
-            padding: 6px 8px; font-size: 13px; font-weight: bold; color: #0056b3; border-radius: 6px; border: 1px solid #ccc; background-color: #fff;
-            cursor: pointer; box-sizing: border-box; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: space-between; user-select: none;
-        }
+        .settings-dropdown-toggle { padding: 6px 8px; font-size: 13px; font-weight: bold; color: #0056b3; border-radius: 6px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; box-sizing: border-box; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: space-between; user-select: none; }
         .settings-dropdown-toggle:hover { border-color: #80b3e6; }
         .dropdown-arrow { font-size: 9px; margin-left: 8px; transition: transform 0.2s ease; opacity: 0.55; }
         .settings-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
@@ -106,34 +71,16 @@
         .settings-item.active { background-color: #cce5ff; font-weight: 700; }
         .settings-item.active .item-check { display: inline-block; }
 
-        /* ==========================================================
-           FOX-LAB AI CHATBOT WIDGET
-           ========================================================== */
-        :root {
-            --fox-font: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --fox-font-mono: 'JetBrains Mono', 'Consolas', monospace;
-            --fox-primary: #f97316;
-            --fox-cyan: #38bdf8;
-            --fox-bg-glass: rgba(15, 23, 42, 0.94);
-            --fox-surface-elevated: rgba(30, 41, 59, 0.85);
-            --fox-border-subtle: rgba(255, 255, 255, 0.08);
-            --fox-text-secondary: #94a3b8;
-            --fox-text-muted: #64748b;
-        }
-
+        /* FOX-LAB AI CHATBOT WIDGET */
+        :root { --fox-font: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; --fox-font-mono: 'JetBrains Mono', 'Consolas', monospace; --fox-primary: #f97316; --fox-cyan: #38bdf8; --fox-bg-glass: rgba(15, 23, 42, 0.94); --fox-surface-elevated: rgba(30, 41, 59, 0.85); --fox-border-subtle: rgba(255, 255, 255, 0.08); --fox-text-secondary: #94a3b8; --fox-text-muted: #64748b; }
         #fox-chat-widget { position: fixed; bottom: 24px; right: 24px; z-index: 99999; font-family: var(--fox-font); user-select: none; }
         .fox-trigger-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
-        .fox-ping-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(249, 115, 22, 0.4); animation: foxPulsePing 3s cubic-bezier(0, 0, 0.2, 1) infinite; pointer-events: none; z-index: 1; }
+        .fox-ping-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(249, 115, 22, 0.4); animation: foxPulsePing 3s infinite; pointer-events: none; z-index: 1; }
         @keyframes foxPulsePing { 0% { transform: scale(0.95); opacity: 0.8; } 70%, 100% { transform: scale(1.65); opacity: 0; } }
 
-        #fox-chat-trigger {
-            position: relative; z-index: 2; width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #ff7849 0%, #ea580c 100%);
-            border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.5), 0 0 20px rgba(249, 115, 22, 0.35);
-            cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; color: #fff; transition: all 0.3s ease; outline: none;
-        }
+        #fox-chat-trigger { position: relative; z-index: 2; width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #ff7849 0%, #ea580c 100%); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.5), 0 0 20px rgba(249, 115, 22, 0.35); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; color: #fff; transition: all 0.3s ease; outline: none; }
         #fox-chat-trigger:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 14px 30px -4px rgba(234, 88, 12, 0.65), 0 0 28px rgba(249, 115, 22, 0.5); }
         #fox-chat-trigger:active { transform: scale(0.95); }
-        
         .fox-trigger-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.35s ease; }
         .fox-trigger-icon svg { width: 100%; height: 100%; display: block; }
         .fox-trigger-close-icon { display: none; width: 24px; height: 24px; }
@@ -144,20 +91,12 @@
         #fox-chat-widget.open .fox-trigger-close-icon { display: flex; transform: rotate(90deg); animation: iconSpinIn 0.3s forwards; }
         @keyframes iconSpinIn { from { transform: rotate(0deg) scale(0.7); opacity: 0; } to { transform: rotate(90deg) scale(1); opacity: 1; } }
 
-        .fox-trigger-tooltip {
-            position: absolute; right: 70px; background: rgba(15, 23, 42, 0.92); color: #f8fafc; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateX(8px); transition: all 0.25s ease;
-        }
+        .fox-trigger-tooltip { position: absolute; right: 70px; background: rgba(15, 23, 42, 0.92); color: #f8fafc; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateX(8px); transition: all 0.25s ease; }
         .fox-trigger-tooltip::after { content: ''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); border-width: 5px 0 5px 5px; border-style: solid; border-color: transparent transparent transparent rgba(15, 23, 42, 0.92); }
         .fox-trigger-wrapper:hover .fox-trigger-tooltip { opacity: 1; transform: translateX(0); }
         #fox-chat-widget.open .fox-trigger-tooltip { display: none; }
 
-        #fox-chat-box {
-            position: absolute; bottom: 72px; right: 0; width: 380px; height: 560px; max-height: calc(100vh - 110px); max-width: calc(100vw - 32px);
-            background: var(--fox-bg-glass); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid var(--fox-border-subtle); border-radius: 20px; box-shadow: 0 24px 60px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(249,115,22,0.18);
-            display: flex; flex-direction: column; overflow: hidden; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.32s ease; z-index: 10;
-        }
+        #fox-chat-box { position: absolute; bottom: 72px; right: 0; width: 380px; height: 560px; max-height: calc(100vh - 110px); max-width: calc(100vw - 32px); background: var(--fox-bg-glass); backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--fox-border-subtle); border-radius: 20px; box-shadow: 0 24px 60px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(249,115,22,0.18); display: flex; flex-direction: column; overflow: hidden; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.32s ease; z-index: 10; }
         #fox-chat-widget.open #fox-chat-box { transform: scale(1) translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
 
         .fox-chat-header { padding: 12px 16px; background: rgba(30, 41, 59, 0.65); border-bottom: 1px solid var(--fox-border-subtle); display: flex; align-items: center; justify-content: space-between; }
@@ -168,7 +107,6 @@
         .fox-header-badge { font-size: 9.5px; font-weight: 700; padding: 1.5px 6px; border-radius: 10px; background: rgba(249, 115, 22, 0.2); color: #ff9d66; border: 1px solid rgba(249, 115, 22, 0.35); text-transform: uppercase; }
         .fox-header-status { font-size: 11px; color: var(--fox-text-secondary); display: flex; align-items: center; gap: 5px; }
         .fox-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: statusPulse 2s infinite ease-in-out; }
-        
         .fox-header-actions { display: flex; align-items: center; gap: 4px; }
         .fox-btn-icon { width: 30px; height: 30px; border-radius: 8px; background: transparent; border: none; color: var(--fox-text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; }
         .fox-btn-icon:hover { background: rgba(255, 255, 255, 0.1); color: #f8fafc; }
@@ -184,11 +122,19 @@
         .fox-msg-bot { justify-content: flex-start; }
         .fox-msg-avatar { width: 28px; height: 28px; border-radius: 8px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(249, 115, 22, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 2px; box-sizing: border-box; margin-top: 2px; }
         
-        .fox-msg-bubble { padding: 11px 15px; border-radius: 16px; font-size: 13.5px; line-height: 1.6; word-wrap: break-word; max-width: 85%; box-sizing: border-box; }
+        .fox-msg-content { display: flex; flex-direction: column; max-width: 85%; }
+        .fox-msg-bubble { padding: 11px 15px; border-radius: 16px; font-size: 13.5px; line-height: 1.6; word-wrap: break-word; box-sizing: border-box; }
         .fox-msg-user .fox-msg-bubble { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; border-bottom-right-radius: 4px; font-weight: 500; }
         .fox-msg-bot .fox-msg-bubble { background: var(--fox-surface-elevated); color: #f1f5f9; border: 1px solid var(--fox-border-subtle); border-top-left-radius: 4px; }
         .fox-msg-bot .fox-msg-bubble b, .fox-msg-bot .fox-msg-bubble strong { color: #38bdf8; font-weight: 600; }
         .fox-msg-bot .fox-msg-bubble code { background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--fox-font-mono); font-size: 12.5px; color: #fed7aa; }
+
+        /* Nút Sao chép / Tạo lại */
+        .fox-msg-actions { display: flex; gap: 8px; margin-top: 6px; opacity: 0.6; transition: opacity 0.2s ease; }
+        .fox-msg-actions:hover { opacity: 1; }
+        .fox-msg-action-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--fox-text-secondary); font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
+        .fox-msg-action-btn:hover { background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.4); color: #ffedd5; }
+        .fox-msg-action-btn svg { width: 12px; height: 12px; }
 
         .fox-math { font-family: var(--fox-font-mono) !important; font-style: italic; font-weight: 600; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 1px 6px; border-radius: 4px; font-size: 13px; border: 1px solid rgba(56, 189, 248, 0.25); display: inline-block; margin: 0 2px; }
         .fox-cursor { display: inline-block; width: 7px; height: 14px; background: var(--fox-cyan); border-radius: 1px; margin-left: 3px; vertical-align: -2px; box-shadow: 0 0 8px var(--fox-cyan); animation: foxCursorPulse 0.8s infinite; }
@@ -202,15 +148,7 @@
         .fox-shimmer-text { background: linear-gradient(90deg, #94a3b8 0%, #f8fafc 50%, #94a3b8 100%); background-size: 200% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: foxShimmer 2s infinite linear; font-style: italic; }
         @keyframes foxShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        .fox-suggestions-bar { padding: 8px 16px 4px 16px; display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
-        .fox-suggestions-bar::-webkit-scrollbar { display: none; }
-        .fox-chip { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 14px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; line-height: 1; }
-        .fox-chip svg { width: 14px; height: 14px; stroke-width: 2.2; color: var(--fox-cyan); flex-shrink: 0; }
-        .fox-chip:hover { background: rgba(249, 115, 22, 0.2); border-color: rgba(249, 115, 22, 0.45); color: #ffedd5; transform: translateY(-1px); }
-        .fox-chip:hover svg { color: #ffedd5; }
-        .fox-chip:active { transform: scale(0.96); }
-
-        .fox-input-container { padding: 10px 14px 12px 14px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid var(--fox-border-subtle); display: flex; flex-direction: column; gap: 6px; }
+        .fox-input-container { padding: 10px 14px 12px 14px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid var(--fox-border-subtle); display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
         .fox-input-box { display: flex; align-items: center; background: rgba(30, 41, 59, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 22px; padding: 4px 6px 4px 14px; transition: all 0.25s ease; }
         .fox-input-box:focus-within { border-color: var(--fox-primary); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22); background: rgba(30, 41, 59, 0.95); }
         #fox-chat-input { flex: 1; background: transparent; border: none; color: #f8fafc; font-size: 13.5px; outline: none; padding: 6px 0; }
@@ -308,7 +246,6 @@
                 <button id="saveButton" disabled>Chụp ảnh</button>
                 <button id="fullscreenButton">Toàn màn hình</button>
             </div>
-
             <div class="info-panel" id="infoText">Đang chờ khởi động thiết bị Micro...</div>
         </div>
 
@@ -320,29 +257,22 @@
 
     <canvas id="oscilloscope"></canvas>
 
-    <!-- SVG VECTOR ICON: KHOA HỌC KỸ THUẬT & DAO ĐỘNG KÝ -->
     <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="foxAmberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ff7a30"/>
-                <stop offset="100%" stop-color="#e04006"/>
+                <stop offset="0%" stop-color="#ff7a30"/><stop offset="100%" stop-color="#e04006"/>
             </linearGradient>
             <linearGradient id="foxAmberDark" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#d4380d"/>
-                <stop offset="100%" stop-color="#9a2503"/>
+                <stop offset="0%" stop-color="#d4380d"/><stop offset="100%" stop-color="#9a2503"/>
             </linearGradient>
             <linearGradient id="foxSteel" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1e293b"/>
-                <stop offset="100%" stop-color="#0f172a"/>
+                <stop offset="0%" stop-color="#1e293b"/><stop offset="100%" stop-color="#0f172a"/>
             </linearGradient>
             <linearGradient id="foxBeam" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#00f2fe"/>
-                <stop offset="50%" stop-color="#38bdf8"/>
-                <stop offset="100%" stop-color="#00f2fe"/>
+                <stop offset="0%" stop-color="#00f2fe"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#00f2fe"/>
             </linearGradient>
             
             <symbol id="foxCyberIcon" viewBox="0 0 100 100">
-                <!-- Tai công nghệ / Anten thu sóng -->
                 <polygon points="22,10 8,45 35,38" fill="url(#foxAmberGrad)"/>
                 <polygon points="78,10 92,45 65,38" fill="url(#foxAmberGrad)"/>
                 <polygon points="22,17 14,41 30,36" fill="url(#foxSteel)"/>
@@ -351,26 +281,18 @@
                 <line x1="18" y1="32" x2="24" y2="30" stroke="#38bdf8" stroke-width="1.5"/>
                 <line x1="80" y1="25" x2="74" y2="23" stroke="#38bdf8" stroke-width="1.5"/>
                 <line x1="82" y1="32" x2="76" y2="30" stroke="#38bdf8" stroke-width="1.5"/>
-
-                <!-- Giáp đầu kỹ thuật số -->
                 <polygon points="50,18 35,38 50,44" fill="#ff8f4a"/>
                 <polygon points="50,18 50,44 65,38" fill="url(#foxAmberGrad)"/>
-
-                <!-- Má khí động học & Mạch in PCB -->
                 <polygon points="35,38 12,46 22,66 38,56" fill="url(#foxAmberDark)"/>
                 <polygon points="65,38 88,46 78,66 62,56" fill="url(#foxAmberDark)"/>
                 <path d="M 18 52 L 28 50 L 32 58" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.7"/>
                 <path d="M 82 52 L 72 50 L 68 58" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.7"/>
-
-                <!-- Mõm & Cảm biến mũi -->
                 <polygon points="38,56 50,44 50,76 35,66" fill="#ff7a30"/>
                 <polygon points="62,56 50,44 50,76 65,66" fill="#e04006"/>
                 <polygon points="50,76 35,66 43,86 50,86" fill="#f8fafc"/>
                 <polygon points="50,76 65,66 57,86 50,86" fill="#e2e8f0"/>
                 <polygon points="50,86 46,80 54,80" fill="#0f172a"/>
                 <circle cx="50" cy="82" r="1.2" fill="#38bdf8"/>
-
-                <!-- MÀN HÌNH DAO ĐỘNG KÝ (OSCILLOSCOPE VISOR) -->
                 <rect x="22" y="44" width="56" height="20" rx="4" fill="#030712" stroke="#38bdf8" stroke-width="1.2"/>
                 <line x1="50" y1="44" x2="50" y2="64" stroke="rgba(56,189,248,0.25)" stroke-width="0.5"/>
                 <line x1="22" y1="54" x2="78" y2="54" stroke="rgba(56,189,248,0.25)" stroke-width="0.5"/>
@@ -379,81 +301,38 @@
         </defs>
     </svg>
 
-    <!-- KHUNG CHATBOT THÔNG MINH FOX-LAB AI -->
     <div id="fox-chat-widget">
-        <!-- Nút kích hoạt cửa sổ chat nổi -->
         <div class="fox-trigger-wrapper">
             <div class="fox-ping-ring"></div>
-            <div class="fox-trigger-tooltip">
-                <span>Hỏi Trợ lý Khoa học FOX-Lab</span>
-            </div>
+            <div class="fox-trigger-tooltip"><span>Hỏi Trợ lý Khoa học FOX-Lab</span></div>
             <button id="fox-chat-trigger" onclick="toggleChat()" aria-label="Mở Trợ lý FOX-Lab AI">
-                <span class="fox-trigger-icon fox-trigger-fox-icon">
-                    <svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg>
-                </span>
-                <span class="fox-trigger-icon fox-trigger-close-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </span>
+                <span class="fox-trigger-icon fox-trigger-fox-icon"><svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg></span>
+                <span class="fox-trigger-icon fox-trigger-close-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>
             </button>
         </div>
 
-        <!-- Cửa sổ Chatbot -->
         <div id="fox-chat-box" role="dialog" aria-modal="true" aria-label="Cửa sổ Trợ lý ảo FOX-Lab">
             <div class="fox-chat-header">
                 <div class="fox-header-left">
-                    <div class="fox-avatar-container">
-                        <svg viewBox="0 0 100 100" fill="none" style="width:100%;height:100%;"><use href="#foxCyberIcon"/></svg>
-                    </div>
+                    <div class="fox-avatar-container"><svg viewBox="0 0 100 100" fill="none" style="width:100%;height:100%;"><use href="#foxCyberIcon"/></svg></div>
                     <div class="fox-header-info">
-                        <div class="fox-header-title">
-                            FOX-Lab AI
-                            <span class="fox-header-badge">VẬT LÝ THPT</span>
-                        </div>
-                        <div class="fox-header-status">
-                            <span class="fox-status-dot"></span>
-                            <span id="foxStatusText">Trực tuyến • Sóng âm</span>
-                        </div>
+                        <div class="fox-header-title">FOX-Lab AI <span class="fox-header-badge">VẬT LÝ THPT</span></div>
+                        <div class="fox-header-status"><span class="fox-status-dot"></span><span id="foxStatusText">Trực tuyến • Sóng âm</span></div>
                     </div>
                 </div>
                 <div class="fox-header-actions">
-                    <button class="fox-btn-icon" onclick="clearChatHistory()" title="Làm mới cuộc trò chuyện">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    </button>
-                    <button class="fox-btn-icon" onclick="toggleChat()" title="Thu nhỏ cửa sổ">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
+                    <button class="fox-btn-icon" onclick="clearChatHistory()" title="Làm mới cuộc trò chuyện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+                    <button class="fox-btn-icon" onclick="toggleChat()" title="Thu nhỏ cửa sổ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 </div>
             </div>
 
-            <!-- Nội dung trò chuyện -->
             <div id="fox-chat-content">
                 <div class="fox-msg-row fox-msg-bot">
-                    <div class="fox-msg-avatar">
-                        <svg viewBox="0 0 100 100" fill="none" style="width:100%;height:100%;"><use href="#foxCyberIcon"/></svg>
-                    </div>
-                    <div class="fox-msg-bubble">
-                        Chào em! Thầy là <strong>FOX-Lab AI</strong> – Trợ lý Khoa học chuyên phân tích Sóng cơ. Em có thể bật Micro để thu âm, quan sát đồ thị và đặt câu hỏi về biên độ, chu kỳ hay tần số nhé!
+                    <div class="fox-msg-avatar"><svg viewBox="0 0 100 100" fill="none" style="width:100%;height:100%;"><use href="#foxCyberIcon"/></svg></div>
+                    <div class="fox-msg-content">
+                        <div class="fox-msg-bubble">Chào em! Thầy là <strong>FOX-Lab AI</strong> – Trợ lý Khoa học chuyên phân tích Sóng cơ. Em có thể bật Micro để thu âm, quan sát đồ thị và đặt câu hỏi về biên độ, chu kỳ hay tần số nhé!</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Gợi ý câu hỏi nhanh -->
-            <div class="fox-suggestions-bar" id="foxSuggestions">
-                <button class="fox-chip" onclick="quickAsk('Sóng cơ truyền trong không khí là sóng ngang hay sóng dọc?')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg>
-                    <span>Bản chất sóng âm?</span>
-                </button>
-                <button class="fox-chip" onclick="quickAsk('Dao động ký dùng để khảo sát những đại lượng nào?')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 10l3-3 3 6 3-3 3 3"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-                    <span>Công dụng dao động ký?</span>
-                </button>
-                <button class="fox-chip" onclick="quickAsk('Làm sao để tính chu kỳ T từ màn hình dao động ký?')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-                    <span>Cách tính chu kỳ T?</span>
-                </button>
             </div>
 
             <!-- Khung nhập tin nhắn -->
@@ -474,7 +353,6 @@
     </div>
 
     <script>
-        // CÁC HÀM XỬ LÝ DAO ĐỘNG KÝ, AUDIO VÀ UI GIAO DIỆN
         window.addEventListener('DOMContentLoaded', () => {
             const qrImage = document.getElementById('qrImage');
             if (qrImage) {
@@ -485,35 +363,20 @@
             resizeCanvas();
         });
 
-        const btnStartA = document.getElementById('btnStartA');
-        const btnStartB = document.getElementById('btnStartB');
-        const pauseButton = document.getElementById('pauseButton');
-        const resetButton = document.getElementById('resetButton');
-        const saveButton = document.getElementById('saveButton');
-        const fullscreenButton = document.getElementById('fullscreenButton');
+        const btnStartA = document.getElementById('btnStartA'), btnStartB = document.getElementById('btnStartB');
+        const pauseButton = document.getElementById('pauseButton'), resetButton = document.getElementById('resetButton'), saveButton = document.getElementById('saveButton'), fullscreenButton = document.getElementById('fullscreenButton');
         const infoText = document.getElementById('infoText');
-
-        const channelModeSelect = document.getElementById('channelModeSelect');
-        const modeSelect = document.getElementById('modeSelect');
-        const speedSelect = document.getElementById('speedSelect');
-        const micSelectA = document.getElementById('micSelectA');
-        const micSelectB = document.getElementById('micSelectB');
-
-        const canvas = document.getElementById('oscilloscope');
-        const canvasCtx = canvas.getContext('2d');
-
-        const settingsDropdown = document.getElementById('settingsDropdown');
-        const settingsToggle = document.getElementById('settingsToggle');
-        const settingsMenu = document.getElementById('settingsMenu');
-        const settingsLabel = document.getElementById('settingsLabel');
+        const channelModeSelect = document.getElementById('channelModeSelect'), modeSelect = document.getElementById('modeSelect'), speedSelect = document.getElementById('speedSelect');
+        const micSelectA = document.getElementById('micSelectA'), micSelectB = document.getElementById('micSelectB');
+        const canvas = document.getElementById('oscilloscope'), canvasCtx = canvas.getContext('2d');
+        const settingsDropdown = document.getElementById('settingsDropdown'), settingsToggle = document.getElementById('settingsToggle'), settingsMenu = document.getElementById('settingsMenu'), settingsLabel = document.getElementById('settingsLabel');
 
         settingsToggle.addEventListener('click', (e) => { e.stopPropagation(); settingsDropdown.classList.toggle('open'); });
         document.addEventListener('click', (e) => { if (!settingsDropdown.contains(e.target)) settingsDropdown.classList.remove('open'); });
 
         settingsMenu.querySelectorAll('.settings-group-header').forEach(header => {
             header.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const group = header.parentElement;
+                e.stopPropagation(); const group = header.parentElement;
                 settingsMenu.querySelectorAll('.settings-group').forEach(g => { if (g !== group) g.classList.remove('expanded'); });
                 group.classList.toggle('expanded');
             });
@@ -521,25 +384,17 @@
 
         settingsMenu.querySelectorAll('.settings-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const targetSelect = document.getElementById(item.dataset.target);
+                e.stopPropagation(); const targetSelect = document.getElementById(item.dataset.target);
                 item.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active'));
-                item.classList.add('active');
-                targetSelect.value = item.dataset.value;
-                targetSelect.dispatchEvent(new Event('change'));
-                settingsLabel.textContent = 'Cài đặt chung';
-                settingsDropdown.classList.remove('open');
+                item.classList.add('active'); targetSelect.value = item.dataset.value; targetSelect.dispatchEvent(new Event('change'));
+                settingsLabel.textContent = 'Cài đặt chung'; settingsDropdown.classList.remove('open');
             });
         });
 
         function resetSettingsDropdown() {
             settingsLabel.textContent = 'Cài đặt chung';
-            settingsMenu.querySelectorAll('.settings-item').forEach(s => {
-                const val = s.dataset.value;
-                if (val === '1' || val === 'auto') s.classList.add('active'); else s.classList.remove('active');
-            });
-            settingsMenu.querySelectorAll('.settings-group').forEach(g => g.classList.remove('expanded'));
-            settingsDropdown.classList.remove('open');
+            settingsMenu.querySelectorAll('.settings-item').forEach(s => { const val = s.dataset.value; if (val === '1' || val === 'auto') s.classList.add('active'); else s.classList.remove('active'); });
+            settingsMenu.querySelectorAll('.settings-group').forEach(g => g.classList.remove('expanded')); settingsDropdown.classList.remove('open');
         }
 
         let audioCtx;
@@ -556,14 +411,13 @@
         function getActiveChannelMode() { return channelModeSelect.value || '1'; }
 
         function stopAudioChannel(channelId) {
-            const cfg = channelConfig[channelId];
-            if (!cfg) return;
+            const cfg = channelConfig[channelId]; if (!cfg) return;
             if (cfg.stream) { cfg.stream.getTracks().forEach(track => track.stop()); cfg.stream = null; }
-            if (cfg.source) { try { cfg.source.disconnect(); } catch (e) { } cfg.source = null; }
-            if (cfg.filterHP) { try { cfg.filterHP.disconnect(); } catch (e) { } cfg.filterHP = null; }
-            if (cfg.filterLP) { try { cfg.filterLP.disconnect(); } catch (e) { } cfg.filterLP = null; }
-            if (cfg.processor) { cfg.processor.onaudioprocess = null; try { cfg.processor.disconnect(); } catch (e) { } cfg.processor = null; }
-            if (cfg.dummy) { try { cfg.dummy.disconnect(); } catch (e) { } cfg.dummy = null; }
+            if (cfg.source) { try { cfg.source.disconnect(); } catch (e) {} cfg.source = null; }
+            if (cfg.filterHP) { try { cfg.filterHP.disconnect(); } catch (e) {} cfg.filterHP = null; }
+            if (cfg.filterLP) { try { cfg.filterLP.disconnect(); } catch (e) {} cfg.filterLP = null; }
+            if (cfg.processor) { cfg.processor.onaudioprocess = null; try { cfg.processor.disconnect(); } catch (e) {} cfg.processor = null; }
+            if (cfg.dummy) { try { cfg.dummy.disconnect(); } catch (e) {} cfg.dummy = null; }
             cfg.active = false; cfg.index = 0; if (cfg.data) cfg.data.fill(0);
         }
 
@@ -576,8 +430,7 @@
 
         speedSelect.addEventListener('change', (e) => { targetFPS = (e.target.value === 'slow') ? 15 : 60; });
         modeSelect.addEventListener('change', (e) => {
-            isContinuousMode = (e.target.value === 'continuous');
-            clearTimeout(stopTimer);
+            isContinuousMode = (e.target.value === 'continuous'); clearTimeout(stopTimer);
             if (isContinuousMode) { speedSelect.style.display = 'block'; targetFPS = (speedSelect.value === 'slow') ? 15 : 60; } 
             else { speedSelect.style.display = 'none'; targetFPS = 60; speedSelect.value = "fast"; if (!isPaused) triggerAutoStop(); }
         });
@@ -599,8 +452,7 @@
 
         function resizeCanvas() {
             const dpr = window.devicePixelRatio || 1;
-            const cssWidth = canvas.clientWidth || window.innerWidth;
-            const cssHeight = canvas.clientHeight || (window.innerHeight - 160);
+            const cssWidth = canvas.clientWidth || window.innerWidth, cssHeight = canvas.clientHeight || (window.innerHeight - 160);
             canvas.width = Math.round(cssWidth * dpr); canvas.height = Math.round(cssHeight * dpr);
             canvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0); drawFrame();
         }
@@ -619,8 +471,7 @@
         canvas.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault(); if (!isPaused) return;
-                let dx = Math.max(Math.abs(e.touches[0].clientX - e.touches[1].clientX), 10);
-                let dy = Math.max(Math.abs(e.touches[0].clientY - e.touches[1].clientY), 10);
+                let dx = Math.max(Math.abs(e.touches[0].clientX - e.touches[1].clientX), 10), dy = Math.max(Math.abs(e.touches[0].clientY - e.touches[1].clientY), 10);
                 isUserZoomed = true;
                 totalTimeOnScreen = Math.max(0.002, Math.min(startDuration * (initialPinchDistX / dx), 2.4));
                 currentZoomY = Math.max(0.5, Math.min(startZoomY * (dy / initialPinchDistY), 10.0));
@@ -640,8 +491,7 @@
             let elem = document.documentElement; let isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
             if (!isFullscreen) {
                 if (elem.requestFullscreen) elem.requestFullscreen().catch(() => alert("Vui lòng xoay ngang điện thoại để trải nghiệm tốt nhất!"));
-                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen(); else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
             } else {
                 if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); else if (document.msExitFullscreen) document.msExitFullscreen();
             }
@@ -770,8 +620,7 @@
                 pauseButton.textContent = "Đang đo..."; pauseButton.style.backgroundColor = "#dc3545";
                 let text = "Đang quét tín hiệu: "; if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A (Đỏ)</span>";
                 if (channelConfig.A.active && channelConfig.B.active) text += " &amp; "; if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B (Xanh)</span>";
-                infoText.innerHTML = text;
-                lastDrawTime = performance.now(); draw(); triggerAutoStop();
+                infoText.innerHTML = text; lastDrawTime = performance.now(); draw(); triggerAutoStop();
             } else {
                 isPaused = true; clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.style.backgroundColor = "#28a745";
                 infoText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ đồ thị &mdash; Ấn <span class='info-badge'>Đo / Dừng</span> để tiếp tục" : "Đã quét xong &mdash; Ấn <span class='info-badge'>Đo / Dừng</span> để tiếp tục";
@@ -878,11 +727,11 @@
         }
 
         // ==========================================================
-        // TRỢ LÝ KHOA HỌC FOX-LAB AI (CHATGPT STREAMING SPEC)
+        // TRỢ LÝ KHOA HỌC FOX-LAB AI 
         // ==========================================================
-        // Link Google Apps Script Web App của bạn
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwQKyTyLSrGKuXcNtx0uztwvldTbOskV9bslqc-nXR_tFw4XKuPCLprXSb_QRYpvA43/exec";
         let isStreaming = false;
+        let lastUserQuestion = "";
 
         function toggleChat() {
             const widget = document.getElementById("fox-chat-widget");
@@ -912,18 +761,36 @@
             foxChatInput.addEventListener("keypress", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
         }
 
-        function quickAsk(question) { if (isStreaming) return; if (foxChatInput) { foxChatInput.value = question; updateSendButtonState(); sendChatMessage(); } }
-
         function clearChatHistory() {
             if (isStreaming) return;
             const chatContent = document.getElementById("fox-chat-content");
             chatContent.innerHTML = `
                 <div class="fox-msg-row fox-msg-bot">
                     <div class="fox-msg-avatar"><svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg></div>
-                    <div class="fox-msg-bubble">Thầy FOX-Lab đã làm mới cuộc trò chuyện. Em có câu hỏi nào mới về Sóng cơ hoặc Dao động ký không?</div>
+                    <div class="fox-msg-content">
+                        <div class="fox-msg-bubble">Thầy FOX-Lab đã làm mới cuộc trò chuyện. Em có câu hỏi nào mới về Sóng cơ hoặc Dao động ký không?</div>
+                    </div>
                 </div>
             `;
+            lastUserQuestion = "";
             chatContent.scrollTop = 0;
+        }
+
+        // Logic Copy & Tạo lại
+        function copyFoxResponse(btn) {
+            const bubble = btn.closest('.fox-msg-content').querySelector('.fox-msg-bubble');
+            const textToCopy = bubble.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Đã chép`;
+                setTimeout(() => btn.innerHTML = originalHtml, 2000);
+            });
+        }
+        function regenerateLast() {
+            if (isStreaming || !lastUserQuestion) return;
+            if (foxChatInput) foxChatInput.value = lastUserQuestion;
+            updateSendButtonState();
+            sendChatMessage();
         }
 
         function showThinkingIndicator() {
@@ -931,59 +798,81 @@
             const row = document.createElement("div"); row.className = "fox-msg-row fox-msg-bot"; row.id = thinkId;
             row.innerHTML = `
                 <div class="fox-msg-avatar"><svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg></div>
-                <div class="fox-msg-bubble">
-                    <div class="fox-thinking-wrapper">
-                        <div class="fox-wave-equalizer"><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span></div>
-                        <span class="fox-shimmer-text">FOX-Lab đang phân tích vật lý...</span>
+                <div class="fox-msg-content">
+                    <div class="fox-msg-bubble">
+                        <div class="fox-thinking-wrapper">
+                            <div class="fox-wave-equalizer"><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span></div>
+                            <span class="fox-shimmer-text">FOX-Lab đang phân tích...</span>
+                        </div>
                     </div>
                 </div>
             `;
             chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight; return thinkId;
         }
 
+        function appendActionButtons(msgContentDiv) {
+            const actionDiv = document.createElement("div");
+            actionDiv.className = "fox-msg-actions";
+            actionDiv.innerHTML = `
+                <button class="fox-msg-action-btn" onclick="copyFoxResponse(this)" title="Sao chép câu trả lời">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Sao chép
+                </button>
+                <button class="fox-msg-action-btn" onclick="regenerateLast()" title="Trả lời lại câu hỏi vừa rồi">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                    Tạo lại
+                </button>
+            `;
+            msgContentDiv.appendChild(actionDiv);
+        }
+
         function streamBotMessage(fullText, onComplete) {
             isStreaming = true; updateSendButtonState();
             const chatContent = document.getElementById("fox-chat-content"), row = document.createElement("div"); row.className = "fox-msg-row fox-msg-bot";
             const avatar = document.createElement("div"); avatar.className = "fox-msg-avatar"; avatar.innerHTML = `<svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg>`;
+            
+            const msgContent = document.createElement("div"); msgContent.className = "fox-msg-content";
             const bubble = document.createElement("div"); bubble.className = "fox-msg-bubble";
             const textSpan = document.createElement("span"), cursor = document.createElement("span"); cursor.className = "fox-cursor";
-            bubble.appendChild(textSpan); bubble.appendChild(cursor); row.appendChild(avatar); row.appendChild(bubble);
+            
+            bubble.appendChild(textSpan); bubble.appendChild(cursor); 
+            msgContent.appendChild(bubble);
+            row.appendChild(avatar); row.appendChild(msgContent);
             chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
 
             const tokens = fullText.split(/(\s+)/); let idx = 0, accumulated = "";
             function typeToken() {
                 if (idx < tokens.length) {
                     accumulated += tokens[idx]; idx++; textSpan.innerHTML = formatFoxMarkdown(accumulated); chatContent.scrollTop = chatContent.scrollHeight;
-                    setTimeout(typeToken, 18);
-                } else { cursor.remove(); isStreaming = false; updateSendButtonState(); chatContent.scrollTop = chatContent.scrollHeight; if (onComplete) onComplete(); }
+                    setTimeout(typeToken, 15);
+                } else { 
+                    cursor.remove(); isStreaming = false; updateSendButtonState(); 
+                    appendActionButtons(msgContent); // Hiện nút Copy & Regenerate khi type xong
+                    chatContent.scrollTop = chatContent.scrollHeight; 
+                    if (onComplete) onComplete(); 
+                }
             }
             typeToken();
         }
 
-        // Mô hình tri thức dự phòng: Sóng cơ & Dao động ký (Phong cách Khoa học THPT)
         function getLocalFallbackAnswer(query) {
             const q = query.toLowerCase();
             const curFreq = (typeof lockedFrequency !== 'undefined' && lockedFrequency > 0) ? lockedFrequency.toFixed(1) : ((typeof detectedFrequency !== 'undefined' && detectedFrequency > 0) ? detectedFrequency.toFixed(1) : "440.0");
-            
-            if (q.includes("tần số") || q.includes("hz") || q.includes("chu kỳ")) {
-                return `Hệ thống đang ghi nhận tần số $f = ${curFreq}$ Hz. Dựa vào hệ thức $T = 1/f$, em có thể tính được chu kỳ dao động của sóng âm hiện tại. Hãy thử thay đổi nguồn phát để đối chiếu sự biến thiên trên đồ thị.`;
-            } else if (q.includes("chức năng") || q.includes("dao động ký") || q.includes("thiết bị") || q.includes("làm gì")) {
-                return `**Dao động ký (Oscilloscope)** là thiết bị khảo sát sự phụ thuộc của tín hiệu theo thời gian. Trong thực hành Sóng cơ, công cụ này giúp trực quan hóa phương trình sóng, đo lường chính xác **Biên độ** và **Chu kỳ** ($T$).`;
-            } else if (q.includes("khóa") || q.includes("dừng") || q.includes("auto")) {
-                return `Chế độ **Khảo sát tự dừng** tự động đồng bộ pha và đóng băng tín hiệu sau 2 giây. Thao tác này giúp cố định dạng sóng trên màn hình, hỗ trợ em đếm ô tọa độ để tính chu kỳ $T$ chính xác.`;
-            } else if (q.includes("kênh") || q.includes("độ lệch pha") || q.includes("giao thoa")) {
-                return `Dao động ký FOX-Lab cung cấp 2 kênh thu độc lập: **Kênh A (Đỏ)** và **Kênh B (Xanh)**. Em có thể thiết lập 2 nguồn âm để khảo sát hiện tượng giao thoa hoặc tính toán độ lệch pha $\\Delta\\varphi$ giữa hai điểm trong không gian.`;
-            } else if (q.includes("sóng cơ") || q.includes("sóng âm") || q.includes("lan truyền")) {
-                return `Sóng âm thu được qua micro bản chất là sóng cơ dọc, lan truyền trong không khí nhờ biến thiên áp suất. Đồ thị hình sin em thấy chính là hình ảnh mô phỏng dao động của các phần tử môi trường theo thời gian.`;
-            } else {
-                return `Trợ lý FOX-Lab đang sẵn sàng. Em hãy bật Micro, cấp nguồn âm thanh để vẽ đồ thị dao động, sau đó đặt câu hỏi cụ thể về đặc trưng vật lý của sóng hoặc cách phân tích trên dao động ký.`;
-            }
+            if (q.includes("tần số") || q.includes("hz") || q.includes("chu kỳ")) return `Hệ thống đang ghi nhận tần số $f = ${curFreq}$ Hz. Dựa vào hệ thức $T = 1/f$, em có thể tính được chu kỳ dao động của sóng âm hiện tại.`;
+            else if (q.includes("dao động ký") || q.includes("thiết bị")) return `**Dao động ký (Oscilloscope)** là thiết bị khảo sát sự phụ thuộc của tín hiệu theo thời gian, đo lường chính xác **Biên độ** và **Chu kỳ** ($T$).`;
+            else if (q.includes("khóa") || q.includes("dừng")) return `Chế độ **Khảo sát tự dừng** tự động đồng bộ pha và đóng băng tín hiệu sau 2 giây để đếm ô tọa độ.`;
+            else if (q.includes("sóng cơ") || q.includes("sóng âm")) return `Sóng âm thu được qua micro bản chất là sóng cơ dọc, lan truyền trong không khí nhờ biến thiên áp suất.`;
+            else return `Trợ lý FOX-Lab đang sẵn sàng. Em hãy đặt câu hỏi cụ thể về đặc trưng vật lý của sóng hoặc cách phân tích trên dao động ký.`;
         }
 
         function sendChatMessage() {
             if (isStreaming) return; const inputElem = document.getElementById("fox-chat-input"), message = inputElem.value.trim(); if (!message) return;
+            
+            lastUserQuestion = message; // Lưu lại câu hỏi để dùng cho nút Tạo lại
+            
             const freqVal = (typeof lockedFrequency !== 'undefined' && lockedFrequency > 0) ? lockedFrequency.toFixed(1) + " Hz" : ((typeof detectedFrequency !== 'undefined' && detectedFrequency > 0) ? detectedFrequency.toFixed(1) + " Hz" : "440.0 Hz");
             const thongTinHeThong = `[THÔNG SỐ MÁY: Tần số = ${freqVal}]`; const messageToAI = thongTinHeThong + "\nCâu hỏi của HS: " + message;
+            
             const chatContent = document.getElementById("fox-chat-content"), userRow = document.createElement("div");
             userRow.className = "fox-msg-row fox-msg-user"; userRow.innerHTML = `<div class="fox-msg-bubble">${formatFoxMarkdown(message)}</div>`;
             chatContent.appendChild(userRow); inputElem.value = ""; updateSendButtonState(); chatContent.scrollTop = chatContent.scrollHeight;
@@ -1007,14 +896,9 @@
         }
     </script>
 
-    <!-- Đăng ký Service Worker (PWA Offline Mode) -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => { console.log('FOX-Lab Service Worker đã đăng ký thành công:', registration.scope); })
-                    .catch(error => { console.log('Đăng ký Service Worker thất bại:', error); });
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(r => console.log('SW success')).catch(e => console.log('SW fail')); });
         }
     </script>
 </body>
