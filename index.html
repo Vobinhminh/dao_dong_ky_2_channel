@@ -129,7 +129,6 @@
         .fox-msg-bot .fox-msg-bubble b, .fox-msg-bot .fox-msg-bubble strong { color: #38bdf8; font-weight: 600; }
         .fox-msg-bot .fox-msg-bubble code { background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--fox-font-mono); font-size: 12.5px; color: #fed7aa; }
 
-        /* Nút Sao chép / Tạo lại */
         .fox-msg-actions { display: flex; gap: 8px; margin-top: 6px; opacity: 0.6; transition: opacity 0.2s ease; }
         .fox-msg-actions:hover { opacity: 1; }
         .fox-msg-action-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--fox-text-secondary); font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease; font-family: inherit; }
@@ -776,7 +775,6 @@
             chatContent.scrollTop = 0;
         }
 
-        // Logic Copy & Tạo lại
         function copyFoxResponse(btn) {
             const bubble = btn.closest('.fox-msg-content').querySelector('.fox-msg-bubble');
             const textToCopy = bubble.innerText;
@@ -847,7 +845,7 @@
                     setTimeout(typeToken, 15);
                 } else { 
                     cursor.remove(); isStreaming = false; updateSendButtonState(); 
-                    appendActionButtons(msgContent); // Hiện nút Copy & Regenerate khi type xong
+                    appendActionButtons(msgContent);
                     chatContent.scrollTop = chatContent.scrollHeight; 
                     if (onComplete) onComplete(); 
                 }
@@ -866,32 +864,64 @@
         }
 
         function sendChatMessage() {
-            if (isStreaming) return; const inputElem = document.getElementById("fox-chat-input"), message = inputElem.value.trim(); if (!message) return;
+            if (isStreaming) return; 
+            const inputElem = document.getElementById("fox-chat-input");
+            const message = inputElem.value.trim(); 
+            if (!message) return;
             
-            lastUserQuestion = message; // Lưu lại câu hỏi để dùng cho nút Tạo lại
+            lastUserQuestion = message; 
             
             const freqVal = (typeof lockedFrequency !== 'undefined' && lockedFrequency > 0) ? lockedFrequency.toFixed(1) + " Hz" : ((typeof detectedFrequency !== 'undefined' && detectedFrequency > 0) ? detectedFrequency.toFixed(1) + " Hz" : "440.0 Hz");
-            const thongTinHeThong = `[THÔNG SỐ MÁY: Tần số = ${freqVal}]`; const messageToAI = thongTinHeThong + "\nCâu hỏi của HS: " + message;
             
-            const chatContent = document.getElementById("fox-chat-content"), userRow = document.createElement("div");
-            userRow.className = "fox-msg-row fox-msg-user"; userRow.innerHTML = `<div class="fox-msg-bubble">${formatFoxMarkdown(message)}</div>`;
-            chatContent.appendChild(userRow); inputElem.value = ""; updateSendButtonState(); chatContent.scrollTop = chatContent.scrollHeight;
+            // Tách biệt rõ ràng thông số máy và câu hỏi học sinh để AI đọc cực kỳ chính xác
+            const messageToAI = `[THÔNG SỐ MÁY: Tần số = ${freqVal}] | NỘI DUNG HỌC SINH HỎI: ${message}`;
+            
+            const chatContent = document.getElementById("fox-chat-content");
+            const userRow = document.createElement("div");
+            userRow.className = "fox-msg-row fox-msg-user"; 
+            userRow.innerHTML = `<div class="fox-msg-bubble">${formatFoxMarkdown(message)}</div>`;
+            chatContent.appendChild(userRow); 
+            
+            inputElem.value = ""; 
+            updateSendButtonState(); 
+            chatContent.scrollTop = chatContent.scrollHeight;
 
-            const loadingId = showThinkingIndicator(); let isResponded = false;
+            const loadingId = showThinkingIndicator(); 
+            let isResponded = false;
+            
             const timer = setTimeout(() => {
-                if (!isResponded) { isResponded = true; const loadingEl = document.getElementById(loadingId); if (loadingEl) loadingEl.remove(); streamBotMessage(getLocalFallbackAnswer(message)); }
-            }, 4000);
+                if (!isResponded) { 
+                    isResponded = true; 
+                    const loadingEl = document.getElementById(loadingId); 
+                    if (loadingEl) loadingEl.remove(); 
+                    streamBotMessage(getLocalFallbackAnswer(message)); 
+                }
+            }, 5000);
 
             fetch(`${GAS_URL}?action=chat&message=${encodeURIComponent(messageToAI)}`, { method: 'GET', mode: 'cors' })
                 .then(res => res.text())
                 .then(text => {
                     if (!isResponded) {
-                        isResponded = true; clearTimeout(timer); const loadingEl = document.getElementById(loadingId); if (loadingEl) loadingEl.remove();
-                        if (text && !text.includes("high demand") && !text.includes("Error") && text.trim().length > 0) streamBotMessage(text); else streamBotMessage(getLocalFallbackAnswer(message));
+                        isResponded = true; 
+                        clearTimeout(timer); 
+                        const loadingEl = document.getElementById(loadingId); 
+                        if (loadingEl) loadingEl.remove();
+                        
+                        if (text && !text.includes("high demand") && !text.includes("Error") && text.trim().length > 0) {
+                            streamBotMessage(text);
+                        } else {
+                            streamBotMessage(getLocalFallbackAnswer(message));
+                        }
                     }
                 })
                 .catch(err => {
-                    if (!isResponded) { isResponded = true; clearTimeout(timer); const loadingEl = document.getElementById(loadingId); if (loadingEl) loadingEl.remove(); streamBotMessage(getLocalFallbackAnswer(message)); }
+                    if (!isResponded) { 
+                        isResponded = true; 
+                        clearTimeout(timer); 
+                        const loadingEl = document.getElementById(loadingId); 
+                        if (loadingEl) loadingEl.remove(); 
+                        streamBotMessage(getLocalFallbackAnswer(message)); 
+                    }
                 });
         }
     </script>
