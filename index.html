@@ -329,7 +329,7 @@
                 <div class="fox-msg-row fox-msg-bot">
                     <div class="fox-msg-avatar"><svg viewBox="0 0 100 100" fill="none" style="width:100%;height:100%;"><use href="#foxCyberIcon"/></svg></div>
                     <div class="fox-msg-content">
-                        <div class="fox-msg-bubble">Chào em! Thầy là <strong>FOX-Lab AI</strong> – Trợ lý Khoa học chuyên phân tích Sóng cơ. Em có thể bật Micro để thu âm, quan sát đồ thị và đặt câu hỏi về biên độ, chu kỳ hay tần số nhé!</div>
+                        <div class="fox-msg-bubble">Chào em! Thầy là <strong>FOX-Lab AI</strong> – Trợ lý Khoa học chuyên phân tích Sóng cơ và bài thực hành thí nghiệm. Em có thể đặt câu hỏi về sóng, nguồn kết hợp hoặc cách đo trên dao động ký nhé!</div>
                     </div>
                 </div>
             </div>
@@ -337,7 +337,7 @@
             <!-- Khung nhập tin nhắn -->
             <div class="fox-input-container">
                 <div class="fox-input-box">
-                    <input type="text" id="fox-chat-input" placeholder="Hỏi FOX-Lab về vật lý, biên độ, tần số..." autocomplete="off">
+                    <input type="text" id="fox-chat-input" placeholder="Hỏi về sóng cơ, hai nguồn kết hợp, thực hành..." autocomplete="off">
                     <button class="fox-send-btn" id="foxSendBtn" onclick="sendChatMessage()" disabled>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -345,7 +345,7 @@
                     </button>
                 </div>
                 <div class="fox-footer-meta">
-                    <span>Âm học Lab</span> • <span>Tần số bám: <span class="fox-freq-tag" id="foxLiveFreqTag">440.0 Hz</span></span>
+                    <span>Sóng cơ Lab</span> • <span>Tần số bám: <span class="fox-freq-tag" id="foxLiveFreqTag">440.0 Hz</span></span>
                 </div>
             </div>
         </div>
@@ -726,9 +726,9 @@
         }
 
         // ==========================================================
-        // TRỢ LÝ KHOA HỌC FOX-LAB AI 
+        // TRỢ LÝ KHOA HỌC FOX-LAB AI (CẬP NHẬT LINK GAS & FALLBACK)
         // ==========================================================
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwQKyTyLSrGKuXcNtx0uztwvldTbOskV9bslqc-nXR_tFw4XKuPCLprXSb_QRYpvA43/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbydvJKggVFo7iwW_qWKw9fIxMhaFzewkAxanhBgNboreZ-u6Ym4ZMMmI4LxInwCegp1/exec";
         let isStreaming = false;
         let lastUserQuestion = "";
 
@@ -767,7 +767,7 @@
                 <div class="fox-msg-row fox-msg-bot">
                     <div class="fox-msg-avatar"><svg viewBox="0 0 100 100" fill="none"><use href="#foxCyberIcon"/></svg></div>
                     <div class="fox-msg-content">
-                        <div class="fox-msg-bubble">Thầy FOX-Lab đã làm mới cuộc trò chuyện. Em có câu hỏi nào mới về Sóng cơ hoặc Dao động ký không?</div>
+                        <div class="fox-msg-bubble">Thầy FOX-Lab đã làm mới cuộc trò chuyện. Em có câu hỏi nào mới về sóng cơ, giao thoa hoặc thí nghiệm không?</div>
                     </div>
                 </div>
             `;
@@ -800,7 +800,7 @@
                     <div class="fox-msg-bubble">
                         <div class="fox-thinking-wrapper">
                             <div class="fox-wave-equalizer"><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span><span class="fox-wave-bar"></span></div>
-                            <span class="fox-shimmer-text">FOX-Lab đang phân tích...</span>
+                            <span class="fox-shimmer-text">FOX-Lab đang phân tích sóng cơ...</span>
                         </div>
                     </div>
                 </div>
@@ -853,14 +853,26 @@
             typeToken();
         }
 
+        // HỆ THỐNG TÍNH NĂNG CẤP DỰ PHÒNG (OFFLINE FALLBACK THÔNG MINH)
         function getLocalFallbackAnswer(query) {
             const q = query.toLowerCase();
             const curFreq = (typeof lockedFrequency !== 'undefined' && lockedFrequency > 0) ? lockedFrequency.toFixed(1) : ((typeof detectedFrequency !== 'undefined' && detectedFrequency > 0) ? detectedFrequency.toFixed(1) : "440.0");
-            if (q.includes("tần số") || q.includes("hz") || q.includes("chu kỳ")) return `Hệ thống đang ghi nhận tần số $f = ${curFreq}$ Hz. Dựa vào hệ thức $T = 1/f$, em có thể tính được chu kỳ dao động của sóng âm hiện tại.`;
-            else if (q.includes("dao động ký") || q.includes("thiết bị")) return `**Dao động ký (Oscilloscope)** là thiết bị khảo sát sự phụ thuộc của tín hiệu theo thời gian, đo lường chính xác **Biên độ** và **Chu kỳ** ($T$).`;
-            else if (q.includes("khóa") || q.includes("dừng")) return `Chế độ **Khảo sát tự dừng** tự động đồng bộ pha và đóng băng tín hiệu sau 2 giây để đếm ô tọa độ.`;
-            else if (q.includes("sóng cơ") || q.includes("sóng âm")) return `Sóng âm thu được qua micro bản chất là sóng cơ dọc, lan truyền trong không khí nhờ biến thiên áp suất.`;
-            else return `Trợ lý FOX-Lab đang sẵn sàng. Em hãy đặt câu hỏi cụ thể về đặc trưng vật lý của sóng hoặc cách phân tích trên dao động ký.`;
+            
+            if (q.includes("kết hợp") || q.includes("hai sóng")) {
+                return `Hai nguồn sóng kết hợp là hai nguồn phát sóng **cùng tần số**, **cùng phương dao động** và có **độ lệch pha không đổi theo thời gian**. Đây là điều kiện cần để quan sát hiện tượng giao thoa sóng cơ.`;
+            } else if (q.includes("giao thoa")) {
+                return `Giao thoa sóng là sự tổng hợp của hai hay nhiều sóng kết hợp trong đó xuất hiện những gợn sóng tăng cường (cực đại) hoặc triệt tiêu lẫn nhau (cực tiểu) tại các điểm trong không gian.`;
+            } else if (q.includes("tần số") || q.includes("hz") || q.includes("chu kỳ")) {
+                return `Hệ thống đang ghi nhận tần số $f = ${curFreq}$ Hz. Dựa vào hệ thức $T = 1/f$, em có thể tính được chu kỳ dao động của sóng âm hiện tại trên màn hình dao động ký.`;
+            } else if (q.includes("dao động ký") || q.includes("thiết bị")) {
+                return `**Dao động ký (Oscilloscope)** là thiết bị khảo sát đồ thị tín hiệu theo thời gian, giúp đo lường chính xác **Biên độ**, **Chu kỳ** ($T$) và khảo sát dạng sóng cơ trong phòng thực hành thí nghiệm.`;
+            } else if (q.includes("thực hành") || q.includes("thí nghiệm") || q.includes("bước")) {
+                return `Các bước xây dựng bài thực hành sóng âm: <br>1. Kết nối Micro vào Kênh A.<br>2. Cấp nguồn âm thanh chuẩn (âm thoa hoặc máy phát tần số).<br>3. Bấm **"Đo / Dừng"** để cố định dạng hình sin.<br>4. Đếm ô trên lưới để xác định chu kỳ $T$ và tính tần số đối chiếu.`;
+            } else if (q.includes("sóng cơ") || q.includes("sóng âm")) {
+                return `Sóng âm thu qua micro bản chất là sóng cơ dọc, lan truyền trong không khí nhờ sự biến thiên áp suất. Đồ thị hình sin trên dao động ký mô tả sự dao động của các phần tử môi trường theo thời gian.`;
+            } else {
+                return `Trợ lý FOX-Lab chuyên đề Sóng cơ sẵn sàng. Em hãy đặt câu hỏi về hai nguồn kết hợp, hiện tượng giao thoa hoặc cách thực hành đo lường trên dao động ký nhé!`;
+            }
         }
 
         function sendChatMessage() {
@@ -888,6 +900,7 @@
             const loadingId = showThinkingIndicator(); 
             let isResponded = false;
             
+            // Kích hoạt dự phòng thông minh sau 5 giây nếu mạng chậm/lỗi
             const timer = setTimeout(() => {
                 if (!isResponded) { 
                     isResponded = true; 
