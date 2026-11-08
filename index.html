@@ -1370,7 +1370,9 @@
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let dbStep = 30; dbStep <= 120; dbStep += 30) {
+        const dbTicks = [30, 52.5, 75, 97.5, 120];
+        for (let i = 0; i < dbTicks.length; i++) {
+            let dbStep = dbTicks[i];
             let y = (boxY + boxH - bottomPadding) - ((dbStep - 30) / 90) * chartH;
             ctx.moveTo(boxX + leftPadding, y); ctx.lineTo(boxX + boxW - rightPadding, y);
             ctx.fillStyle = '#64748b';
