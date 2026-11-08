@@ -1360,8 +1360,8 @@
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(boxX, boxY, boxW, boxH);
 
-        const bottomPadding = 50;
-        const topPadding = 30;
+        const bottomPadding = 42;
+        const topPadding = 25;
         const leftPadding = 55;
         const rightPadding = 20;
         const chartH = boxH - topPadding - bottomPadding;
@@ -1425,7 +1425,7 @@
                 if (isSelected) {
                     ctx.fillStyle = '#f59e0b';
                 } else {
-                    ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ef4444' : titleColor;
+                    ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ea580c' : titleColor;
                 }
                 
                 ctx.fillRect(x, y, Math.max(2, barWidth - 1), barHeight);
