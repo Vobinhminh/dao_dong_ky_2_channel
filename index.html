@@ -634,7 +634,6 @@
 </div>
 
 <script>
-    // Kiểm tra phiên bản tự động từ GitHub
     async function checkAppVersion() {
         try {
             const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
@@ -657,7 +656,6 @@
     }
     checkAppVersion();
 
-    // Chặn phím F12 và chuột phải bảo vệ mã nguồn
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
             e.preventDefault(); return false;
@@ -665,7 +663,6 @@
     });
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-    // Quản lý Vòng đời ứng dụng (App Lifecycle)
     let wasAppBackgrounded = false;
     let lastBackgroundTime = 0;
     let lastReturnProcessTime = 0;
@@ -699,7 +696,6 @@
     window.addEventListener('focus', () => onAppEnter());
     window.addEventListener('beforeunload', () => { stopAudioChannel('A'); stopAudioChannel('B'); });
 
-    // Fullscreen Mode
     function toggleFullScreen() {
         let elem = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
@@ -737,12 +733,11 @@
     let showTsResults = false, showTsEquations = false;
     let currentCalcFreqA = 0, currentCalcFreqB = 0, currentAmpA = 0, currentAmpB = 0;
 
-    // BIẾN LƯU LỊCH SỬ ĐO CƯỜNG ĐỘ ÂM (dB) CHO KÊNH A VÀ KÊNH B
     let dbHistoryA = [];
     let dbHistoryB = [];
     let selectedBarIndexA = -1;
     let selectedBarIndexB = -1;
-    const SAFETY_THRESHOLD_DB = 85.0; // Ngưỡng an toàn thính giác (85 dB)
+    const SAFETY_THRESHOLD_DB = 85.0;
 
     function getDisplayMode() {
         return displayModeSelect ? displayModeSelect.value : 'oscilloscope';
@@ -760,7 +755,6 @@
         return Math.max(30.0, Math.min(120.0, db));
     }
 
-    // Fingerprint Device ID
     function getDeviceId() {
         let deviceId = localStorage.getItem('fox_device_id');
         if (!deviceId) {
@@ -770,7 +764,6 @@
         return deviceId;
     }
 
-    // License Management
     function selectMode(mode) {
         if (mode === 'demo') {
             isDemoMode = true; document.getElementById('licenseModalOverlay').style.display = 'none';
@@ -792,20 +785,17 @@
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
-(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?
-(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi yêu cầu giải phóng thiết bị!");
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
-Bạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi lệnh xóa Key vĩnh viễn!");
                 forceLogout(false);
@@ -836,10 +826,7 @@ Bạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao t�
                 activateFullMode(key);
             } else {
                 if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}
-
-Mã Key này có thể đang được sử dụng ở thiết bị khác.
-Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
+                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máyใหม่ - tối đa 3 lần) không?`);
                     if (confirmChange) {
                         forceChangeDevice(key, type);
                     } else {
@@ -865,8 +852,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
                 activateFullMode(key);
             } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}
-(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
+                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
                 forceLogout();
             }
         } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
@@ -892,7 +878,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         updateUIState(); checkAndShowQR(); drawFrame(true);
     }
 
-    // App State Preservation & Restore (Mặc định: 1 Nguồn, Liên tục, Dao động ký)
     function saveAppState() {
         localStorage.setItem('fox_channel_mode', channelModeSelect.value);
         localStorage.setItem('fox_mode_select', modeSelect.value);
@@ -956,7 +941,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }, 30000);
 
-    // QR Code
     function checkAndShowQR() {
         const qrPanel = document.getElementById('qrPanel'), qrImage = document.getElementById('qrImage');
         if (!qrImage || !qrPanel) return;
@@ -990,7 +974,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         resizeCanvas(); updateUIState(); drawFrame(true);
     });
 
-    // Settings Pill Animation
     function updateSettingsPill(groupItems, targetItem, animated = true) {
         if (!groupItems) return;
         let pill = groupItems.querySelector('.settings-slider-pill');
@@ -1142,7 +1125,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     }
     window.addEventListener('resize', resizeCanvas);
 
-    // CLICK TRÊN CANVAS ĐỂ CHỌN THANH KHI ĐO CƯỜNG ĐỘ ÂM
     canvas.addEventListener('click', (e) => {
         if (getDisplayMode() !== 'dbMeter') return;
         const rect = canvas.getBoundingClientRect();
@@ -1178,8 +1160,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             }
         }
     });
-
-    let initialPinchDistance = 0, initialPinchTime = 0, initialZoomY = 0;
 
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault(); isUserZoomed = true;
@@ -1409,7 +1389,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         updateUIState(); drawFrame(true);
     });
 
-    // HÀM VẼ 1 ĐỒ THỊ BIỂU ĐỒ CỘT MCĐ
     function renderSingleDbChart(ctx, dbHistory, selectedIndex, titleText, titleColor, boxX, boxY, boxW, boxH) {
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(boxX, boxY, boxW, boxH);
@@ -1421,7 +1400,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         const chartH = boxH - topPadding - bottomPadding;
         const chartW = boxW - leftPadding - rightPadding;
 
-        // Trục dB (30 - 120 dB)
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -1435,7 +1413,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
         ctx.stroke();
 
-        // Trục tọa độ chính
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -1443,7 +1420,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         ctx.moveTo(boxX + leftPadding, boxY + topPadding); ctx.lineTo(boxX + leftPadding, boxY + boxH - bottomPadding);
         ctx.stroke();
 
-        // Tên tiêu đề kênh
         ctx.fillStyle = titleColor;
         ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
         ctx.textAlign = 'left';
@@ -1453,7 +1429,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             let barWidth = chartW / 120;
             let timeIntervalMs = 50;
 
-            // Vẽ ticks thời gian trên trục hoành
             ctx.fillStyle = '#475569';
             ctx.font = '500 9.5px "JetBrains Mono", monospace';
             ctx.textAlign = 'center';
@@ -1471,7 +1446,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 ctx.fillText(`${timeOffsetMs > 0 ? '+' : ''}${timeOffsetMs} ms`, x, boxY + boxH - bottomPadding + 16);
             }
 
-            // Vẽ các cột cường độ âm
             for (let i = 0; i < dbHistory.length; i++) {
                 let item = dbHistory[i];
                 let barHeight = ((item.db - 30) / 90) * chartH;
@@ -1494,7 +1468,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 }
             }
 
-            // Tooltip khi click chọn thanh
             if (selectedIndex >= 0 && selectedIndex < dbHistory.length) {
                 let selItem = dbHistory[selectedIndex];
                 let selX = boxX + leftPadding + selectedIndex * barWidth + barWidth / 2;
@@ -1520,7 +1493,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
-    // ĐỒ THỊ ĐO CƯỜNG ĐỘ ÂM CHO 1 NGUỒN VÀ 2 NGUỒN
     function drawDbBarChart(ctx, width, height) {
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, width, height);
@@ -1528,7 +1500,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         let chunkSize = 1024;
         let mode = getActiveChannelMode();
 
-        // Thu thập dữ liệu Kênh A
         if (channelConfig.A.active && channelConfig.A.data) {
             let recentA = new Float32Array(chunkSize);
             let lenA = channelConfig.A.data.length, idxA = channelConfig.A.index;
@@ -1540,7 +1511,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             }
         }
 
-        // Thu thập dữ liệu Kênh B
         if (mode === '2' && channelConfig.B.active && channelConfig.B.data) {
             let recentB = new Float32Array(chunkSize);
             let lenB = channelConfig.B.data.length, idxB = channelConfig.B.index;
@@ -1553,12 +1523,10 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
 
         if (mode === '2') {
-            // Hiển thị 2 đồ thị nằm ngang chia đôi màn hình
             let subH = height / 2;
             renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#dc2626', 0, 0, width, subH);
             renderSingleDbChart(ctx, dbHistoryB, selectedBarIndexB, '🔵 KÊNH B - MỨC CƯỜNG ĐỘ ÂM (dB)', '#2563eb', 0, subH, width, subH);
         } else {
-            // Hiển thị 1 đồ thị đầy màn hình
             renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#10b981', 0, 0, width, height);
         }
     }
@@ -1587,7 +1555,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             return;
         }
 
-        // DAO ĐỘNG KÝ (GIỮ NGUYÊN CODE BÌNH THƯỜNG)
         canvasCtx.fillStyle = '#f8fafc'; canvasCtx.fillRect(0, 0, width, height);
         if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
 
@@ -1605,7 +1572,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
 
         if (mode === '2') {
-            drawMainGrid(canvasCtx, 0, boxB_Y, width, boxB_H, '#2563eb', channelConfig.B.active ? 'Biên độ' : 'Kênh B (Khóa)', true);
+            drawMainGrid(canvasCtx, 0, boxB_Y, width, boxB_H, '#3b82f6', channelConfig.B.active ? 'Biên độ' : 'Kênh B (Khóa)', true);
             if (channelConfig.B.active && channelConfig.B.data && channelConfig.B.index > samplesNeeded) {
                 let offset = isContinuousMode ? 0 : findZeroCrossingOffset(channelConfig.B, channelConfig.B.index, samplesNeeded);
                 drawWaveform(canvasCtx, channelConfig.B.data, channelConfig.B.index, offset, samplesNeeded, 0, boxB_Y, width, boxB_H, '#3b82f6');
@@ -1684,7 +1651,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         drawFrame(false);
     }
 
-    // MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) - TINH CHỈNH 1 NGUỒN VÀ 2 NGUỒN
     function openMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         overlay.style.display = 'flex';
@@ -1750,7 +1716,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                     <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
                     <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${avgDb.toFixed(1)} dB</td>
                     <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                        ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BẢO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                        ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
                     </td>
                 </tr>
             `;
@@ -1766,13 +1732,12 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (overlay) overlay.style.display = 'none';
     }
 
-    // TÍNH KHOẢNG CÁCH DỰA THEO 1 NGUỒN HOẶC 2 NGUỒN
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
 
-        let r0 = 1.0, L0 = 90.0; // Mẫu nguồn chuẩn 90dB tại 1m
+        let r0 = 1.0, L0 = 90.0;
 
         if (mode === '2') {
             if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
@@ -1786,8 +1751,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
             let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
             let deltaR = Math.abs(rA - rB);
-
-            // Công thức tỷ số mức cường độ âm giữa 2 vị trí đo: L_A - L_B = 20*log10(rB / rA)
             let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
 
             box.innerHTML = `
@@ -1813,7 +1776,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
-    // HIỆU ỨNG DOPPLER
     function calculateDopplerEffect() {
         let f0 = parseFloat(document.getElementById('dopSrcFreq').value) || 440;
         let vs = parseFloat(document.getElementById('dopSrcSpeed').value) || 0;
@@ -1855,7 +1817,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         `;
     }
 
-    // Modal FFT Handlers
     function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
         document.getElementById('fftModalOverlay').classList.add('animUI-visible'); document.getElementById('fftModalOverlay').style.display = 'flex';
@@ -1957,7 +1918,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
-    // Modal 2-Source Handlers
     function setTsMode(mode) {
         tsViewMode = mode;
         document.getElementById('btnModeOverlay').classList.toggle('active-mode', mode === 'overlay');
@@ -2169,7 +2129,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (isTwoSourceModalOpen && !isTsPaused) requestAnimationFrame(calculatePhaseAndDrawLive);
     }
 
-    // Fox Chat UI & Gemini Backend Integration
     function formatMathText(text) {
         if (!text) return '';
         let formatted = text
@@ -2180,11 +2139,10 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             .replace(/\cos/g, 'cos').replace(/\sin/g, 'sin').replace(/\tan/g, 'tan')
             .replace(/\left\(/g, '(').replace(/\right\)/g, ')')
             .replace(/\left\[/g, '[').replace(/\right\]/g, ']')
-            .replace(/\cdot/g, '·').replace(/\([a-zA-Z]+)/g, '$1')
+            .replace(/\cdot/g, '·')
             .replace(/\$([a-zA-Z])_([0-9a-zA-Z]+)\$/g, '<span class="math-symbol">$1<sub>$2</sub></span>')
             .replace(/\$([^$]+)\$/g, (match, p1) => { let subFormatted = p1.replace(/([a-zA-Z])_([0-9a-zA-Z]+)/g, '$1<sub>$2</sub>'); return `<span class="math-symbol">${subFormatted}</span>`; })
-            .replace(/
-/g, '<br>');
+            .replace(/\n/g, '<br>');
         return formatted;
     }
 
@@ -2218,8 +2176,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
         let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
-        let copyStr = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/
-/g, '\n');
+        let copyStr = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, '\n');
         let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>` : '';
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText} ${copyBtn}</div></div>`;
         row.innerHTML = html; chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
