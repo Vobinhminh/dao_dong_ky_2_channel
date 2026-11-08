@@ -2,325 +2,1125 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FOX_LAB - Thí nghiệm Vật lý Âm thanh</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOX_LAB - Phòng thí nghiệm Vật lý </title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        @keyframes animUI-fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes animUI-slideDown { from { opacity: 0; transform: translateY(-8px) scaleY(0.95); } to { opacity: 1; transform: none; } }
-        @keyframes statusPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
-        @keyframes foxPulsePing { 0% { transform: scale(0.95); opacity: 0.8; } 70%, 100% { transform: scale(1.65); opacity: 0; } }
-        @keyframes foxMsgFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes animUI-fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes animUI-slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scaleY(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        @keyframes foxPulsePing {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            70%, 100% { transform: scale(1.65); opacity: 0; }
+        }
+
+        @keyframes foxMsgFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh;
-            background-color: #f1f5f9; font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased; overflow: hidden; position: fixed;
-            display: flex; flex-direction: column;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background-color: #f1f5f9;
+            font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
         }
 
-        button, input, select { font-family: inherit; outline: none; }
+        button, input, select {
+            font-family: inherit;
+            outline: none;
+        }
 
         .top-bar {
-            display: flex; background: linear-gradient(180deg, #ffffff, #f8fafc);
-            border-bottom: 2px solid #cbd5e1; z-index: 10; padding: 4px 6px; gap: 6px;
-            align-items: stretch; flex-shrink: 0; box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            border-bottom: 2px solid #cbd5e1;
+            z-index: 10;
+            padding: 4px 6px;
+            gap: 6px;
+            align-items: stretch;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.05);
         }
 
-        .controls-wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; }
-        .toolbar-row { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; align-items: stretch; position: relative; z-index: 100; }
-        .toolbar-row > * { flex: 1 1 auto; min-width: 70px; }
-        .channel-row { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; position: relative; z-index: 10; }
+        .controls-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 4px;
+        }
+
+        .toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            width: 100%;
+            align-items: stretch;
+            position: relative;
+            z-index: 100;
+        }
+
+        .toolbar-row > * {
+            flex: 1 1 auto;
+            min-width: 70px;
+        }
+
+        .channel-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
 
         .channel-card {
-            display: flex; flex: 1 1 180px; background: #fff; border: 1px solid #cbd5e1;
-            border-radius: 4px; overflow: hidden; align-items: stretch;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02); height: 26px;
+            display: flex;
+            flex: 1 1 180px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+            align-items: stretch;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            height: 26px;
         }
 
         .channel-card button {
-            border-radius: 0; width: 90px; font-size: 11px; flex-shrink: 0;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); border: none; padding: 0 4px;
+            border-radius: 0;
+            width: 90px;
+            font-size: 11px;
+            flex-shrink: 0;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+            border: none;
+            padding: 0 4px;
         }
 
         .channel-card select {
-            flex-grow: 1; border: none; background: #f8fafc; color: #334155;
-            padding: 0 6px; font-size: 11.5px; font-weight: 700; cursor: pointer;
-            text-overflow: ellipsis; white-space: nowrap;
+            flex-grow: 1;
+            border: none;
+            background: #f8fafc;
+            color: #334155;
+            padding: 0 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .channel-a-indicator { border-left: 3px solid #ef4444; }
         .channel-b-indicator { border-left: 3px solid #3b82f6; }
 
         .qr-panel {
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px;
-            width: 65px; flex-shrink: 0; cursor: pointer;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 2px;
+            width: 65px;
+            flex-shrink: 0;
+            cursor: pointer;
         }
+
         .qr-panel img { width: 45px; height: 45px; }
-        .qr-panel .scan-title { font-size: 8px; font-weight: 800; color: #ef4444; margin-top: 1px; }
+
+        .qr-panel .scan-title {
+            font-size: 8px;
+            font-weight: 800;
+            color: #ef4444;
+            margin-top: 1px;
+        }
 
         .info-panel {
-            font-weight: 600; font-size: 11.5px; color: #dc2626; background: #fff;
-            padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; width: 100%;
-            text-align: center; box-sizing: border-box; display: flex; align-items: center;
-            justify-content: space-between; min-height: 22px; position: relative; z-index: 5;
+            font-weight: 600;
+            font-size: 11.5px;
+            color: #dc2626;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 22px;
+            position: relative;
+            z-index: 5;
         }
 
         .info-badge, .channel-tag-a, .channel-tag-b {
-            display: inline-block; padding: 0 4px; margin: 0 2px; border-radius: 3px; font-weight: 700;
+            display: inline-block;
+            padding: 0 4px;
+            margin: 0 2px;
+            border-radius: 3px;
+            font-weight: 700;
         }
 
-        .info-badge { background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .channel-tag-a { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); }
-        .channel-tag-b { color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
+        .info-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .channel-tag-a {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .channel-tag-b {
+            color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
 
         .license-gear-btn {
-            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11.5px;
-            font-weight: 700; color: #0f172a; cursor: pointer; padding: 2px 6px;
-            display: inline-flex; align-items: center; gap: 4px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 2px 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
+
         .license-gear-btn:hover { background: #e2e8f0; }
 
         button {
-            font-size: 11.5px; font-weight: bold; cursor: pointer; color: white;
-            border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 4px;
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); padding: 4px 8px; margin: 0;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;
+            font-size: 11.5px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            padding: 4px 8px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.2s ease;
         }
-        button:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
-        button:disabled { background: linear-gradient(180deg, #94a3b8, #64748b) !important; cursor: not-allowed; opacity: 0.8; }
+
+        button:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: linear-gradient(180deg, #94a3b8, #64748b) !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
 
         .btn-green { background: linear-gradient(180deg, #10b981, #059669); }
         .btn-red { background: linear-gradient(180deg, #ef4444, #dc2626); }
-        .btn-orange { background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff !important; border: 1px solid #b45309; }
+        .btn-orange {
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+            color: #fff !important;
+            border: 1px solid #b45309;
+        }
         .btn-purple { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
         .btn-pink { background: linear-gradient(180deg, #ec4899, #db2777); }
-        .btn-slate { background: linear-gradient(180deg, #64748b, #475569); color: #fff !important; border: 1px solid #334155; }
-        .btn-blue { background: linear-gradient(180deg, #3b82f6, #2563eb); color: #fff !important; border: 1px solid #1d4ed8; }
+        .btn-slate {
+            background: linear-gradient(180deg, #64748b, #475569);
+            color: #fff !important;
+            border: 1px solid #334155;
+        }
+        .btn-blue {
+            background: linear-gradient(180deg, #3b82f6, #2563eb);
+            color: #fff !important;
+            border: 1px solid #1d4ed8;
+        }
         .btn-dark { background: linear-gradient(180deg, #334155, #0f172a); }
 
         canvas {
-            flex-grow: 1; width: 100%; height: 100%; display: block;
-            cursor: crosshair; touch-action: none; background-color: #f8fafc;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+            touch-action: none;
+            background-color: #f8fafc;
         }
 
-        .settings-dropdown { position: relative; display: flex; flex: 0 1 auto; z-index: 101; }
+        .settings-dropdown {
+            position: relative;
+            display: flex;
+            flex: 0 1 auto;
+            z-index: 101;
+        }
+
         .settings-dropdown.open { z-index: 1000; }
+
         .settings-dropdown-toggle {
-            padding: 4px 8px; font-size: 11.5px; font-weight: 700; color: #1e293b;
-            border-radius: 4px; border: 1px solid #cbd5e1; background: linear-gradient(180deg, #ffffff, #f1f5f9);
-            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            padding: 4px 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #1e293b;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: linear-gradient(180deg, #ffffff, #f1f5f9);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+
         .settings-dropdown-menu {
-            display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 250px;
-            z-index: 1001; background: #0f172a; border: 1px solid #334155; border-radius: 6px;
-            box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5); overflow: hidden;
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 250px;
+            z-index: 1001;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
         }
-        .settings-dropdown.open .settings-dropdown-menu { display: block; animation: animUI-slideDown 0.22s ease forwards; }
+
+        .settings-dropdown.open .settings-dropdown-menu {
+            display: block;
+            animation: animUI-slideDown 0.22s ease forwards;
+        }
 
         .settings-group-header {
-            padding: 8px 12px; font-size: 12px; font-weight: 700; color: #f8fafc; cursor: pointer;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid #1e293b; background: #0f172a;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e293b;
+            background: #0f172a;
         }
-        .settings-group.expanded > .settings-group-header { background-color: #1e293b; color: #38bdf8; }
-        .group-arrow { font-size: 11px; transition: transform 0.25s ease; color: #64748b; }
-        .settings-group.expanded > .settings-group-header .group-arrow { transform: rotate(90deg); color: #38bdf8; }
+
+        .settings-group.expanded > .settings-group-header {
+            background-color: #1e293b;
+            color: #38bdf8;
+        }
+
+        .group-arrow {
+            font-size: 11px;
+            transition: transform 0.25s ease;
+            color: #64748b;
+        }
+
+        .settings-group.expanded > .settings-group-header .group-arrow {
+            transform: rotate(90deg);
+            color: #38bdf8;
+        }
 
         .settings-group-items {
-            display: none; position: relative; padding: 4px; gap: 4px;
-            background: #020617; border-radius: 6px; margin: 6px 8px 8px 8px; border: 1px solid #1e293b;
+            display: none;
+            position: relative;
+            padding: 4px;
+            gap: 4px;
+            background: #020617;
+            border-radius: 6px;
+            margin: 6px 8px 8px 8px;
+            border: 1px solid #1e293b;
         }
-        .settings-group.expanded > .settings-group-items { display: flex; flex-direction: row; align-items: stretch; }
+
+        .settings-group.expanded > .settings-group-items {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+        }
+
         .settings-slider-pill {
-            position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
-            background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;
-            pointer-events: none; z-index: 1; transition: transform 0.24s ease, width 0.24s ease; opacity: 0;
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 0;
+            width: 0;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 1;
+            transition: transform 0.24s ease, width 0.24s ease;
+            opacity: 0;
         }
+
         .settings-item {
-            flex: 1; padding: 6px 4px; font-size: 11px; color: #94a3b8; cursor: pointer;
-            border-radius: 4px; text-align: center; font-weight: 600; position: relative; z-index: 2;
+            flex: 1;
+            padding: 6px 4px;
+            font-size: 11px;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
             background: transparent !important;
         }
-        .settings-item.active { color: #ffffff; font-weight: 700; }
+
+        .settings-item.active {
+            color: #ffffff;
+            font-weight: 700;
+        }
 
         .settings-action-btn {
-            padding: 8px 10px; font-size: 11.5px; color: #f8fafc; cursor: pointer; border-radius: 4px;
-            text-align: left; font-weight: 600; background: #1e293b; border: 1px solid #334155;
-            transition: 0.2s; display: block; width: 100%; box-sizing: border-box;
+            padding: 8px 10px;
+            font-size: 11.5px;
+            color: #f8fafc;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: left;
+            font-weight: 600;
+            background: #1e293b;
+            border: 1px solid #334155;
+            transition: 0.2s;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .settings-action-btn:hover { background: #334155; border-color: #475569; }
-        .settings-action-btn.btn-danger { color: #fca5a5; border-color: #7f1d1d; }
-        .settings-action-btn.btn-danger:hover { background: #7f1d1d; color: #fff; }
+
+        .settings-action-btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .settings-action-btn.btn-danger {
+            color: #fca5a5;
+            border-color: #7f1d1d;
+        }
+
+        .settings-action-btn.btn-danger:hover {
+            background: #7f1d1d;
+            color: #fff;
+        }
 
         .license-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(15, 23, 42, 0.95); z-index: 200000; display: flex;
-            align-items: center; justify-content: center; padding: 15px; box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 200000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-sizing: border-box;
         }
+
         .license-selection-box {
-            background: #ffffff; width: 100%; max-width: 450px; border-radius: 12px;
-            padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); text-align: center; box-sizing: border-box;
+            background: #ffffff;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            box-sizing: border-box;
         }
-        .license-selection-box h2 { color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 700; }
-        .license-selection-box p { color: #475569; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
-        .license-btn-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+        .license-selection-box h2 {
+            color: #0f172a;
+            margin-top: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .license-selection-box p {
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .license-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
         .license-btn {
-            padding: 12px 16px; font-size: 14px; font-weight: bold; border-radius: 8px; border: none;
-            cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
+
         .btn-demo-mode { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .btn-full-mode { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .contact-box { background: #f1f5f9; border-radius: 8px; padding: 12px; font-size: 12px; color: #334155; border: 1px solid #cbd5e1; text-align: left; }
+
+        .contact-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+        }
+
         .contact-box b { color: #0284c7; }
 
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(15, 23, 42, 0.95); z-index: 100000; display: none;
-            align-items: center; justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 100000;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
+
+        .modal-overlay.animUI-visible {
+            display: flex !important;
+            animation: animUI-fadeIn 0.25s ease forwards;
+        }
+
         .modal-content {
-            background: #f8fafc; width: 100vw; height: 100dvh; display: flex;
-            flex-direction: column; overflow: hidden; box-sizing: border-box;
+            background: #f8fafc;
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
         }
+
         .modal-header {
-            color: #fff; padding: 8px 12px; font-weight: bold; font-size: 13px;
-            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
         }
+
         .modal-controls {
-            padding: 6px 8px; background: #fff; border-bottom: 1px solid #cbd5e1;
-            display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
-            justify-content: space-between; flex-shrink: 0;
+            padding: 6px 8px;
+            background: #fff;
+            border-bottom: 1px solid #cbd5e1;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            flex-shrink: 0;
         }
+
         .fft-canvas-container {
-            padding: 6px; background: #e2e8f0; width: 100%; box-sizing: border-box;
-            display: flex; justify-content: center; align-items: center; overflow: hidden;
-            flex-grow: 1; position: relative;
+            padding: 6px;
+            background: #e2e8f0;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            flex-grow: 1;
+            position: relative;
         }
-        .modal-display-canvas { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; height: 100%; display: block; }
+
+        .modal-display-canvas {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         #fftModal .modal-header { background: linear-gradient(90deg, #7c3aed, #4f46e5); }
         #twoSourceModal .modal-header { background: linear-gradient(90deg, #db2777, #c026d3); }
 
         .hud-overlay {
-            position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.88);
-            color: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; z-index: 50; display: none; max-width: calc(100% - 32px);
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(15, 23, 42, 0.88);
+            color: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            z-index: 50;
+            display: none;
+            max-width: calc(100% - 32px);
         }
-        .hud-title { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; color: #38bdf8; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 2px; }
-        .hud-highlight { color: #facc15; font-weight: bold; }
-        .hud-eq { color: #10b981; font-style: italic; }
-        .math-symbol { font-family: "Times New Roman", Times, serif; font-style: italic; font-size: 14.5px; }
-        .math-fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; font-size: 0.95em; }
-        .math-numerator { border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+
+        .hud-title {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 4px;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 2px;
+        }
+
+        .hud-highlight {
+            color: #facc15;
+            font-weight: bold;
+        }
+
+        .hud-eq {
+            color: #10b981;
+            font-style: italic;
+        }
+
+        .math-symbol {
+            font-family: "Times New Roman", Times, serif;
+            font-style: italic;
+            font-size: 14.5px;
+        }
+
+        .math-fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 3px;
+            font-size: 0.95em;
+        }
+
+        .math-numerator {
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 1px;
+        }
+
         .math-denominator { padding-top: 1px; }
 
-        .ts-mode-toggle { display: flex; gap: 4px; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid #334155; position: relative; overflow: hidden; }
-        .ts-mode-pill { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px; pointer-events: none; z-index: 1; transition: transform 0.24s ease, width 0.24s ease; opacity: 0; }
-        .ts-mode-toggle button { background: transparent; color: #94a3b8; border: none; font-weight: 600; padding: 5px 12px; font-size: 11px; position: relative; z-index: 2; cursor: pointer; border-radius: 4px; }
-        .ts-mode-toggle button.active-mode { color: #ffffff; font-weight: 700; }
+        .ts-mode-toggle {
+            display: flex;
+            gap: 4px;
+            background: #0f172a;
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ts-mode-pill {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            left: 0;
+            width: 0;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 1;
+            transition: transform 0.24s ease, width 0.24s ease;
+            opacity: 0;
+        }
+
+        .ts-mode-toggle button {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            font-weight: 600;
+            padding: 5px 12px;
+            font-size: 11px;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .ts-mode-toggle button.active-mode {
+            color: #ffffff;
+            font-weight: 700;
+        }
 
         .beat-warning {
-            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-            background: rgba(220, 38, 38, 0.9); color: white; padding: 4px 12px; border-radius: 12px;
-            font-size: 11.5px; font-weight: bold; z-index: 60; display: none; border: 1px solid #f87171; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11.5px;
+            font-weight: bold;
+            z-index: 60;
+            display: none;
+            border: 1px solid #f87171;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        :root { --fox-font: 'Be Vietnam Pro', sans-serif; --fox-font-mono: 'JetBrains Mono', monospace; --fox-cyan: #38bdf8; --fox-text-muted: #64748b; }
+        :root {
+            --fox-font: 'Be Vietnam Pro', sans-serif;
+            --fox-font-mono: 'JetBrains Mono', monospace;
+            --fox-cyan: #38bdf8;
+            --fox-text-muted: #64748b;
+        }
 
-        #fox-chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 99998; font-family: var(--fox-font); user-select: none; }
-        .fox-trigger-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
-        .fox-ping-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(249, 115, 22, 0.4); animation: foxPulsePing 3s infinite; pointer-events: none; z-index: 1; }
+        #fox-chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99998;
+            font-family: var(--fox-font);
+            user-select: none;
+        }
+
+        .fox-trigger-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fox-ping-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(249, 115, 22, 0.4);
+            animation: foxPulsePing 3s infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
         #fox-chat-trigger {
-            position: relative; z-index: 2; width: 45px; height: 45px; border-radius: 50%;
-            background: linear-gradient(135deg, #ff7849 0%, #ea580c 100%); border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 6px 15px -4px rgba(234, 88, 12, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff;
+            position: relative;
+            z-index: 2;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff7849 0%, #ea580c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 15px -4px rgba(234, 88, 12, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
         }
-        .fox-trigger-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
-        .fox-trigger-icon svg { width: 100%; height: 100%; display: block; }
-        .fox-trigger-close-icon { display: none; width: 18px; height: 18px; }
 
-        #fox-chat-widget.open #fox-chat-trigger { background: linear-gradient(135deg, #334155 0%, #1e293b 100%); }
-        #fox-chat-widget.open .fox-ping-ring, #fox-chat-widget.open .fox-trigger-fox-icon { display: none; }
-        #fox-chat-widget.open .fox-trigger-close-icon { display: flex; transform: rotate(90deg); }
+        .fox-trigger-icon {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fox-trigger-icon svg { width: 100%; height: 100%; display: block; }
+
+        .fox-trigger-close-icon {
+            display: none;
+            width: 18px;
+            height: 18px;
+        }
+
+        #fox-chat-widget.open #fox-chat-trigger {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        }
+
+        #fox-chat-widget.open .fox-ping-ring,
+        #fox-chat-widget.open .fox-trigger-fox-icon {
+            display: none;
+        }
+
+        #fox-chat-widget.open .fox-trigger-close-icon {
+            display: flex;
+            transform: rotate(90deg);
+        }
 
         #fox-chat-box {
-            position: absolute; bottom: 60px; right: 0; width: 330px; height: 450px; max-height: calc(100dvh - 100px);
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column;
-            overflow: hidden; transform: scale(0.9) translateY(20px); opacity: 0; visibility: hidden; pointer-events: none;
-            transition: all 0.3s; z-index: 10;
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 330px;
+            height: 450px;
+            max-height: calc(100dvh - 100px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 10;
         }
-        #fox-chat-widget.open #fox-chat-box { transform: scale(1) translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
 
-        #fox-chat-box.light-theme { background: rgba(248, 250, 252, 0.98); border: 1px solid rgba(0, 0, 0, 0.15); }
-        #fox-chat-box.light-theme .fox-chat-header { background: rgba(241, 245, 249, 0.95); border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+        #fox-chat-widget.open #fox-chat-box {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        #fox-chat-box.light-theme {
+            background: rgba(248, 250, 252, 0.98);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        #fox-chat-box.light-theme .fox-chat-header {
+            background: rgba(241, 245, 249, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
         #fox-chat-box.light-theme .fox-header-title { color: #0f172a; }
         #fox-chat-box.light-theme .fox-header-status { color: #64748b; }
         #fox-chat-box.light-theme .fox-btn-icon { color: #475569; }
-        #fox-chat-box.light-theme .fox-btn-icon:hover { background: rgba(0, 0, 0, 0.08); color: #0f172a; }
-        #fox-chat-box.light-theme .fox-msg-bot .fox-msg-bubble { background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
+        #fox-chat-box.light-theme .fox-btn-icon:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: #0f172a;
+        }
+
+        #fox-chat-box.light-theme .fox-msg-bot .fox-msg-bubble {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
         #fox-chat-box.light-theme .fox-msg-bot .fox-msg-bubble b { color: #0284c7; }
-        #fox-chat-box.light-theme .fox-input-container { background: rgba(241, 245, 249, 0.98); border-top: 1px solid rgba(0, 0, 0, 0.1); }
-        #fox-chat-box.light-theme .fox-input-box { background: #ffffff; border: 1px solid #cbd5e1; }
+
+        #fox-chat-box.light-theme .fox-input-container {
+            background: rgba(241, 245, 249, 0.98);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        #fox-chat-box.light-theme .fox-input-box {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+        }
+
         #fox-chat-box.light-theme #fox-chat-input { color: #0f172a; }
         #fox-chat-box.light-theme #fox-chat-input::placeholder { color: #94a3b8; }
         #fox-chat-box.light-theme .fox-footer-meta { color: #64748b; }
         #fox-chat-box.light-theme .fox-typing-text { color: #64748b; }
 
-        .fox-chat-header { padding: 10px 12px; background: rgba(30, 41, 59, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .fox-header-left { display: flex; align-items: center; gap: 8px; }
-        .fox-avatar-container { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(249, 115, 22, 0.5); background: rgba(249, 115, 22, 0.1); display: flex; align-items: center; justify-content: center; padding: 2px; }
-        .fox-avatar-container svg, .fox-msg-avatar svg { width: 100%; height: 100%; display: block; }
-        .fox-header-info { display: flex; flex-direction: column; gap: 1px; }
-        .fox-header-title { font-size: 13.5px; font-weight: 700; color: #fff; }
-        .fox-header-status { font-size: 10px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
-        .fox-status-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; animation: statusPulse 2s infinite ease-in-out; }
-        .fox-btn-icon { width: 26px; height: 26px; border-radius: 4px; background: transparent; border: none; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .fox-btn-icon:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        .fox-chat-header {
+            padding: 10px 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
 
-        #fox-chat-content { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; user-select: text; scroll-behavior: smooth; }
-        .fox-msg-row { display: flex; gap: 8px; max-width: 100%; animation: foxMsgFadeIn 0.25s ease forwards; }
+        .fox-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fox-avatar-container {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(249, 115, 22, 0.5);
+            background: rgba(249, 115, 22, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }
+
+        .fox-avatar-container svg, .fox-msg-avatar svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .fox-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .fox-header-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .fox-header-status {
+            font-size: 10px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fox-status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: statusPulse 2s infinite ease-in-out;
+        }
+
+        .fox-btn-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .fox-btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        #fox-chat-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            user-select: text;
+            scroll-behavior: smooth;
+        }
+
+        .fox-msg-row {
+            display: flex;
+            gap: 8px;
+            max-width: 100%;
+            animation: foxMsgFadeIn 0.25s ease forwards;
+        }
+
         .fox-msg-user { justify-content: flex-end; }
         .fox-msg-bot { justify-content: flex-start; }
-        .fox-msg-avatar { width: 24px; height: 24px; border-radius: 4px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(249, 115, 22, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 2px; }
-        .fox-msg-group { position: relative; display: flex; flex-direction: column; max-width: 85%; gap: 2px; }
-        .fox-copy-btn { position: absolute; bottom: -18px; right: 0px; background: #cbd5e1; border: none; border-radius: 4px; color: #0f172a; cursor: pointer; font-size: 9px; padding: 2px 6px; font-weight: bold; opacity: 0; transition: opacity 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+
+        .fox-msg-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 2px;
+        }
+
+        .fox-msg-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            gap: 2px;
+        }
+
+        .fox-copy-btn {
+            position: absolute;
+            bottom: -18px;
+            right: 0px;
+            background: #cbd5e1;
+            border: none;
+            border-radius: 4px;
+            color: #0f172a;
+            cursor: pointer;
+            font-size: 9px;
+            padding: 2px 6px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
         .fox-msg-group:hover .fox-copy-btn { opacity: 1; }
+
         .fox-msg-user .fox-msg-group { align-items: flex-end; }
         .fox-msg-bot .fox-msg-group { align-items: flex-start; }
-        .fox-msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.4; word-wrap: break-word; max-width: 100%; }
-        .fox-msg-user .fox-msg-bubble { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; border-bottom-right-radius: 2px; font-weight: 500; }
-        .fox-msg-bot .fox-msg-bubble { background: rgba(30, 41, 59, 0.85); color: #f1f5f9; border: 1px solid rgba(255, 255, 255, 0.1); border-top-left-radius: 2px; }
-        .fox-msg-bot .fox-msg-bubble b { color: var(--fox-cyan); font-weight: 600; }
 
-        .fox-typing-indicator { display: inline-flex; align-items: center; width: auto; white-space: nowrap; }
-        .fox-typing-text { font-size: 11px; color: #94a3b8; font-style: italic; margin-left: 6px; }
-        .fox-input-container { padding: 10px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
-        .fox-input-box { display: flex; align-items: center; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 4px 6px 4px 12px; }
-        #fox-chat-input { flex: 1; background: transparent; border: none; color: #f8fafc; font-size: 12px; outline: none; padding: 6px 0; }
-        .fox-send-btn { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-        .fox-send-btn:disabled { background: rgba(255, 255, 255, 0.1) !important; color: #64748b !important; cursor: not-allowed; }
-        .fox-send-btn svg { width: 12px; height: 12px; margin-left: 2px; }
-        .fox-footer-meta { font-size: 9px; color: var(--fox-text-muted); text-align: center; }
-        .fox-freq-tag { color: var(--fox-cyan); font-weight: 600; }
+        .fox-msg-bubble {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .fox-msg-user .fox-msg-bubble {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+            font-weight: 500;
+        }
+
+        .fox-msg-bot .fox-msg-bubble {
+            background: rgba(30, 41, 59, 0.85);
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top-left-radius: 2px;
+        }
+
+        .fox-msg-bot .fox-msg-bubble b {
+            color: var(--fox-cyan);
+            font-weight: 600;
+        }
+
+        .fox-typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .fox-typing-text {
+            font-size: 11px;
+            color: #94a3b8;
+            font-style: italic;
+            margin-left: 6px;
+        }
+
+        .fox-input-container {
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .fox-input-box {
+            display: flex;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 4px 6px 4px 12px;
+        }
+
+        #fox-chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            font-size: 12px;
+            outline: none;
+            padding: 6px 0;
+        }
+
+        .fox-send-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .fox-send-btn:disabled {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+        }
+
+        .fox-send-btn svg {
+            width: 12px;
+            height: 12px;
+            margin-left: 2px;
+        }
+
+        .fox-footer-meta {
+            font-size: 9px;
+            color: var(--fox-text-muted);
+            text-align: center;
+        }
+
+        .fox-freq-tag {
+            color: var(--fox-cyan);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
 
 <!-- MODAL BẢN QUYỀN -->
-<div id="licenseModalOverlay" class="license-modal-overlay" style="display: none;">
+<div id="licenseModalOverlay" class="license-modal-overlay">
     <div class="license-selection-box">
-        <h2>🦊 FOX_LAB PHYSICS SIMULATOR</h2>
-        <p>Phần mềm mô phỏng thí nghiệm Vật lý Âm thanh chuyên nghiệp dành cho Giáo viên & Học sinh.</p>
+        <h2>FOX_LAB - Thí nghiệm Vật lý</h2>
+        <p>Chọn phương thức sử dụng để bắt đầu:</p>
         <div class="license-btn-group">
-            <button class="license-btn btn-demo-mode" onclick="selectMode('demo')">🧪 Dùng thử Demo (Giới hạn tính năng)</button>
-            <button class="license-btn btn-full-mode" onclick="selectMode('full')">🔑 Kích hoạt Bản Full (Nhập Key)</button>
+            <button class="license-btn btn-demo-mode" onclick="selectMode('demo')">⚡ Dùng thử Demo (Miễn phí)</button>
+            <button class="license-btn btn-full-mode" onclick="selectMode('full')">🔑 Nhập Key Bản Full (Chính thức)</button>
         </div>
-        <div id="keyInputContainer" style="display: none; margin-bottom: 15px;">
-            <input type="text" id="licenseKeyInput" placeholder="Nhập mã Key bản quyền..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px; box-sizing: border-box; text-align: center; font-weight: bold;">
+        <div id="keyInputContainer" style="display: none; margin-top: 15px; margin-bottom: 15px;">
+            <input type="text" id="licenseKeyInput" placeholder="Nhập mã Key bản quyền..." style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; text-align: center; text-transform: uppercase;">
             <div style="color: #dc2626; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-align: center; background: #fee2e2; padding: 6px; border-radius: 4px; border: 1px dashed #f87171;">
                 ⚠️ LƯU Ý: KHÔNG DÙNG TAB ẨN DANH!<br>Nếu dùng tab ẩn danh, bạn sẽ mất bản quyền ngay khi đóng trình duyệt.
             </div>
@@ -334,6 +1134,7 @@
     </div>
 </div>
 
+<!-- THANH ĐIỀU KHIỂN CHÍNH (TOP BAR) -->
 <div class="top-bar">
     <div class="controls-wrapper">
         <select id="channelModeSelect" style="display:none">
@@ -343,10 +1144,6 @@
         <select id="modeSelect" style="display:none">
             <option value="auto">Khảo sát tần số (Tự dừng)</option>
             <option value="continuous" selected>Khảo sát liên tục</option>
-        </select>
-        <select id="displayModeSelect" style="display:none">
-            <option value="oscilloscope" selected>Dao động ký</option>
-            <option value="dbMeter">Cường độ âm (dB)</option>
         </select>
         <select id="speedSelect" style="display:none">
             <option value="fast" selected>Nhanh</option>
@@ -360,34 +1157,34 @@
                 </div>
                 <div class="settings-dropdown-menu" id="settingsMenu">
                     <div class="settings-group" id="groupChannelMode">
-                        <div class="settings-group-header" data-group="channelMode"><span>Chế độ nguồn âm</span><span class="group-arrow">›</span></div>
+                        <div class="settings-group-header" data-group="channelMode">
+                            <span>Chế độ nguồn âm</span><span class="group-arrow">›</span>
+                        </div>
                         <div class="settings-group-items">
                             <div class="settings-item active" data-target="channelModeSelect" data-value="1">1 Nguồn</div>
                             <div class="settings-item" data-target="channelModeSelect" data-value="2">2 Nguồn</div>
                         </div>
                     </div>
                     <div class="settings-group" id="groupMode">
-                        <div class="settings-group-header" data-group="mode"><span>Chức năng khảo sát</span><span class="group-arrow">›</span></div>
+                        <div class="settings-group-header" data-group="mode">
+                            <span>Chức năng khảo sát</span><span class="group-arrow">›</span>
+                        </div>
                         <div class="settings-group-items">
                             <div class="settings-item" data-target="modeSelect" data-value="auto">Tự dừng</div>
                             <div class="settings-item active" data-target="modeSelect" data-value="continuous">Liên tục</div>
                         </div>
                     </div>
-                    <div class="settings-group" id="groupDisplayMode">
-                        <div class="settings-group-header" data-group="displayMode"><span>Chế độ hiển thị</span><span class="group-arrow">›</span></div>
-                        <div class="settings-group-items">
-                            <div class="settings-item active" data-target="displayModeSelect" data-value="oscilloscope">Dao động ký</div>
-                            <div class="settings-item" data-target="displayModeSelect" data-value="dbMeter">Cường độ âm (dB)</div>
-                        </div>
-                    </div>
                     <div class="settings-group" id="groupSpeed" style="display: block;">
-                        <div class="settings-group-header" data-group="speed"><span>Tốc độ quét</span><span class="group-arrow">›</span></div>
+                        <div class="settings-group-header" data-group="speed">
+                            <span>Tốc độ quét</span><span class="group-arrow">›</span>
+                        </div>
                         <div class="settings-group-items">
                             <div class="settings-item active" data-target="speedSelect" data-value="fast">Nhanh</div>
                             <div class="settings-item" data-target="speedSelect" data-value="slow">Chậm</div>
                         </div>
                     </div>
 
+                    <!-- MENU QUẢN LÝ BẢN QUYỀN -->
                     <div class="settings-group" id="groupLicense">
                         <div class="settings-group-header" data-group="license" style="color: #38bdf8; border-top: 1px solid #1e293b;">
                             <span>🔑 Quản lý Bản quyền</span><span class="group-arrow">›</span>
@@ -433,9 +1230,10 @@
     </div>
 </div>
 
+<!-- MAN HINH DAO DONG KY -->
 <canvas id="oscilloscope"></canvas>
 
-<!-- MODAL PHÂN TÍCH HỌA ÂM FFT -->
+<!-- MODAL PHAN TICH HOA AM (FFT) -->
 <div id="fftModalOverlay" class="modal-overlay">
     <div id="fftModal" class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -454,7 +1252,7 @@
     </div>
 </div>
 
-<!-- MODAL PHÂN TÍCH 2 NGUỒN ÂM -->
+<!-- MODAL XU LY 2 NGUON AM -->
 <div id="twoSourceModalOverlay" class="modal-overlay">
     <div id="twoSourceModal" class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -462,19 +1260,23 @@
         </div>
         <div class="modal-controls" style="justify-content: space-between; padding: 6px 12px; display: flex; align-items: center;">
             <button class="btn-dark" onclick="closeTwoSourceModal()">⬅ Quay lại</button>
+
             <div class="ts-mode-toggle">
                 <button id="btnModeOverlay" class="active-mode" onclick="setTsMode('overlay')">Ghép sóng</button>
                 <button id="btnModeSum" onclick="setTsMode('sum')">Tổng hợp (A+B)</button>
             </div>
+
             <div style="display: flex; align-items: center; gap: 4px;">
                 <button id="tsPlayBtn" onclick="toggleTsPlay()" class="btn-orange" style="margin-left: 4px;">⏸ Dừng</button>
                 <button id="tsResultBtn" onclick="showTsResultModal()" style="display: none !important; margin-left: 4px;" class="btn-blue">📊 Kết quả</button>
                 <button id="tsEquationBtn" onclick="showTsEquationModal()" style="display: none !important; margin-left: 4px;" class="btn-slate">📐 Phương trình</button>
             </div>
         </div>
+
         <div class="fft-canvas-container" id="tsContainer">
             <canvas id="twoSourceCanvas" class="modal-display-canvas"></canvas>
 
+            <!-- BANG KET QUA DO CHIEU -->
             <div id="hudResults" class="hud-overlay">
                 <div class="hud-title">BẢNG KẾT QUẢ ĐỐI CHIẾU</div>
                 <div>Tần số Kênh A: <span class="hud-highlight" id="hudFreqA">0.0</span> Hz &nbsp;|&nbsp; Chu kỳ T<sub>A</sub> = <span class="hud-highlight" id="hudPerA">0.00</span> ms &nbsp;|&nbsp; Biên độ A: <span class="hud-highlight" id="hudAmpA">0.00</span></div>
@@ -484,6 +1286,7 @@
                 </div>
             </div>
 
+            <!-- PHUONG TRINH DAO DONG -->
             <div id="hudEquations" class="hud-overlay" style="top: auto; bottom: 16px; left: 16px;">
                 <div class="hud-title">PHƯƠNG TRÌNH DAO ĐỘNG</div>
                 <div class="hud-eq">Kênh A: <span class="math-symbol">u<sub>A</sub> = <span id="eqAmpA">A</span>·cos(2π·<span id="eqFreqA">0</span>·t)</span></div>
@@ -496,50 +1299,18 @@
     </div>
 </div>
 
-<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) - NỀN TRẮNG CHỮ ĐỎ KHI VƯỢT NGƯỠNG -->
-<div id="mcdModalOverlay" class="modal-overlay">
-    <div id="mcdModal" class="modal-content" style="background: #ffffff; color: #0f172a;" onclick="event.stopPropagation()">
-        <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981);">
-            <span>📊 Phân tích Mức Cường độ âm (MCĐ) & Khoảng cách Nguồn âm</span>
-        </div>
-        
-        <div class="modal-controls" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-            <button class="btn-dark" onclick="closeMcdModal()">⬅ Quay lại</button>
-            <button class="btn-blue" onclick="calculateAvgDistance()">📏 Tính khoảng cách trung bình từ nguồn âm</button>
-        </div>
-
-        <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-            <div id="mcdReportTableContainer" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-                    BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC
-                </h3>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;">
-                    <thead>
-                        <tr style="background: #f1f5f9; text-align: left; color: #475569;">
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Thông số đo</th>
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Giá trị (dB)</th>
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng an toàn</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mcdTableBody">
-                    </tbody>
-                </table>
-
-                <div id="distanceResultBox" style="display: none; margin-top: 20px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600;">
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- FOX CHAT WIDGET -->
+<!-- FOX AI CHAT WIDGET -->
 <div id="fox-chat-widget">
     <div class="fox-trigger-wrapper">
         <div class="fox-ping-ring"></div>
         <button id="fox-chat-trigger" onclick="toggleChat()">
             <span class="fox-trigger-icon fox-trigger-fox-icon" id="trigger-fox-icon-container"></span>
-            <span class="fox-trigger-icon fox-trigger-close-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>
+            <span class="fox-trigger-icon fox-trigger-close-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </span>
         </button>
     </div>
     <div id="fox-chat-box">
@@ -583,7 +1354,9 @@
 </div>
 
 <script>
-    // Kiểm tra phiên bản tự động từ GitHub
+    // ==============================================================================
+    // [CHỨC NĂNG 9.4] Tự động kiểm tra phiên bản mới từ GitHub
+    // ==============================================================================
     async function checkAppVersion() {
         try {
             const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
@@ -606,7 +1379,9 @@
     }
     checkAppVersion();
 
-    // Chặn phím F12 và chuột phải bảo vệ mã nguồn
+    // ==============================================================================
+    // [CHỨC NĂNG 9.5] Chặn phím F12 và menu chuột phải bảo vệ mã nguồn
+    // ==============================================================================
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
             e.preventDefault(); return false;
@@ -614,7 +1389,9 @@
     });
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-    // Quản lý Vòng đời ứng dụng (App Lifecycle)
+    // ==============================================================================
+    // [CHỨC NĂNG 8.2] Xử lý khi thoát ra hoặc chuyển đổi giữa các phần mềm (App Lifecycle)
+    // ==============================================================================
     let wasAppBackgrounded = false;
     let lastBackgroundTime = 0;
     let lastReturnProcessTime = 0;
@@ -640,15 +1417,20 @@
     }
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') onAppLeave();
-        else if (document.visibilityState === 'visible') onAppEnter();
+        if (document.visibilityState === 'hidden') {
+            onAppLeave();
+        } else if (document.visibilityState === 'visible') {
+            onAppEnter();
+        }
     });
 
-    window.addEventListener('blur', () => onAppLeave());
-    window.addEventListener('focus', () => onAppEnter());
+    window.addEventListener('blur', () => { onAppLeave(); });
+    window.addEventListener('focus', () => { onAppEnter(); });
     window.addEventListener('beforeunload', () => { stopAudioChannel('A'); stopAudioChannel('B'); });
 
-    // Fullscreen Mode
+    // ==============================================================================
+    // [CHỨC NĂNG 4.5] Chế độ mở rộng toàn màn hình (Fullscreen Presentation)
+    // ==============================================================================
     function toggleFullScreen() {
         let elem = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
@@ -670,7 +1452,6 @@
     const pauseButton = document.getElementById('pauseButton'), resetButton = document.getElementById('resetButton');
     const btnAnalysis = document.getElementById('btnAnalysis'), infoMessageText = document.getElementById('infoMessageText');
     const channelModeSelect = document.getElementById('channelModeSelect'), modeSelect = document.getElementById('modeSelect'), speedSelect = document.getElementById('speedSelect');
-    const displayModeSelect = document.getElementById('displayModeSelect');
     const micSelectA = document.getElementById('micSelectA'), micSelectB = document.getElementById('micSelectB');
     const canvas = document.getElementById('oscilloscope'), canvasCtx = canvas.getContext('2d', { alpha: false });
     const settingsDropdown = document.getElementById('settingsDropdown'), settingsMenu = document.getElementById('settingsMenu');
@@ -682,31 +1463,13 @@
     let isUserZoomed = false, totalTimeOnScreen = 5 * (1.0 / 440), currentZoomY = 2.0;
 
     let isTwoSourceModalOpen = false, isTsPaused = false;
-    let snapDataA = [], snapDataB = [], tsViewMode = 'overlay';
+    let snapDataA = new Float32Array(0), snapDataB = new Float32Array(0), tsViewMode = 'overlay';
     let showTsResults = false, showTsEquations = false;
     let currentCalcFreqA = 0, currentCalcFreqB = 0, currentAmpA = 0, currentAmpB = 0;
 
-    // BIẾN LƯU LỊCH SỬ ĐO CƯỜNG ĐỘ ÂM (dB)
-    let dbHistory = [];
-    const SAFETY_THRESHOLD_DB = 85.0; // Ngưỡng an toàn thính giác (85 dB)
-
-    function getDisplayMode() {
-        return displayModeSelect ? displayModeSelect.value : 'oscilloscope';
-    }
-
-    function calculateRMSdB(buffer) {
-        if (!buffer || buffer.length === 0) return 30.0;
-        let sum = 0;
-        for (let i = 0; i < buffer.length; i++) {
-            sum += buffer[i] * buffer[i];
-        }
-        let rms = Math.sqrt(sum / buffer.length);
-        if (rms < 0.0001) rms = 0.0001;
-        let db = 20 * Math.log10(rms / 0.00002);
-        return Math.max(30.0, Math.min(120.0, db));
-    }
-
-    // Fingerprint Device ID
+    // ==============================================================================
+    // [CHỨC NĂNG 9.1] Định danh thiết bị phần cứng duy nhất (Device Fingerprint ID)
+    // ==============================================================================
     function getDeviceId() {
         let deviceId = localStorage.getItem('fox_device_id');
         if (!deviceId) {
@@ -716,7 +1479,9 @@
         return deviceId;
     }
 
-    // License Management
+    // ==============================================================================
+    // [CHỨC NĂNG 9.2] Kích hoạt và xác thực bản quyền (License Key Authentication)
+    // ==============================================================================
     function selectMode(mode) {
         if (mode === 'demo') {
             isDemoMode = true; document.getElementById('licenseModalOverlay').style.display = 'none';
@@ -733,25 +1498,23 @@
         document.getElementById('keyInputContainer').style.display = 'none';
     }
 
+    // QUẢN LÝ BẢN QUYỀN
     window.handleLicenseAction = function (action) {
         let key = localStorage.getItem('fox_license_key');
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
-(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?
-(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi yêu cầu giải phóng thiết bị!");
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
-Bạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi lệnh xóa Key vĩnh viễn!");
                 forceLogout(false);
@@ -782,10 +1545,7 @@ Bạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao t�
                 activateFullMode(key);
             } else {
                 if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}
-
-Mã Key này có thể đang được sử dụng ở thiết bị khác.
-Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
+                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
                     if (confirmChange) {
                         forceChangeDevice(key, type);
                     } else {
@@ -799,6 +1559,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 9.3] Quản lý chuyển đổi thiết bị và giải phóng Key
+    // ==============================================================================
     async function forceChangeDevice(key, type) {
         infoMessageText.innerHTML = "Đang gửi yêu cầu Đổi thiết bị...";
         try {
@@ -811,8 +1574,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
                 activateFullMode(key);
             } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}
-(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
+                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
                 forceLogout();
             }
         } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
@@ -835,43 +1597,40 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (gearBtn) gearBtn.style.display = 'inline-flex';
         infoMessageText.innerHTML = "Bản Dùng thử Demo (Khóa tính năng nâng cao)."; infoMessageText.style.color = "#dc2626";
         isPaused = true; clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green";
+        if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
         updateUIState(); checkAndShowQR(); drawFrame(true);
     }
 
-    // App State Preservation & Restore (Mặc định: 1 Nguồn, Liên tục, Dao động ký)
+    // ==============================================================================
+    // [CHỨC NĂNG 8.1] Lưu và khôi phục trạng thái ứng dụng (LocalStorage Persistence)
+    // ==============================================================================
     function saveAppState() {
         localStorage.setItem('fox_channel_mode', channelModeSelect.value);
         localStorage.setItem('fox_mode_select', modeSelect.value);
-        if (displayModeSelect) localStorage.setItem('fox_display_mode', displayModeSelect.value);
         localStorage.setItem('fox_speed_select', speedSelect.value);
         localStorage.setItem('fox_mic_a', micSelectA.value);
         localStorage.setItem('fox_mic_b', micSelectB.value);
     }
 
     function restoreAppState() {
-        // YÊU CẦU 3: ĐỂ CHẾ ĐỘ MẶC ĐỊNH KHI KHỞI ĐỘNG (1 Nguồn, Liên tục, Dao động ký)
-        channelModeSelect.value = '1';
-        modeSelect.value = 'continuous';
-        if (displayModeSelect) displayModeSelect.value = 'oscilloscope';
-        speedSelect.value = 'fast';
-
-        if (typeof isContinuousMode !== 'undefined') isContinuousMode = true;
+        if (localStorage.getItem('fox_channel_mode')) channelModeSelect.value = localStorage.getItem('fox_channel_mode');
+        const savedMode = localStorage.getItem('fox_mode_select');
+        modeSelect.value = savedMode ? savedMode : 'continuous';
+        if (typeof isContinuousMode !== 'undefined') isContinuousMode = (modeSelect.value === 'continuous');
+        if (localStorage.getItem('fox_speed_select')) speedSelect.value = localStorage.getItem('fox_speed_select');
 
         document.querySelectorAll('#groupChannelMode .settings-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.value === '1');
+            if (el.dataset.value === channelModeSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
         });
         document.querySelectorAll('#groupMode .settings-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.value === 'continuous');
-        });
-        document.querySelectorAll('#groupDisplayMode .settings-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.value === 'oscilloscope');
+            if (el.dataset.value === modeSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
         });
         document.querySelectorAll('#groupSpeed .settings-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.value === 'fast');
+            if (el.dataset.value === speedSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
         });
 
-        document.getElementById('groupSpeed').style.display = 'block';
-        document.getElementById('cardChannelB').style.display = 'none';
+        document.getElementById('groupSpeed').style.display = (modeSelect.value === 'continuous') ? 'block' : 'none';
+        document.getElementById('cardChannelB').style.display = (channelModeSelect.value === '2') ? 'flex' : 'none';
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -903,7 +1662,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }, 30000);
 
-    // QR Code
+    // ==============================================================================
+    // [CHỨC NĂNG 4.6] Bảng mã QR truy cập nhanh trên thiết bị di động
+    // ==============================================================================
     function checkAndShowQR() {
         const qrPanel = document.getElementById('qrPanel'), qrImage = document.getElementById('qrImage');
         if (!qrImage || !qrPanel) return;
@@ -918,6 +1679,10 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     window.addEventListener('resize', checkAndShowQR);
 
     let workletUrl = null;
+
+    // ==============================================================================
+    // [CHỨC NĂNG 1.2] Cấu hình AudioWorklet thu và đệm âm thanh thời gian thực
+    // ==============================================================================
     async function setupAudioWorklet(ctx) {
         if (!workletUrl) {
             const workletCode = `class FoxAudioProcessor extends AudioWorkletProcessor { process(inputs, outputs) { const input = inputs[0]; if (input && input.length > 0 && input[0]) { this.port.postMessage(input[0]); } return true; } } registerProcessor('fox-audio-processor', FoxAudioProcessor);`;
@@ -933,11 +1698,12 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         document.getElementById('qrPanel').addEventListener('click', function () { this.style.display = 'none'; });
         document.getElementById('fftModalOverlay').addEventListener('click', closeFFTModal);
         document.getElementById('twoSourceModalOverlay').addEventListener('click', closeTwoSourceModal);
-        document.getElementById('mcdModalOverlay').addEventListener('click', closeMcdModal);
         resizeCanvas(); updateUIState(); drawFrame(true);
     });
 
-    // Settings Pill Animation
+    // ==============================================================================
+    // [CHỨC NĂNG 4.3] Điều khiển Menu Cài đặt & Hiệu ứng chuyển động (Settings Dropdown)
+    // ==============================================================================
     function updateSettingsPill(groupItems, targetItem, animated = true) {
         if (!groupItems) return;
         let pill = groupItems.querySelector('.settings-slider-pill');
@@ -995,6 +1761,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
 
     function getActiveChannelMode() { return channelModeSelect.value || '1'; }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 1.5] Đóng luồng và giải phóng kênh Micro (Stop Audio Channel)
+    // ==============================================================================
     function stopAudioChannel(channelId) {
         const cfg = channelConfig[channelId]; if (!cfg) return;
         if (cfg.stream) { cfg.stream.getTracks().forEach(track => track.stop()); cfg.stream = null; }
@@ -1006,54 +1775,24 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         cfg.active = false; cfg.index = 0; if (cfg.data) cfg.data.fill(0);
     }
 
-    // YÊU CẦU 1: CẬP NHẬT TRẠNG THÁI NÚT PHÂN TÍCH CHO CẢ DAO ĐỘNG KÝ & CHẾ ĐỘ CƯỜNG ĐỘ ÂM (dB)
     function updateAnalysisButtonState() {
         const mode = getActiveChannelMode(), surveyMode = modeSelect.value, activeChannels = (channelConfig.A.active ? 1 : 0) + (channelConfig.B.active ? 1 : 0);
-        
-        if (isDemoMode) {
-            btnAnalysis.disabled = true;
-            btnAnalysis.textContent = (getDisplayMode() === 'dbMeter') ? "Phân tích MCĐ (Bản Full)" : (mode === '1' ? "Phân tích FFT (Bản Full)" : "Xử lý nguồn âm (Bản Full)");
-            btnAnalysis.className = 'btn-slate';
-            return;
-        }
-
-        if (getDisplayMode() === 'dbMeter') {
+        if (isDemoMode) { btnAnalysis.disabled = true; btnAnalysis.textContent = (mode === '1') ? "Phân tích FFT (Bản Full)" : "Xử lý nguồn âm (Bản Full)"; btnAnalysis.className = 'btn-slate'; return; }
+        if (mode === '2') {
             btnAnalysis.style.display = 'inline-block';
-            if (isPaused && dbHistory.length > 0) {
-                btnAnalysis.disabled = false;
-                btnAnalysis.textContent = "Phân tích MCĐ nguồn âm";
-                btnAnalysis.className = 'btn-green';
-            } else {
-                btnAnalysis.disabled = true;
-                btnAnalysis.textContent = "Phân tích MCĐ nguồn âm";
-                btnAnalysis.className = 'btn-slate';
-            }
+            if (activeChannels === 2) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-pink'; }
+            else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-slate'; }
         } else {
-            if (mode === '2') {
+            if (surveyMode === 'auto') { btnAnalysis.style.display = 'none'; }
+            else {
                 btnAnalysis.style.display = 'inline-block';
-                if (activeChannels === 2) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-pink'; }
-                else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-slate'; }
-            } else {
-                if (surveyMode === 'auto') { btnAnalysis.style.display = 'none'; }
-                else {
-                    btnAnalysis.style.display = 'inline-block';
-                    if (channelConfig.A.active && isPaused) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-purple'; }
-                    else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-slate'; }
-                }
+                if (channelConfig.A.active && isPaused) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-purple'; }
+                else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-slate'; }
             }
         }
     }
 
-    btnAnalysis.addEventListener('click', () => {
-        if (getDisplayMode() === 'dbMeter') {
-            openMcdModal();
-        } else if (getActiveChannelMode() === '1') {
-            openFFTModal();
-        } else {
-            openTwoSourceModal();
-        }
-    });
-
+    btnAnalysis.addEventListener('click', () => { if (getActiveChannelMode() === '1') { openFFTModal(); } else { openTwoSourceModal(); } });
     speedSelect.addEventListener('change', (e) => { targetFPS = (e.target.value === 'slow') ? 15 : 60; saveAppState(); });
     modeSelect.addEventListener('change', (e) => {
         isContinuousMode = (e.target.value === 'continuous'); clearTimeout(stopTimer);
@@ -1061,12 +1800,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (isContinuousMode) { speedGroup.style.display = 'block'; targetFPS = (speedSelect.value === 'slow') ? 15 : 60; }
         else { speedGroup.style.display = 'none'; targetFPS = 60; speedSelect.value = "fast"; if (!isPaused) triggerAutoStop(); }
         updateAnalysisButtonState(); saveAppState();
-    });
-
-    displayModeSelect.addEventListener('change', () => {
-        updateAnalysisButtonState();
-        drawFrame();
-        saveAppState();
     });
 
     channelModeSelect.addEventListener('change', () => {
@@ -1084,11 +1817,20 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     micSelectB.addEventListener('focus', () => { isSelectActive = true; });
     micSelectB.addEventListener('blur', () => { setTimeout(() => { isSelectActive = false; }, 300); });
 
+    // ==============================================================================
+    // [CHỨC NĂNG 3.4] Điều chỉnh kích thước và thao tác thu phóng (Canvas Zoom)
+    // ==============================================================================
     function resizeCanvas() {
         const dpr = window.devicePixelRatio || 1, cssWidth = canvas.clientWidth, cssHeight = canvas.clientHeight;
         canvas.width = Math.round(cssWidth * dpr); canvas.height = Math.round(cssHeight * dpr);
         canvasCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (isTwoSourceModalOpen) { const container = document.getElementById('tsContainer'), canv = document.getElementById('twoSourceCanvas'); if (container && canv) { canv.width = container.clientWidth - 12; canv.height = container.clientHeight - 12; } }
+        if (isTwoSourceModalOpen) {
+            const container = document.getElementById('tsContainer'), canv = document.getElementById('twoSourceCanvas');
+            if (container && canv && container.clientWidth > 0 && container.clientHeight > 0) {
+                canv.width = container.clientWidth - 12;
+                canv.height = container.clientHeight - 12;
+            }
+        }
         drawFrame();
     }
     window.addEventListener('resize', resizeCanvas);
@@ -1126,6 +1868,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }, { passive: false });
 
+    // ==============================================================================
+    // [CHỨC NĂNG 2.1] Thuật toán tự tương quan dò tìm tần số cơ bản f (Autocorrelation)
+    // ==============================================================================
     function autoCorrelate(buffer, sampleRate) {
         let SIZE = buffer.length, sumSq = 0; for (let i = 0; i < SIZE; i++) sumSq += buffer[i] * buffer[i];
         let rootMeanSq = Math.sqrt(sumSq / SIZE); if (rootMeanSq < 0.02) return -1;
@@ -1139,6 +1884,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         let freq = sampleRate / truePos; if (freq < 100 || freq > 1500) return -1; return freq;
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 2.4] Thuật toán tính độ lệch pha giữa 2 nguồn sóng (Phase Difference Δφ)
+    // ==============================================================================
     function calculatePhaseDifference(dataA, dataB, freq, sampleRate) {
         if (!dataA || !dataB || freq <= 0) return 0;
         const samplesPerCycle = sampleRate / freq;
@@ -1160,6 +1908,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         return phaseRad;
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 2.3] Thuật toán biến đổi Fourier nhanh (Radix-2 FFT DSP)
+    // ==============================================================================
     function computeFFT(realArray) {
         let n = realArray.length, p = 1; while (p < n) p *= 2;
         let x = new Float32Array(p); x.set(realArray); let y = new Float32Array(p); let j = 0;
@@ -1168,9 +1919,14 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         let magnitudes = new Float32Array(p / 2); for (let i = 0; i < p / 2; i++) { magnitudes[i] = Math.hypot(x[i], y[i]) / (p / 2); } return magnitudes;
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 2.2] Thuật toán khóa pha và dò điểm cắt qua trục 0 (Zero-Crossing Trigger)
+    // ==============================================================================
     function findZeroCrossingOffset(cfg, currentIndex, samplesNeeded) {
         if (!cfg || !cfg.active || !cfg.data || currentIndex <= 0) return 0;
-        const len = cfg.data.length, maxAvailable = Math.min(currentIndex, len - 4096);
+        const len = cfg.data.length;
+        if (currentIndex < len && currentIndex <= samplesNeeded + 10) return 0;
+        const maxAvailable = (currentIndex >= len) ? len : currentIndex;
         if (maxAvailable <= samplesNeeded + 4) return 0;
         const maxSearchWindow = Math.min(maxAvailable - samplesNeeded - 2, Math.max(512, Math.floor(sampleRate / 60)));
         if (maxSearchWindow <= 4) return 0;
@@ -1184,6 +1940,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         return 0;
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 3.1] Dựng lưới toạ độ đo lường và nhãn kênh dao động ký (Oscilloscope Grid)
+    // ==============================================================================
     function drawLabelWithPill(ctx, text, x, y, align = 'center', baseline = 'top', textColor = '#1e293b') {
         ctx.save(); ctx.font = '600 11px "Inter", sans-serif'; ctx.textAlign = align; ctx.textBaseline = baseline;
         const metrics = ctx.measureText(text), padX = 4, padY = 2, textW = metrics.width, textH = 12;
@@ -1223,6 +1982,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (titleText) { let textPosX = (titleText === 'Biên độ') ? (centerX + 6) : (boxX + 8); drawLabelWithPill(ctx, titleText, textPosX, boxY + 8, 'left', 'top', titleColor); }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 1.4] Quét và quản lý danh sách thiết bị Micro (Microphone Enumeration)
+    // ==============================================================================
     async function populateMics() {
         try {
             const devices = await navigator.mediaDevices.enumerateDevices(), audioInputs = devices.filter(device => device.kind === 'audioinput');
@@ -1249,6 +2011,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         const gearBtn = document.querySelector('.license-gear-btn'); if (gearBtn) { gearBtn.style.display = isDemoMode ? 'inline-flex' : 'none'; }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 1.1 & 1.3] Khởi tạo luồng âm thanh Micro & Bộ lọc số DSP
+    // ==============================================================================
     async function initAudioChannel(channelId, deviceId = null) {
         const mode = getActiveChannelMode();
         if (mode === '1') stopAudioChannel((channelId === 'A') ? 'B' : 'A');
@@ -1282,6 +2047,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         } catch (err) { alert(`Lỗi Micro Kênh ${channelId}. Vui lòng kiểm tra quyền truy cập: ` + err.message); }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 4.2] Chế độ khảo sát tự dừng sau khi phát hiện sóng (Auto-Stop)
+    // ==============================================================================
     function triggerAutoStop() {
         clearTimeout(stopTimer);
         isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
@@ -1291,6 +2059,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
                 if (!isPaused && !isContinuousMode) {
                     isPaused = true;
+                    if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
                     pauseButton.textContent = "Đo / Dừng";
                     pauseButton.className = "btn-green";
                     infoMessageText.innerHTML = "Đã khóa sóng &mdash; Sẵn sàng khảo sát";
@@ -1302,12 +2071,14 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 4.1] Nút điều khiển Đo / Dừng (Pause / Resume Measurement)
+    // ==============================================================================
     pauseButton.addEventListener('click', () => {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
         if (isPaused) {
             isPaused = false;
-            pauseButton.disabled = false;
             if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; }
             if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
             isUserZoomed = false; detectedFrequency = 0; lockedFrequency = 440; totalTimeOnScreen = 5 * (1.0 / lockedFrequency);
@@ -1316,13 +2087,13 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A</span>";
             if (channelConfig.A.active && channelConfig.B.active) text += " &amp; ";
             if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B</span>";
-            infoMessageText.innerHTML = text; infoMessageText.style.color = "#0284c7";
-            lastDrawTime = performance.now(); updateAnalysisButtonState();
+            infoMessageText.innerHTML = text; lastDrawTime = performance.now(); updateAnalysisButtonState();
             if (!animFrameId) draw();
             if (!isContinuousMode) triggerAutoStop();
             else clearTimeout(stopTimer);
         } else {
             isPaused = true;
+            if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
             clearTimeout(stopTimer);
             pauseButton.textContent = "Đo / Dừng";
             pauseButton.className = "btn-green";
@@ -1333,86 +2104,22 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     });
 
+    // ==============================================================================
+    // [CHỨC NĂNG 4.4] Nút Làm mới (Reset) trạng thái dao động ký
+    // ==============================================================================
     resetButton.addEventListener('click', () => {
         resetFeaturesAndAdjustments();
-        isPaused = true; clearTimeout(stopTimer);
-        pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green"; pauseButton.disabled = false;
+        isPaused = true;
+        if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+        clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green";
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; } if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
-        dbHistory = [];
         updateUIState(); drawFrame(true);
     });
 
-    // YÊU CẦU 1: ĐỒ THỊ CỘT LIÊN TIẾP ĐO CƯỜNG ĐỘ ÂM (dB / ms)
-    function drawDbBarChart(ctx, dataArray, currentIndex, width, height) {
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, width, height);
-
-        let chunkSize = 1024;
-        let len = dataArray.length;
-        let recentSamples = new Float32Array(chunkSize);
-        for (let i = 0; i < chunkSize; i++) {
-            recentSamples[i] = dataArray[((currentIndex - chunkSize + i) % len + len) % len];
-        }
-        
-        let currentDb = calculateRMSdB(recentSamples);
-        
-        if (!isPaused) {
-            dbHistory.push({ time: performance.now(), db: currentDb });
-            if (dbHistory.length > 120) dbHistory.shift();
-        }
-
-        // Trục dB (Trục đứng 30 - 120 dB)
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let dbStep = 30; dbStep <= 120; dbStep += 15) {
-            let y = height - ((dbStep - 30) / 90) * (height - 50) - 30;
-            ctx.moveTo(50, y); ctx.lineTo(width - 15, y);
-            ctx.fillStyle = '#64748b';
-            ctx.font = '10px "Inter", sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText(`${dbStep} dB`, 42, y + 3);
-        }
-        ctx.stroke();
-
-        // Trục hoành thời gian (ms)
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(50, height - 30); ctx.lineTo(width - 15, height - 30);
-        ctx.moveTo(50, 15); ctx.lineTo(50, height - 30);
-        ctx.stroke();
-
-        // Vẽ đồ thị cột liên tiếp
-        if (dbHistory.length > 0) {
-            let barWidth = (width - 70) / 120;
-            for (let i = 0; i < dbHistory.length; i++) {
-                let item = dbHistory[i];
-                let barHeight = ((item.db - 30) / 90) * (height - 50);
-                let x = 52 + i * barWidth;
-                let y = (height - 30) - barHeight;
-
-                // Màu cột: Chuyển sang đỏ nếu vượt ngưỡng 85 dB
-                ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ef4444' : '#10b981';
-                ctx.fillRect(x, y, Math.max(1.5, barWidth - 1), barHeight);
-            }
-        }
-
-        // Nhãn tiêu đề các trục
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 11px "Inter", sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('Thời gian đo (ms) ➔', width - 20, height - 10);
-
-        ctx.save();
-        ctx.translate(15, height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.textAlign = 'center';
-        ctx.fillText('Cường độ âm (dB)', 0, 0);
-        ctx.restore();
-    }
-
+    // ==============================================================================
+    // [CHỨC NĂNG 3.2] Kết xuất dạng sóng tín hiệu thời gian thực (Waveform Rendering)
+    // ==============================================================================
     function drawFrame(isReset = false) {
         let now = performance.now();
         if (audioCtx && !isPaused && (channelConfig.A.index > 2048 || channelConfig.B.index > 2048)) {
@@ -1427,25 +2134,11 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 lastCorrelateTime = now;
             }
         }
-
+        if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
         if (isTwoSourceModalOpen) return;
 
         const width = canvas.clientWidth, height = canvas.clientHeight;
-
-        // XỬ LÝ CHUYỂN CHẾ ĐỘ HIỂN THỊ: DAO ĐỘNG KÝ vs CƯỜNG ĐỘ ÂM (dB)
-        if (getDisplayMode() === 'dbMeter') {
-            const mainCfg = channelConfig.A.active ? channelConfig.A : channelConfig.B;
-            if (mainCfg && mainCfg.data) {
-                drawDbBarChart(canvasCtx, mainCfg.data, mainCfg.index, width, height);
-            } else {
-                drawDbBarChart(canvasCtx, new Float32Array(1024), 0, width, height);
-            }
-            return;
-        }
-
-        // MẶC ĐỊNH: DAO ĐỘNG KÝ (GIỮ NGUYÊN CODE CHẠY MƯỢT)
         canvasCtx.fillStyle = '#f8fafc'; canvasCtx.fillRect(0, 0, width, height);
-        if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
 
         const mode = getActiveChannelMode();
         let boxA_Y = 0, boxA_H = height, boxB_Y = 0, boxB_H = 0;
@@ -1481,129 +2174,144 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     }
 
     let animFrameId = null;
+    // ==============================================================================
+    // [CHỨC NĂNG 3.3] Vòng lặp khung hình Render Loop và điều khiển FPS
+    // ==============================================================================
     function draw() {
-        if (!isPaused && targetFPS > 0) { let now = performance.now(); if (now - lastDrawTime > (1000 / targetFPS)) { drawFrame(); lastDrawTime = now; } }
-        animFrameId = requestAnimationFrame(draw);
+        if (!isPaused && targetFPS > 0) {
+            let now = performance.now();
+            if (now - lastDrawTime > (1000 / targetFPS)) {
+                drawFrame();
+                lastDrawTime = now;
+            }
+            animFrameId = requestAnimationFrame(draw);
+        } else {
+            animFrameId = null;
+        }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 8.3] Reset chức năng phụ và phục hồi luồng âm thanh
+    // ==============================================================================
     function resetFeaturesAndAdjustments() {
         const fftOverlay = document.getElementById('fftModalOverlay');
-        if (fftOverlay) { fftOverlay.classList.remove('animUI-visible'); fftOverlay.style.display = 'none'; }
+        if (fftOverlay) {
+            fftOverlay.classList.remove('animUI-visible');
+            fftOverlay.style.display = 'none';
+        }
 
-        closeMcdModal();
-
-        isTwoSourceModalOpen = false; isTsPaused = true; showTsResults = false; showTsEquations = false;
+        isTwoSourceModalOpen = false;
+        isTsPaused = true;
+        showTsResults = false;
+        showTsEquations = false;
         const twoSourceOverlay = document.getElementById('twoSourceModalOverlay');
-        if (twoSourceOverlay) { twoSourceOverlay.classList.remove('animUI-visible'); twoSourceOverlay.style.display = 'none'; }
-        const hudResults = document.getElementById('hudResults'); if (hudResults) hudResults.style.display = 'none';
-        const hudEquations = document.getElementById('hudEquations'); if (hudEquations) hudEquations.style.display = 'none';
+        if (twoSourceOverlay) {
+            twoSourceOverlay.classList.remove('animUI-visible');
+            twoSourceOverlay.style.display = 'none';
+        }
+        const hudResults = document.getElementById('hudResults');
+        if (hudResults) hudResults.style.display = 'none';
+        const hudEquations = document.getElementById('hudEquations');
+        if (hudEquations) hudEquations.style.display = 'none';
 
         const chatWidget = document.getElementById('fox-chat-widget');
-        if (chatWidget && chatWidget.classList.contains('open')) { chatWidget.classList.remove('open'); }
+        if (chatWidget && chatWidget.classList.contains('open')) {
+            chatWidget.classList.remove('open');
+        }
 
         const settingsDropdown = document.getElementById('settingsDropdown');
-        if (settingsDropdown && settingsDropdown.classList.contains('open')) { settingsDropdown.classList.remove('open'); }
+        if (settingsDropdown && settingsDropdown.classList.contains('open')) {
+            settingsDropdown.classList.remove('open');
+        }
 
         const qrPanel = document.getElementById('qrPanel');
         if (qrPanel) qrPanel.style.display = 'none';
 
-        isUserZoomed = false; currentZoomY = 2.0; detectedFrequency = 0; lockedFrequency = 440; totalTimeOnScreen = 5 * (1.0 / 440);
+        isUserZoomed = false;
+        currentZoomY = 2.0;
+        detectedFrequency = 0;
+        lockedFrequency = 440;
+        totalTimeOnScreen = 5 * (1.0 / 440);
 
         if (modeSelect) modeSelect.value = 'continuous';
-        isContinuousMode = true; clearTimeout(stopTimer);
+        isContinuousMode = true;
+        clearTimeout(stopTimer);
         if (speedSelect) speedSelect.value = 'fast';
         targetFPS = 60;
         const groupSpeed = document.getElementById('groupSpeed');
         if (groupSpeed) groupSpeed.style.display = 'block';
 
-        document.querySelectorAll('#groupMode .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'continuous'); });
-        document.querySelectorAll('#groupSpeed .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'fast'); });
+        document.querySelectorAll('#groupMode .settings-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === 'continuous');
+        });
+        document.querySelectorAll('#groupSpeed .settings-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === 'fast');
+        });
 
         if (typeof saveAppState === 'function') saveAppState();
     }
 
-    // YÊU CẦU 2: XỬ LÝ KHI THOÁT TRANG HAY CHUYỂN SANG TRANG KHÁC -> LƯU HÌNH ĐỒ THỊ, YÊU CẦU BẤM RESET ĐỂ ĐO TIẾP
     function handleAppReturn() {
         resetFeaturesAndAdjustments();
 
-        isPaused = true;
-        clearTimeout(stopTimer);
+        const hasActiveSource = (channelConfig && channelConfig.A && channelConfig.A.active) || 
+                                (channelConfig && channelConfig.B && channelConfig.B.active);
 
-        pauseButton.textContent = "Đo / Dừng";
-        pauseButton.className = "btn-green";
-        pauseButton.disabled = true;
-        resetButton.disabled = false;
+        if (hasActiveSource) {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
 
-        infoMessageText.innerHTML = "⚠️ Ứng dụng vừa quay lại. Vui lòng bấm <span class='info-badge'>Làm mới</span> để tiếp tục đo.";
-        infoMessageText.style.color = "#dc2626";
+            if (channelConfig.A && channelConfig.A.data) {
+                channelConfig.A.data.fill(0);
+                channelConfig.A.index = 0;
+            }
+            if (channelConfig.B && channelConfig.B.data) {
+                channelConfig.B.data.fill(0);
+                channelConfig.B.index = 0;
+            }
 
-        updateAnalysisButtonState();
-        drawFrame(false);
+            isPaused = false;
+            clearTimeout(stopTimer);
+            isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
+            pauseButton.textContent = "Đang đo...";
+            pauseButton.className = "btn-red";
+            pauseButton.disabled = false;
+            resetButton.disabled = false;
+
+            let text = "Đang quét tín hiệu: ";
+            if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A</span>";
+            if (channelConfig.A.active && channelConfig.B.active) text += " &amp; ";
+            if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B</span>";
+            infoMessageText.innerHTML = text;
+            infoMessageText.style.color = "#0284c7";
+
+            lastDrawTime = performance.now();
+            updateAnalysisButtonState();
+            resizeCanvas();
+            if (!animFrameId && typeof draw === 'function') draw();
+            if (!isContinuousMode) triggerAutoStop();
+            else clearTimeout(stopTimer);
+        } else {
+            isPaused = true;
+            clearTimeout(stopTimer);
+            if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            updateUIState();
+            resizeCanvas();
+            drawFrame(true);
+        }
     }
 
-    // YÊU CẦU 1: MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) NỀN TRẮNG, CHỮ ĐỎ KHI VƯỢT NGƯỠNG AN TOÀN (>85 dB)
-    function openMcdModal() {
-        const overlay = document.getElementById('mcdModalOverlay');
-        overlay.style.display = 'flex';
-        document.getElementById('distanceResultBox').style.display = 'none';
-
-        if (dbHistory.length === 0) return;
-        let dbValues = dbHistory.map(h => h.db);
-        let maxDb = Math.max(...dbValues);
-        let minDb = Math.min(...dbValues);
-        let avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
-
-        const tableBody = document.getElementById('mcdTableBody');
-        tableBody.innerHTML = `
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${maxDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                    ${maxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${minDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: #059669; font-weight: bold;">✅ Bình thường</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${avgDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                    ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
-                </td>
-            </tr>
-        `;
-    }
-
-    function closeMcdModal() {
-        const overlay = document.getElementById('mcdModalOverlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-
-    // YÊU CẦU 1: KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH r TỪ NGUỒN ÂM TỚI ĐIỂM KHẢO SÁT
-    function calculateAvgDistance() {
-        if (dbHistory.length === 0) return;
-        let avgDb = dbHistory.reduce((sum, item) => sum + item.db, 0) / dbHistory.length;
-        
-        let r0 = 1.0, L0 = 90.0;
-        let estimatedDistance = r0 * Math.pow(10, (L0 - avgDb) / 20);
-
-        const box = document.getElementById('distanceResultBox');
-        box.style.display = 'block';
-        box.innerHTML = `
-            📍 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH:</b><br>
-            • Mức cường độ âm trung bình thu được: <b>${avgDb.toFixed(1)} dB</b><br>
-            • Khoảng cách ước tính từ nguồn âm tới điểm khảo sát: <span style="font-size: 16px; color: #dc2626; font-weight: bold;">r ≈ ${estimatedDistance.toFixed(2)} m</span>
-        `;
-    }
-
-    // Modal FFT Handlers
+    // ==============================================================================
+    // [CHỨC NĂNG 5.1] Khởi chạy và đóng mở Modal Phân tích Họa âm FFT
+    // ==============================================================================
     function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
-        document.getElementById('fftModalOverlay').classList.add('animUI-visible'); document.getElementById('fftModalOverlay').style.display = 'flex';
-        const inputFreq = document.getElementById('fftTargetFreq'); if (lockedFrequency > 20) inputFreq.value = Math.round(lockedFrequency);
+        const overlay = document.getElementById('fftModalOverlay');
+        overlay.classList.add('animUI-visible');
+        overlay.style.display = 'flex';
+        const inputFreq = document.getElementById('fftTargetFreq');
+        if (lockedFrequency > 20) inputFreq.value = Math.round(lockedFrequency);
         setTimeout(processAndDrawFFT, 350);
     }
 
@@ -1613,12 +2321,17 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         setTimeout(() => { overlay.style.display = 'none'; }, 300);
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 5.3] Tính toán cửa sổ Hanning và vẽ phổ họa âm FFT
+    // ==============================================================================
     function processAndDrawFFT() {
         const f0 = parseFloat(document.getElementById('fftTargetFreq').value);
         if (!f0 || f0 <= 0 || !channelConfig.A.data) return;
         const fftCanvas = document.getElementById('fftDisplayCanvas');
+        if (!fftCanvas || !fftCanvas.parentElement) return;
         const fCtx = fftCanvas.getContext('2d');
         const cw = fftCanvas.parentElement.clientWidth - 12, ch = fftCanvas.parentElement.clientHeight - 12;
+        if (cw <= 0 || ch <= 0) return;
         fftCanvas.width = cw; fftCanvas.height = ch;
 
         fCtx.fillStyle = '#f8fafc'; fCtx.fillRect(0, 0, cw, ch);
@@ -1701,7 +2414,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
-    // Modal 2-Source Handlers
+    // ==============================================================================
+    // [CHỨC NĂNG 6.2 & 6.3] Ghép sóng (Overlay) & Tổng hợp (Summation A+B)
+    // ==============================================================================
     function setTsMode(mode) {
         tsViewMode = mode;
         document.getElementById('btnModeOverlay').classList.toggle('active-mode', mode === 'overlay');
@@ -1723,6 +2438,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 2.5] Cập nhật số liệu và tự động lập phương trình sóng HUD
+    // ==============================================================================
     function updateEquationsHUD(freqA, freqB, phaseRad, ampA, ampB) {
         document.getElementById('hudAmpA').innerText = ampA;
         document.getElementById('hudAmpB').innerText = ampB;
@@ -1753,12 +2471,18 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 6.1] Khởi chạy và không gian thí nghiệm 2 nguồn âm
+    // ==============================================================================
     function openTwoSourceModal() {
         isTwoSourceModalOpen = true; isTsPaused = false;
         showTsResults = false; showTsEquations = false;
 
         const overlay = document.getElementById('twoSourceModalOverlay');
-        if (overlay) { overlay.style.display = 'flex'; setTimeout(() => overlay.classList.add('animUI-visible'), 10); }
+        if (overlay) {
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('animUI-visible'), 10);
+        }
 
         const resBtn = document.getElementById('tsResultBtn'), eqBtn = document.getElementById('tsEquationBtn');
         if (resBtn) resBtn.style.setProperty('display', 'none', 'important');
@@ -1769,6 +2493,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         const btn = document.getElementById('tsPlayBtn');
         if (btn) { btn.innerHTML = '⏸ Dừng'; btn.className = "btn-orange"; }
 
+        resizeCanvas();
         requestAnimationFrame(calculatePhaseAndDrawLive);
     }
 
@@ -1781,6 +2506,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 6.4] Tạm dừng và chụp mẫu số liệu 2 nguồn âm (Freeze Snapshot)
+    // ==============================================================================
     function toggleTsPlay() {
         isTsPaused = !isTsPaused;
         const btn = document.getElementById('tsPlayBtn'), resBtn = document.getElementById('tsResultBtn'), eqBtn = document.getElementById('tsEquationBtn');
@@ -1796,20 +2524,22 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             if (btn) { btn.innerHTML = '▶ Tiếp tục'; btn.className = "btn-green"; }
             if (resBtn) resBtn.style.setProperty('display', 'inline-flex', 'important');
             if (eqBtn) eqBtn.style.setProperty('display', 'inline-flex', 'important');
-            if (channelConfig && channelConfig.A && channelConfig.A.data) snapDataA = Array.from(channelConfig.A.data);
-            if (channelConfig && channelConfig.B && channelConfig.B.data) snapDataB = Array.from(channelConfig.B.data);
+            if (channelConfig && channelConfig.A && channelConfig.A.data) snapDataA = new Float32Array(channelConfig.A.data);
+            if (channelConfig && channelConfig.B && channelConfig.B.data) snapDataB = new Float32Array(channelConfig.B.data);
             calculatePhaseAndDrawLive();
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 6.5] Tính toán pha và kết xuất đồ thị sóng giao thoa / tổng hợp 2 nguồn
+    // ==============================================================================
     function calculatePhaseAndDrawLive() {
         if (!isTwoSourceModalOpen) return;
 
         const canv = document.getElementById('twoSourceCanvas');
         if (canv) {
-            canv.width = canv.parentElement.clientWidth; canv.height = canv.parentElement.clientHeight;
-
             const ctx = canv.getContext('2d'), cw = canv.width, ch = canv.height;
+            if (cw <= 0 || ch <= 0) return;
             ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, cw, ch);
             drawMainGrid(ctx, 0, 0, cw, ch, null, null, true);
 
@@ -1913,7 +2643,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (isTwoSourceModalOpen && !isTsPaused) requestAnimationFrame(calculatePhaseAndDrawLive);
     }
 
-    // Fox Chat UI & Gemini Backend Integration
+    // ==============================================================================
+    // [CHỨC NĂNG 7.3] Trình biên dịch hiển thị công thức Toán / Vật lí cho AI
+    // ==============================================================================
     function formatMathText(text) {
         if (!text) return '';
         let formatted = text
@@ -1931,6 +2663,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         return formatted;
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 7.1] Giao diện Chatbot Trợ lý Fox_lab AI & Đổi giao diện Sáng / Tối
+    // ==============================================================================
     function toggleChat() { const widget = document.getElementById('fox-chat-widget'); widget.classList.toggle('open'); if (widget.classList.contains('open')) { setTimeout(() => document.getElementById('fox-chat-input').focus(), 300); } }
     function toggleChatTheme() { const chatBox = document.getElementById('fox-chat-box'); chatBox.classList.toggle('light-theme'); }
     function updateFoxLiveFrequency(freq) { const freqTag = document.getElementById('foxLiveFreqTag'); if (freqTag) freqTag.innerText = freq.toFixed(1) + ' Hz'; }
@@ -1940,6 +2675,9 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !sendBtn.disabled) sendFoxMessage(); });
     sendBtn.addEventListener('click', sendFoxMessage);
 
+    // ==============================================================================
+    // [CHỨC NĂNG 7.2] Gửi câu hỏi kèm tần số thời gian thực đến Fox AI Backend
+    // ==============================================================================
     async function sendFoxMessage() {
         const text = chatInput.value.trim(); if (!text) return;
         if (isDemoMode) { if (demoChatCount >= MAX_DEMO_CHAT) { alert("⚠️ Bản Demo chỉ cho phép hỏi AI tối đa 3 lần. Vui lòng nhập Key Bản Full để sử dụng tiếp!"); openLicenseModal(); return; } demoChatCount++; }
@@ -1956,12 +2694,15 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         }
     }
 
+    // ==============================================================================
+    // [CHỨC NĂNG 7.4] Sao chép nội dung phản hồi của AI vào Clipboard
+    // ==============================================================================
     window.copyFoxText = function (btn, text) { navigator.clipboard.writeText(text).then(() => { let oldText = btn.innerText; btn.innerText = "Đã Copy ✓"; setTimeout(() => btn.innerText = oldText, 1500); }); }
     function addChatMessage(sender, text) {
         const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
         let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
-        let copyStr = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, '\n');
+        let copyStr = text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
         let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>` : '';
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText} ${copyBtn}</div></div>`;
         row.innerHTML = html; chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
