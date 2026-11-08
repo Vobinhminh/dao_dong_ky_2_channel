@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FOX_LAB - Pho2nh thí nghiệm Vật lý về sóng âm</title>
+    <title>FOX_LAB - Phòng thí nghiệm Vật lý về sóng âm</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -306,6 +306,22 @@
         .fox-send-btn svg { width: 12px; height: 12px; margin-left: 2px; }
         .fox-footer-meta { font-size: 9px; color: var(--fox-text-muted); text-align: center; }
         .fox-freq-tag { color: var(--fox-cyan); font-weight: 600; }
+
+        .doppler-card {
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-top: 16px;
+        }
+        .doppler-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px;
+        }
+        .doppler-field {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .doppler-field label {
+            font-size: 11.5px; font-weight: 700; color: #334155;
+        }
+        .doppler-field input, .doppler-field select {
+            padding: 6px 8px; font-size: 12px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #0f172a;
+        }
     </style>
 </head>
 <body>
@@ -496,7 +512,7 @@
     </div>
 </div>
 
-<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) - NỀN TRẮNG CHỮ ĐỎ KHI VƯỢT NGƯỠNG -->
+<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) & HIỆU ỨNG DOPPLER -->
 <div id="mcdModalOverlay" class="modal-overlay">
     <div id="mcdModal" class="modal-content" style="background: #ffffff; color: #0f172a;" onclick="event.stopPropagation()">
         <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981);">
@@ -505,12 +521,13 @@
         
         <div class="modal-controls" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
             <button class="btn-dark" onclick="closeMcdModal()">⬅ Quay lại</button>
-            <button class="btn-blue" onclick="calculateAvgDistance()">📏 Tính khoảng cách trung bình từ nguồn âm</button>
+            <button class="btn-blue" onclick="calculateAvgDistance()">📏 Tính khoảng cách nguồn âm chính xác</button>
+            <button class="btn-orange" onclick="calculateDopplerEffect()">🚀 Tính Hiệu ứng Doppler (Di chuyển nguồn)</button>
         </div>
 
         <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
             <div id="mcdReportTableContainer" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;" id="mcdTableHeaderTitle">
                     BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC
                 </h3>
                 
@@ -526,7 +543,41 @@
                     </tbody>
                 </table>
 
-                <div id="distanceResultBox" style="display: none; margin-top: 20px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600;">
+                <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
+                </div>
+
+                <!-- KHU VỰC CẤU HÌNH & KẾT QUẢ HIỆU ỨNG DOPPLER -->
+                <div class="doppler-card">
+                    <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                        🚀 KHẢO SÁT CHUYỂN ĐỘNG NGUỒN ÂM (HIỆU ỨNG DOPPLER)
+                    </h4>
+                    <div class="doppler-grid">
+                        <div class="doppler-field">
+                            <label>Tần số phát của nguồn (f₀):</label>
+                            <input type="number" id="dopSrcFreq" value="440" min="20" max="5000">
+                        </div>
+                        <div class="doppler-field">
+                            <label>Vận tốc nguồn âm v_s (m/s):</label>
+                            <input type="number" id="dopSrcSpeed" value="20" min="0" max="300">
+                        </div>
+                        <div class="doppler-field">
+                            <label>Hướng chuyển động nguồn:</label>
+                            <select id="dopSrcDir">
+                                <option value="towards" selected>Tiến lại gần người quan sát</option>
+                                <option value="away">Di chuyển ra xa người quan sát</option>
+                            </select>
+                        </div>
+                        <div class="doppler-field">
+                            <label>Vận tốc âm trong không khí v (m/s):</label>
+                            <input type="number" id="dopSoundSpeed" value="340" min="300" max="360">
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn-green" style="padding: 8px 14px;" onclick="calculateDopplerEffect()">⚡ Tính toán Hiệu ứng Doppler</button>
+                    </div>
+
+                    <div id="dopplerResultBox" style="display: none; margin-top: 14px; padding: 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; color: #166534; font-size: 13px; line-height: 1.6;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -686,8 +737,11 @@
     let showTsResults = false, showTsEquations = false;
     let currentCalcFreqA = 0, currentCalcFreqB = 0, currentAmpA = 0, currentAmpB = 0;
 
-    // BIẾN LƯU LỊCH SỬ ĐO CƯỜNG ĐỘ ÂM (dB)
-    let dbHistory = [];
+    // BIẾN LƯU LỊCH SỬ ĐO CƯỜNG ĐỘ ÂM (dB) CHO KÊNH A VÀ KÊNH B
+    let dbHistoryA = [];
+    let dbHistoryB = [];
+    let selectedBarIndexA = -1;
+    let selectedBarIndexB = -1;
     const SAFETY_THRESHOLD_DB = 85.0; // Ngưỡng an toàn thính giác (85 dB)
 
     function getDisplayMode() {
@@ -738,17 +792,20 @@
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
+(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?
+(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi yêu cầu giải phóng thiết bị!");
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
+Bạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
                 fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() }) });
                 alert("Đã gửi lệnh xóa Key vĩnh viễn!");
                 forceLogout(false);
@@ -846,7 +903,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     }
 
     function restoreAppState() {
-        // YÊU CẦU 3: ĐỂ CHẾ ĐỘ MẶC ĐỊNH KHI KHỞI ĐỘNG (1 Nguồn, Liên tục, Dao động ký)
         channelModeSelect.value = '1';
         modeSelect.value = 'continuous';
         if (displayModeSelect) displayModeSelect.value = 'oscilloscope';
@@ -1003,7 +1059,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         cfg.active = false; cfg.index = 0; if (cfg.data) cfg.data.fill(0);
     }
 
-    // YÊU CẦU 1: CẬP NHẬT TRẠNG THÁI NÚT PHÂN TÍCH CHO CẢ DAO ĐỘNG KÝ & CHẾ ĐỘ CƯỜNG ĐỘ ÂM (dB)
     function updateAnalysisButtonState() {
         const mode = getActiveChannelMode(), surveyMode = modeSelect.value, activeChannels = (channelConfig.A.active ? 1 : 0) + (channelConfig.B.active ? 1 : 0);
         
@@ -1016,7 +1071,8 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
 
         if (getDisplayMode() === 'dbMeter') {
             btnAnalysis.style.display = 'inline-block';
-            if (isPaused && dbHistory.length > 0) {
+            let hasHistory = (mode === '2') ? (dbHistoryA.length > 0 || dbHistoryB.length > 0) : (dbHistoryA.length > 0);
+            if (isPaused && hasHistory) {
                 btnAnalysis.disabled = false;
                 btnAnalysis.textContent = "Phân tích MCĐ nguồn âm";
                 btnAnalysis.className = 'btn-green';
@@ -1076,10 +1132,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     btnStartB.addEventListener('click', async () => { if (channelConfig.B.active) { stopAudioChannel('B'); updateUIState(); drawFrame(); } else { await initAudioChannel('B', micSelectB.value); } });
     micSelectA.addEventListener('change', (e) => { if (channelConfig.A.active) initAudioChannel('A', e.target.value); saveAppState(); });
     micSelectB.addEventListener('change', (e) => { if (channelConfig.B.active) initAudioChannel('B', e.target.value); saveAppState(); });
-    micSelectA.addEventListener('focus', () => { isSelectActive = true; });
-    micSelectA.addEventListener('blur', () => { setTimeout(() => { isSelectActive = false; }, 300); });
-    micSelectB.addEventListener('focus', () => { isSelectActive = true; });
-    micSelectB.addEventListener('blur', () => { setTimeout(() => { isSelectActive = false; }, 300); });
 
     function resizeCanvas() {
         const dpr = window.devicePixelRatio || 1, cssWidth = canvas.clientWidth, cssHeight = canvas.clientHeight;
@@ -1090,6 +1142,43 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     }
     window.addEventListener('resize', resizeCanvas);
 
+    // CLICK TRÊN CANVAS ĐỂ CHỌN THANH KHI ĐO CƯỜNG ĐỘ ÂM
+    canvas.addEventListener('click', (e) => {
+        if (getDisplayMode() !== 'dbMeter') return;
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+
+        const leftMargin = 55;
+        const rightMargin = 20;
+        const chartW = width - leftMargin - rightMargin;
+        const mode = getActiveChannelMode();
+
+        if (mode === '2') {
+            const subH = height / 2;
+            if (clickX >= leftMargin && clickX <= width - rightMargin) {
+                let barWidth = chartW / 120;
+                let index = Math.floor((clickX - leftMargin) / barWidth);
+                if (clickY < subH) {
+                    if (index >= 0 && index < dbHistoryA.length) { selectedBarIndexA = index; if (isPaused) drawFrame(); }
+                } else {
+                    if (index >= 0 && index < dbHistoryB.length) { selectedBarIndexB = index; if (isPaused) drawFrame(); }
+                }
+            }
+        } else {
+            if (clickX >= leftMargin && clickX <= width - rightMargin && dbHistoryA.length > 0) {
+                let barWidth = chartW / 120;
+                let index = Math.floor((clickX - leftMargin) / barWidth);
+                if (index >= 0 && index < dbHistoryA.length) {
+                    selectedBarIndexA = index;
+                    if (isPaused) drawFrame();
+                }
+            }
+        }
+    });
+
     let initialPinchDistance = 0, initialPinchTime = 0, initialZoomY = 0;
 
     canvas.addEventListener('wheel', (e) => {
@@ -1098,29 +1187,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         totalTimeOnScreen = Math.max(0.0005, Math.min(totalTimeOnScreen, 5.0));
         currentZoomY = Math.max(0.1, Math.min(currentZoomY, 50.0));
         if (isPaused) drawFrame();
-    }, { passive: false });
-
-    canvas.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault(); isUserZoomed = true;
-            let dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
-            initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
-            initialPinchTime = totalTimeOnScreen; initialZoomY = currentZoomY;
-        }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault();
-            let dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
-            let dist = Math.sqrt(dx * dx + dy * dy); let scale = initialPinchDistance / dist;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                totalTimeOnScreen = initialPinchTime * scale; totalTimeOnScreen = Math.max(0.0005, Math.min(totalTimeOnScreen, 5.0));
-            } else {
-                currentZoomY = initialZoomY / scale; currentZoomY = Math.max(0.1, Math.min(currentZoomY, 50.0));
-            }
-            if (isPaused) drawFrame();
-        }
     }, { passive: false });
 
     function autoCorrelate(buffer, sampleRate) {
@@ -1323,7 +1389,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             clearTimeout(stopTimer);
             pauseButton.textContent = "Đo / Dừng";
             pauseButton.className = "btn-green";
-            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ." : "Đã khóa sóng an toàn.";
+            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ. Nhấp vào thanh cột để xem chi tiết." : "Đã khóa sóng an toàn.";
             infoMessageText.style.color = "#dc2626";
             updateAnalysisButtonState();
             drawFrame();
@@ -1336,78 +1402,165 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green"; pauseButton.disabled = false;
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; } if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
-        dbHistory = [];
+        dbHistoryA = [];
+        dbHistoryB = [];
+        selectedBarIndexA = -1;
+        selectedBarIndexB = -1;
         updateUIState(); drawFrame(true);
     });
 
-    // YÊU CẦU 1: ĐỒ THỊ CỘT LIÊN TIẾP ĐO CƯỜNG ĐỘ ÂM (dB / ms)
-    function drawDbBarChart(ctx, dataArray, currentIndex, width, height) {
+    // HÀM VẼ 1 ĐỒ THỊ BIỂU ĐỒ CỘT MCĐ
+    function renderSingleDbChart(ctx, dbHistory, selectedIndex, titleText, titleColor, boxX, boxY, boxW, boxH) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+
+        const bottomPadding = 45;
+        const topPadding = 30;
+        const leftPadding = 55;
+        const rightPadding = 20;
+        const chartH = boxH - topPadding - bottomPadding;
+        const chartW = boxW - leftPadding - rightPadding;
+
+        // Trục dB (30 - 120 dB)
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let dbStep = 30; dbStep <= 120; dbStep += 30) {
+            let y = (boxY + boxH - bottomPadding) - ((dbStep - 30) / 90) * chartH;
+            ctx.moveTo(boxX + leftPadding, y); ctx.lineTo(boxX + boxW - rightPadding, y);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 10px "Inter", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${dbStep} dB`, boxX + leftPadding - 6, y + 3);
+        }
+        ctx.stroke();
+
+        // Trục tọa độ chính
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(boxX + leftPadding, boxY + boxH - bottomPadding); ctx.lineTo(boxX + boxW - rightPadding, boxY + boxH - bottomPadding);
+        ctx.moveTo(boxX + leftPadding, boxY + topPadding); ctx.lineTo(boxX + leftPadding, boxY + boxH - bottomPadding);
+        ctx.stroke();
+
+        // Tên tiêu đề kênh
+        ctx.fillStyle = titleColor;
+        ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(titleText, boxX + leftPadding + 6, boxY + topPadding - 10);
+
+        if (dbHistory.length > 0) {
+            let barWidth = chartW / 120;
+            let timeIntervalMs = 50;
+
+            // Vẽ ticks thời gian trên trục hoành
+            ctx.fillStyle = '#475569';
+            ctx.font = '500 9.5px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+
+            for (let i = 0; i < dbHistory.length; i += 30) {
+                let x = boxX + leftPadding + i * barWidth + barWidth / 2;
+                ctx.beginPath();
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1;
+                ctx.moveTo(x, boxY + boxH - bottomPadding);
+                ctx.lineTo(x, boxY + boxH - bottomPadding + 4);
+                ctx.stroke();
+
+                let timeOffsetMs = (i - (dbHistory.length - 1)) * timeIntervalMs;
+                ctx.fillText(`${timeOffsetMs > 0 ? '+' : ''}${timeOffsetMs} ms`, x, boxY + boxH - bottomPadding + 16);
+            }
+
+            // Vẽ các cột cường độ âm
+            for (let i = 0; i < dbHistory.length; i++) {
+                let item = dbHistory[i];
+                let barHeight = ((item.db - 30) / 90) * chartH;
+                let x = boxX + leftPadding + i * barWidth;
+                let y = (boxY + boxH - bottomPadding) - barHeight;
+
+                let isSelected = (i === selectedIndex);
+                if (isSelected) {
+                    ctx.fillStyle = '#f59e0b';
+                } else {
+                    ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ef4444' : titleColor;
+                }
+                
+                ctx.fillRect(x, y, Math.max(2, barWidth - 1), barHeight);
+
+                if (isSelected) {
+                    ctx.strokeStyle = '#d97706';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, Math.max(2, barWidth - 1), barHeight);
+                }
+            }
+
+            // Tooltip khi click chọn thanh
+            if (selectedIndex >= 0 && selectedIndex < dbHistory.length) {
+                let selItem = dbHistory[selectedIndex];
+                let selX = boxX + leftPadding + selectedIndex * barWidth + barWidth / 2;
+                let selY = (boxY + boxH - bottomPadding) - ((selItem.db - 30) / 90) * chartH;
+
+                let relTime = (selectedIndex - (dbHistory.length - 1)) * 50;
+                let tooltipText = `📍 ${selItem.db.toFixed(1)} dB | ${relTime} ms`;
+
+                ctx.save();
+                ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
+                let tWidth = ctx.measureText(tooltipText).width + 12;
+                let ttX = Math.min(boxW - tWidth - 10, Math.max(10, selX - tWidth / 2));
+                let ttY = Math.max(boxY + 5, selY - 28);
+
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                ctx.fillRect(ttX, ttY, tWidth, 22);
+
+                ctx.fillStyle = (selItem.db > SAFETY_THRESHOLD_DB) ? '#fca5a5' : '#38bdf8';
+                ctx.textAlign = 'left';
+                ctx.fillText(tooltipText, ttX + 6, ttY + 15);
+                ctx.restore();
+            }
+        }
+    }
+
+    // ĐỒ THỊ ĐO CƯỜNG ĐỘ ÂM CHO 1 NGUỒN VÀ 2 NGUỒN
+    function drawDbBarChart(ctx, width, height) {
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, width, height);
 
         let chunkSize = 1024;
-        let len = dataArray.length;
-        let recentSamples = new Float32Array(chunkSize);
-        for (let i = 0; i < chunkSize; i++) {
-            recentSamples[i] = dataArray[((currentIndex - chunkSize + i) % len + len) % len];
-        }
-        
-        let currentDb = calculateRMSdB(recentSamples);
-        
-        if (!isPaused) {
-            dbHistory.push({ time: performance.now(), db: currentDb });
-            if (dbHistory.length > 120) dbHistory.shift();
-        }
+        let mode = getActiveChannelMode();
 
-        // Trục dB (Trục đứng 30 - 120 dB)
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let dbStep = 30; dbStep <= 120; dbStep += 15) {
-            let y = height - ((dbStep - 30) / 90) * (height - 50) - 30;
-            ctx.moveTo(50, y); ctx.lineTo(width - 15, y);
-            ctx.fillStyle = '#64748b';
-            ctx.font = '10px "Inter", sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText(`${dbStep} dB`, 42, y + 3);
-        }
-        ctx.stroke();
-
-        // Trục hoành thời gian (ms)
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(50, height - 30); ctx.lineTo(width - 15, height - 30);
-        ctx.moveTo(50, 15); ctx.lineTo(50, height - 30);
-        ctx.stroke();
-
-        // Vẽ đồ thị cột liên tiếp
-        if (dbHistory.length > 0) {
-            let barWidth = (width - 70) / 120;
-            for (let i = 0; i < dbHistory.length; i++) {
-                let item = dbHistory[i];
-                let barHeight = ((item.db - 30) / 90) * (height - 50);
-                let x = 52 + i * barWidth;
-                let y = (height - 30) - barHeight;
-
-                // Màu cột: Chuyển sang đỏ nếu vượt ngưỡng 85 dB
-                ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ef4444' : '#10b981';
-                ctx.fillRect(x, y, Math.max(1.5, barWidth - 1), barHeight);
+        // Thu thập dữ liệu Kênh A
+        if (channelConfig.A.active && channelConfig.A.data) {
+            let recentA = new Float32Array(chunkSize);
+            let lenA = channelConfig.A.data.length, idxA = channelConfig.A.index;
+            for (let i = 0; i < chunkSize; i++) recentA[i] = channelConfig.A.data[((idxA - chunkSize + i) % lenA + lenA) % lenA];
+            let currentDbA = calculateRMSdB(recentA);
+            if (!isPaused) {
+                dbHistoryA.push({ time: performance.now(), db: currentDbA });
+                if (dbHistoryA.length > 120) dbHistoryA.shift();
             }
         }
 
-        // Nhãn tiêu đề các trục
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 11px "Inter", sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('Thời gian đo (ms) ➔', width - 20, height - 10);
+        // Thu thập dữ liệu Kênh B
+        if (mode === '2' && channelConfig.B.active && channelConfig.B.data) {
+            let recentB = new Float32Array(chunkSize);
+            let lenB = channelConfig.B.data.length, idxB = channelConfig.B.index;
+            for (let i = 0; i < chunkSize; i++) recentB[i] = channelConfig.B.data[((idxB - chunkSize + i) % lenB + lenB) % lenB];
+            let currentDbB = calculateRMSdB(recentB);
+            if (!isPaused) {
+                dbHistoryB.push({ time: performance.now(), db: currentDbB });
+                if (dbHistoryB.length > 120) dbHistoryB.shift();
+            }
+        }
 
-        ctx.save();
-        ctx.translate(15, height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.textAlign = 'center';
-        ctx.fillText('Cường độ âm (dB)', 0, 0);
-        ctx.restore();
+        if (mode === '2') {
+            // Hiển thị 2 đồ thị nằm ngang chia đôi màn hình
+            let subH = height / 2;
+            renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#dc2626', 0, 0, width, subH);
+            renderSingleDbChart(ctx, dbHistoryB, selectedBarIndexB, '🔵 KÊNH B - MỨC CƯỜNG ĐỘ ÂM (dB)', '#2563eb', 0, subH, width, subH);
+        } else {
+            // Hiển thị 1 đồ thị đầy màn hình
+            renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#10b981', 0, 0, width, height);
+        }
     }
 
     function drawFrame(isReset = false) {
@@ -1429,18 +1582,12 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
 
         const width = canvas.clientWidth, height = canvas.clientHeight;
 
-        // XỬ LÝ CHUYỂN CHẾ ĐỘ HIỂN THỊ: DAO ĐỘNG KÝ vs CƯỜNG ĐỘ ÂM (dB)
         if (getDisplayMode() === 'dbMeter') {
-            const mainCfg = channelConfig.A.active ? channelConfig.A : channelConfig.B;
-            if (mainCfg && mainCfg.data) {
-                drawDbBarChart(canvasCtx, mainCfg.data, mainCfg.index, width, height);
-            } else {
-                drawDbBarChart(canvasCtx, new Float32Array(1024), 0, width, height);
-            }
+            drawDbBarChart(canvasCtx, width, height);
             return;
         }
 
-        // MẶC ĐỊNH: DAO ĐỘNG KÝ (GIỮ NGUYÊN CODE CHẠY MƯỢT)
+        // DAO ĐỘNG KÝ (GIỮ NGUYÊN CODE BÌNH THƯỜNG)
         canvasCtx.fillStyle = '#f8fafc'; canvasCtx.fillRect(0, 0, width, height);
         if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
 
@@ -1519,7 +1666,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (typeof saveAppState === 'function') saveAppState();
     }
 
-    // YÊU CẦU 2: XỬ LÝ KHI THOÁT TRANG HAY CHUYỂN SANG TRANG KHÁC -> LƯU HÌNH ĐỒ THỊ, YÊU CẦU BẤM RESET ĐỂ ĐO TIẾP
     function handleAppReturn() {
         resetFeaturesAndAdjustments();
 
@@ -1538,40 +1684,81 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         drawFrame(false);
     }
 
-    // YÊU CẦU 1: MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) NỀN TRẮNG, CHỮ ĐỎ KHI VƯỢT NGƯỠNG AN TOÀN (>85 dB)
+    // MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) - TINH CHỈNH 1 NGUỒN VÀ 2 NGUỒN
     function openMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         overlay.style.display = 'flex';
         document.getElementById('distanceResultBox').style.display = 'none';
 
-        if (dbHistory.length === 0) return;
-        let dbValues = dbHistory.map(h => h.db);
-        let maxDb = Math.max(...dbValues);
-        let minDb = Math.min(...dbValues);
-        let avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
-
+        const mode = getActiveChannelMode();
+        const tableHeaderTitle = document.getElementById('mcdTableHeaderTitle');
         const tableBody = document.getElementById('mcdTableBody');
-        tableBody.innerHTML = `
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${maxDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                    ${maxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${minDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: #059669; font-weight: bold;">✅ Bình thường</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${avgDb.toFixed(1)} dB</td>
-                <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                    ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
-                </td>
-            </tr>
-        `;
+
+        if (mode === '2') {
+            tableHeaderTitle.innerHTML = "BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM 2 VỊ TRÍ ĐO (KÊNH A & KÊNH B)";
+            let dbA = dbHistoryA.map(h => h.db);
+            let dbB = dbHistoryB.map(h => h.db);
+
+            let avgA = dbA.length > 0 ? (dbA.reduce((a, b) => a + b, 0) / dbA.length) : 0;
+            let avgB = dbB.length > 0 ? (dbB.reduce((a, b) => a + b, 0) / dbB.length) : 0;
+            let maxA = dbA.length > 0 ? Math.max(...dbA) : 0;
+            let maxB = dbB.length > 0 ? Math.max(...dbB) : 0;
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #dc2626;">Kênh A (Vị trí 1) - MCĐ Trung bình (L<sub>A</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${avgA.toFixed(1)} dB (L<sub>max</sub>: ${maxA.toFixed(1)} dB)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgA > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                        ${avgA > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #2563eb;">Kênh B (Vị trí 2) - MCĐ Trung bình (L<sub>B</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${avgB.toFixed(1)} dB (L<sub>max</sub>: ${maxB.toFixed(1)} dB)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgB > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                        ${avgB > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Chênh lệch Mức Cường độ âm (ΔL = L<sub>A</sub> - L<sub>B</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #8b5cf6;">${(avgA - avgB).toFixed(1)} dB</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: #475569;">Cơ sở tính khoảng cách tương đối giữa 2 điểm đo</td>
+                </tr>
+            `;
+        } else {
+            tableHeaderTitle.innerHTML = "BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC (1 NGUỒN / KÊNH A)";
+            if (dbHistoryA.length === 0) return;
+            let dbValues = dbHistoryA.map(h => h.db);
+            let maxDb = Math.max(...dbValues);
+            let minDb = Math.min(...dbValues);
+            let avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${maxDb.toFixed(1)} dB</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                        ${maxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${minDb.toFixed(1)} dB</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: #059669; font-weight: bold;">✅ Bình thường</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${avgDb.toFixed(1)} dB</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                        ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BẢO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                    </td>
+                </tr>
+            `;
+        }
+
+        if (lockedFrequency > 20) {
+            document.getElementById('dopSrcFreq').value = Math.round(lockedFrequency);
+        }
     }
 
     function closeMcdModal() {
@@ -1579,20 +1766,92 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         if (overlay) overlay.style.display = 'none';
     }
 
-    // YÊU CẦU 1: KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH r TỪ NGUỒN ÂM TỚI ĐIỂM KHẢO SÁT
+    // TÍNH KHOẢNG CÁCH DỰA THEO 1 NGUỒN HOẶC 2 NGUỒN
     function calculateAvgDistance() {
-        if (dbHistory.length === 0) return;
-        let avgDb = dbHistory.reduce((sum, item) => sum + item.db, 0) / dbHistory.length;
-        
-        let r0 = 1.0, L0 = 90.0;
-        let estimatedDistance = r0 * Math.pow(10, (L0 - avgDb) / 20);
-
+        const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
-        box.innerHTML = `
-            📍 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH:</b><br>
-            • Mức cường độ âm trung bình thu được: <b>${avgDb.toFixed(1)} dB</b><br>
-            • Khoảng cách ước tính từ nguồn âm tới điểm khảo sát: <span style="font-size: 16px; color: #dc2626; font-weight: bold;">r ≈ ${estimatedDistance.toFixed(2)} m</span>
+
+        let r0 = 1.0, L0 = 90.0; // Mẫu nguồn chuẩn 90dB tại 1m
+
+        if (mode === '2') {
+            if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
+                box.innerHTML = "⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B!";
+                return;
+            }
+
+            let avgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let avgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
+
+            let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
+            let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
+            let deltaR = Math.abs(rA - rB);
+
+            // Công thức tỷ số mức cường độ âm giữa 2 vị trí đo: L_A - L_B = 20*log10(rB / rA)
+            let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
+
+            box.innerHTML = `
+                📍 <b>KẾT QUẢ PHÂN TÍCH KHOẢNG CÁCH NGUỒN ÂM (2 VỊ TRÍ ĐO):</b><br>
+                • MCĐ Trung bình Kênh A (Vị trí 1): <b>${avgDbA.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>A</sub> ≈ <span style="color:#dc2626; font-size:15px; font-weight:bold;">${rA.toFixed(2)} m</span><br>
+                • MCĐ Trung bình Kênh B (Vị trí 2): <b>${avgDbB.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>B</sub> ≈ <span style="color:#2563eb; font-size:15px; font-weight:bold;">${rB.toFixed(2)} m</span><br>
+                • <b>Khoảng cách giữa 2 vị trí đo:</b> Δr = |r<sub>A</sub> - r<sub>B</sub>| ≈ <span style="color:#059669; font-size:16px; font-weight:bold;">${deltaR.toFixed(2)} m</span><br>
+                • <b>Tỷ số khoảng cách chính xác từ nguồn phát ra âm thanh:</b> r<sub>B</sub> / r<sub>A</sub> = 10<sup>(L<sub>A</sub> - L<sub>B</sub>)/20</sup> ≈ <span style="color:#8b5cf6; font-size:16px; font-weight:bold;">${ratio.toFixed(3)}</span> lần
+            `;
+        } else {
+            if (dbHistoryA.length === 0) {
+                box.innerHTML = "⚠️ Chưa có dữ liệu đo cường độ âm!";
+                return;
+            }
+            let avgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let estimatedDistance = r0 * Math.pow(10, (L0 - avgDb) / 20);
+
+            box.innerHTML = `
+                📍 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH (1 NGUỒN ĐO):</b><br>
+                • Mức cường độ âm trung bình thu được: <b>${avgDb.toFixed(1)} dB</b><br>
+                • Khoảng cách ước tính từ nguồn âm tới điểm khảo sát: <span style="font-size: 16px; color: #dc2626; font-weight: bold;">r ≈ ${estimatedDistance.toFixed(2)} m</span>
+            `;
+        }
+    }
+
+    // HIỆU ỨNG DOPPLER
+    function calculateDopplerEffect() {
+        let f0 = parseFloat(document.getElementById('dopSrcFreq').value) || 440;
+        let vs = parseFloat(document.getElementById('dopSrcSpeed').value) || 0;
+        let dir = document.getElementById('dopSrcDir').value;
+        let v = parseFloat(document.getElementById('dopSoundSpeed').value) || 340;
+
+        if (vs >= v) {
+            alert("⚠️ Vận tốc nguồn âm v_s phải nhỏ hơn vận tốc truyền âm v trong môi trường!");
+            return;
+        }
+
+        let fObserved = 0;
+        let shiftDesc = "";
+
+        if (dir === 'towards') {
+            fObserved = f0 * (v / (v - vs));
+            shiftDesc = "Âm bổng hơn (tần số quan sát tăng lên)";
+        } else {
+            fObserved = f0 * (v / (v + vs));
+            shiftDesc = "Âm trầm hơn (tần số quan sát giảm xuống)";
+        }
+
+        let deltaF = fObserved - f0;
+        let ratio = fObserved / f0;
+
+        let r_initial = 20.0;
+        let r_final = (dir === 'towards') ? Math.max(1.0, r_initial - 10.0) : (r_initial + 10.0);
+        let dbChange = 20 * Math.log10(r_initial / r_final);
+
+        const resultBox = document.getElementById('dopplerResultBox');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+            🚀 <b>KẾT QUẢ PHÂN TÍCH HIỆU ỨNG DOPPLER:</b><br>
+            • Tần số phát ban đầu của nguồn f₀: <b>${f0.toFixed(1)} Hz</b><br>
+            • Tần số quan sát thu được f': <span style="font-size: 16px; color: #166534; font-weight: bold;">${fObserved.toFixed(1)} Hz</span> (${shiftDesc})<br>
+            • Độ lệch tần số Δf = f' - f₀: <b>${deltaF > 0 ? '+' : ''}${deltaF.toFixed(1)} Hz</b> (Tỷ số f'/f₀ = <b>${ratio.toFixed(3)}</b>)<br>
+            • Vận tốc nguồn: <b>${vs} m/s</b> (${(vs * 3.6).toFixed(1)} km/h) | Vận tốc sóng âm: <b>${v} m/s</b><br>
+            • Biến thiên mức cường độ âm ΔL khi di chuyển (từ ${r_initial}m đến ${r_final.toFixed(1)}m): <span style="font-weight: bold; color: ${dbChange >= 0 ? '#dc2626' : '#2563eb'};">${dbChange >= 0 ? '+' : ''}${dbChange.toFixed(1)} dB</span>
         `;
     }
 
@@ -1914,17 +2173,18 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
     function formatMathText(text) {
         if (!text) return '';
         let formatted = text
-            .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
+            .replace(/\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
             .replace(/\(([^()]+)\)\s*\/\s*\(([^()]+)\)/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
-            .replace(/\\omega/g, 'ω').replace(/\\lambda/g, 'λ').replace(/\\pi/g, 'π')
-            .replace(/\\varphi/g, 'φ').replace(/\\Delta/g, 'Δ')
-            .replace(/\\cos/g, 'cos').replace(/\\sin/g, 'sin').replace(/\\tan/g, 'tan')
-            .replace(/\\left\(/g, '(').replace(/\\right\)/g, ')')
-            .replace(/\\left\[/g, '[').replace(/\\right\]/g, ']')
-            .replace(/\\cdot/g, '·').replace(/\\([a-zA-Z]+)/g, '$1')
+            .replace(/\omega/g, 'ω').replace(/\lambda/g, 'λ').replace(/\pi/g, 'π')
+            .replace(/\varphi/g, 'φ').replace(/\Delta/g, 'Δ')
+            .replace(/\cos/g, 'cos').replace(/\sin/g, 'sin').replace(/\tan/g, 'tan')
+            .replace(/\left\(/g, '(').replace(/\right\)/g, ')')
+            .replace(/\left\[/g, '[').replace(/\right\]/g, ']')
+            .replace(/\cdot/g, '·').replace(/\([a-zA-Z]+)/g, '$1')
             .replace(/\$([a-zA-Z])_([0-9a-zA-Z]+)\$/g, '<span class="math-symbol">$1<sub>$2</sub></span>')
             .replace(/\$([^$]+)\$/g, (match, p1) => { let subFormatted = p1.replace(/([a-zA-Z])_([0-9a-zA-Z]+)/g, '$1<sub>$2</sub>'); return `<span class="math-symbol">${subFormatted}</span>`; })
-            .replace(/\n/g, '<br>');
+            .replace(/
+/g, '<br>');
         return formatted;
     }
 
@@ -1958,7 +2218,8 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
         let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
-        let copyStr = text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        let copyStr = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/
+/g, '\n');
         let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>` : '';
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText} ${copyBtn}</div></div>`;
         row.innerHTML = html; chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
