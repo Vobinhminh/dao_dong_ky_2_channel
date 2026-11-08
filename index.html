@@ -545,39 +545,7 @@
                 <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
                 </div>
 
-                <!-- KHU VỰC CẤU HÌNH & KẾT QUẢ HIỆU ỨNG DOPPLER -->
-                <div class="doppler-card">
-                    <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-                        🚀 KHẢO SÁT CHUYỂN ĐỘNG NGUỒN ÂM (HIỆU ỨNG DOPPLER)
-                    </h4>
-                    <div class="doppler-grid">
-                        <div class="doppler-field">
-                            <label>Tần số phát của nguồn (f₀):</label>
-                            <input type="number" id="dopSrcFreq" value="440" min="20" max="5000" oninput="calculateDopplerEffect()">
-                        </div>
-                        <div class="doppler-field">
-                            <label>Vận tốc nguồn âm v_s (m/s):</label>
-                            <input type="number" id="dopSrcSpeed" value="20" min="0" max="300" oninput="calculateDopplerEffect()">
-                        </div>
-                        <div class="doppler-field">
-                            <label>Hướng chuyển động nguồn:</label>
-                            <select id="dopSrcDir" onchange="calculateDopplerEffect()">
-                                <option value="towards" selected>Tiến lại gần người quan sát</option>
-                                <option value="away">Di chuyển ra xa người quan sát</option>
-                            </select>
-                        </div>
-                        <div class="doppler-field">
-                            <label>Vận tốc âm trong không khí v (m/s):</label>
-                            <input type="number" id="dopSoundSpeed" value="340" min="300" max="360" oninput="calculateDopplerEffect()">
-                        </div>
-                    </div>
-                    <div style="margin-top: 6px; font-size: 11px; color: #64748b; font-style: italic;">
-                        ⚡ Tự động tính toán Hiệu ứng Doppler theo thời gian thực khi thay đổi thông số.
-                    </div>
 
-                    <div id="dopplerResultBox" style="display: none; margin-top: 14px; padding: 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; color: #166534; font-size: 13px; line-height: 1.6;">
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -1776,46 +1744,7 @@
         }
     }
 
-    function calculateDopplerEffect() {
-        let f0 = parseFloat(document.getElementById('dopSrcFreq').value) || 440;
-        let vs = parseFloat(document.getElementById('dopSrcSpeed').value) || 0;
-        let dir = document.getElementById('dopSrcDir').value;
-        let v = parseFloat(document.getElementById('dopSoundSpeed').value) || 340;
-
-        if (vs >= v) {
-            alert("⚠️ Vận tốc nguồn âm v_s phải nhỏ hơn vận tốc truyền âm v trong môi trường!");
-            return;
-        }
-
-        let fObserved = 0;
-        let shiftDesc = "";
-
-        if (dir === 'towards') {
-            fObserved = f0 * (v / (v - vs));
-            shiftDesc = "Âm bổng hơn (tần số quan sát tăng lên)";
-        } else {
-            fObserved = f0 * (v / (v + vs));
-            shiftDesc = "Âm trầm hơn (tần số quan sát giảm xuống)";
-        }
-
-        let deltaF = fObserved - f0;
-        let ratio = fObserved / f0;
-
-        let r_initial = 20.0;
-        let r_final = (dir === 'towards') ? Math.max(1.0, r_initial - 10.0) : (r_initial + 10.0);
-        let dbChange = 20 * Math.log10(r_initial / r_final);
-
-        const resultBox = document.getElementById('dopplerResultBox');
-        resultBox.style.display = 'block';
-        resultBox.innerHTML = `
-            🚀 <b>KẾT QUẢ PHÂN TÍCH HIỆU ỨNG DOPPLER:</b><br>
-            • Tần số phát ban đầu của nguồn f₀: <b>${f0.toFixed(1)} Hz</b><br>
-            • Tần số quan sát thu được f': <span style="font-size: 16px; color: #166534; font-weight: bold;">${fObserved.toFixed(1)} Hz</span> (${shiftDesc})<br>
-            • Độ lệch tần số Δf = f' - f₀: <b>${deltaF > 0 ? '+' : ''}${deltaF.toFixed(1)} Hz</b> (Tỷ số f'/f₀ = <b>${ratio.toFixed(3)}</b>)<br>
-            • Vận tốc nguồn: <b>${vs} m/s</b> (${(vs * 3.6).toFixed(1)} km/h) | Vận tốc sóng âm: <b>${v} m/s</b><br>
-            • Biến thiên mức cường độ âm ΔL khi di chuyển (từ ${r_initial}m đến ${r_final.toFixed(1)}m): <span style="font-weight: bold; color: ${dbChange >= 0 ? '#dc2626' : '#2563eb'};">${dbChange >= 0 ? '+' : ''}${dbChange.toFixed(1)} dB</span>
-        `;
-    }
+    
 
     function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
@@ -2132,16 +2061,36 @@
     function formatMathText(text) {
         if (!text) return '';
         let formatted = text
-            .replace(/\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
-            .replace(/\(([^()]+)\)\s*\/\s*\(([^()]+)\)/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
-            .replace(/\omega/g, 'ω').replace(/\lambda/g, 'λ').replace(/\pi/g, 'π')
-            .replace(/\varphi/g, 'φ').replace(/\Delta/g, 'Δ')
-            .replace(/\cos/g, 'cos').replace(/\sin/g, 'sin').replace(/\tan/g, 'tan')
-            .replace(/\left\(/g, '(').replace(/\right\)/g, ')')
-            .replace(/\left\[/g, '[').replace(/\right\]/g, ']')
-            .replace(/\cdot/g, '·')
+            .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction" style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:0.95em;"><span style="border-bottom:1px solid currentColor;padding-bottom:1px;">$1</span><span style="padding-top:1px;">$2</span></span>')
+            .replace(/\\text\{([^}]+)\}/g, '$1')
+            .replace(/\\omega/g, 'ω')
+            .replace(/\\lambda/g, 'λ')
+            .replace(/\\pi/g, 'π')
+            .replace(/\\varphi/g, 'φ')
+            .replace(/\\Delta/g, 'Δ')
+            .replace(/\\cos/g, 'cos')
+            .replace(/\\sin/g, 'sin')
+            .replace(/\\tan/g, 'tan')
+            .replace(/\\left\(/g, '(')
+            .replace(/\\right\)/g, ')')
+            .replace(/\\left\[/g, '[')
+            .replace(/\\right\]/g, ']')
+            .replace(/\\cdot/g, '·')
+            .replace(/\\lg/g, 'lg')
+            .replace(/\\log/g, 'log')
             .replace(/\$([a-zA-Z])_([0-9a-zA-Z]+)\$/g, '<span class="math-symbol">$1<sub>$2</sub></span>')
-            .replace(/\$([^$]+)\$/g, (match, p1) => { let subFormatted = p1.replace(/([a-zA-Z])_([0-9a-zA-Z]+)/g, '$1<sub>$2</sub>'); return `<span class="math-symbol">${subFormatted}</span>`; })
+            .replace(/\$([^$]+)\$/g, (match, p1) => {
+                let clean = p1.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction" style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:0.95em;"><span style="border-bottom:1px solid currentColor;padding-bottom:1px;">$1</span><span style="padding-top:1px;">$2</span></span>')
+                             .replace(/\\text\{([^}]+)\}/g, '$1')
+                             .replace(/\\omega/g, 'ω').replace(/\\lambda/g, 'λ').replace(/\\pi/g, 'π')
+                             .replace(/\\varphi/g, 'φ').replace(/\\Delta/g, 'Δ')
+                             .replace(/\\cos/g, 'cos').replace(/\\sin/g, 'sin').replace(/\\tan/g, 'tan')
+                             .replace(/\\left\(/g, '(').replace(/\\right\)/g, ')')
+                             .replace(/\\left\[/g, '[').replace(/\\right\]/g, ']')
+                             .replace(/\\cdot/g, '·').replace(/\\lg/g, 'lg')
+                             .replace(/([a-zA-Z])_([0-9a-zA-Z]+)/g, '$1<sub>$2</sub>');
+                return `<span class="math-symbol">${clean}</span>`;
+            })
             .replace(/\n/g, '<br>');
         return formatted;
     }
