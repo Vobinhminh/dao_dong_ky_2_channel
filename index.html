@@ -2271,7 +2271,7 @@
             } else {
                 let A_val = ((parseFloat(ampA) + parseFloat(ampB)) / 2).toFixed(2);
                 let phase_half = (phaseRad / 2).toFixed(2);
-                let phase_half_sign = phaseRad >= 0 ? `+ ${phase_half}` : `- ${Math.abs(phase_half).toFixed(2)}`;
+                let phase_half_sign = phaseRad >= 0 ? `+ ${phase_half}` : `- ${Math.abs(phaseRad).toFixed(2)}`;
                 let sum_amp = Math.abs(2 * A_val * Math.cos(phaseRad / 2)).toFixed(2);
                 sumLine.innerHTML = `Tổng hợp: <span class="math-symbol">u = 2(${A_val})·cos(${phase_half})·cos(2πft ${phase_half_sign}) = ${sum_amp}·cos(2πft ${phase_half_sign})</span>`;
             }
@@ -2481,13 +2481,13 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\\$\\$\s*\\S*?\\$\\$|\\\\[\\s*\\S*?\\\\]|\\$[^\\$\\n]+?\\$|\\\\([\\s*\\S*?\\\\))/g, function(match) {
+        let protectedStr = str.replace(/(\$\$\s*\S*?\$\$|\\[\s*\S*?\\]|\$[^\$\n]+?\$|\\([\s*\S*?\\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
         });
 
-        let texFormulaRegex = /(?:\\b[a-zA-Z0-9_]{1,3}\\s*=\\s*)?(?:\\\\(?:[a-zA-Z]+|[^a-zA-Z])|\\{[^{}]*\\}|\\[[^\]]*\\]|\\([^\\)]*\\)|\\b[a-zA-Z0-9_]{1,3}\\b|[\\+\\-\\*/\\=\\^\\_\\<\\>°\\.,]|\\s)*?\\\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)\\b(?:\\\\(?:[a-zA-Z]+|[^a-zA-Z])|\\{[^{}]*\\}|\\[[^\]]*\\]|\\([^\\)]*\\)|\\b[a-zA-Z0-9_]{1,3}\\b|[\\+\\-\\*/\\=\\^\\_\\<\\>°\\.,]|\\s)*/g;
+        let texFormulaRegex = /(?:\b[a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)\b(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
 
         protectedStr = protectedStr.replace(texFormulaRegex, function(match) {
             let raw = match.trim();
