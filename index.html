@@ -273,7 +273,7 @@
         #fox-chat-widget.open .fox-trigger-close-icon { display: flex; transform: rotate(90deg); }
 
         #fox-chat-box {
-            position: absolute; bottom: 60px; right: 0; width: 330px; height: 450px; max-height: calc(100dvh - 100px);
+            position: absolute; bottom: 60px; right: 0; width: 330px; height: 460px; max-height: calc(100dvh - 100px);
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column;
             overflow: hidden; transform: scale(0.9) translateY(20px); opacity: 0; visibility: hidden; pointer-events: none;
@@ -313,14 +313,101 @@
         .fox-msg-bot { justify-content: flex-start; }
         .fox-msg-avatar { width: 24px; height: 24px; border-radius: 4px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(249, 115, 22, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 2px; }
         .fox-msg-group { position: relative; display: flex; flex-direction: column; max-width: 85%; gap: 2px; }
-        .fox-copy-btn { position: absolute; bottom: -18px; right: 0px; background: #cbd5e1; border: none; border-radius: 4px; color: #0f172a; cursor: pointer; font-size: 9px; padding: 2px 6px; font-weight: bold; opacity: 0; transition: opacity 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
-        .fox-msg-group:hover .fox-copy-btn { opacity: 1; }
+        
         .fox-msg-user .fox-msg-group { align-items: flex-end; }
         .fox-msg-bot .fox-msg-group { align-items: flex-start; }
         .fox-msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; word-wrap: break-word; max-width: 100%; }
         .fox-msg-user .fox-msg-bubble { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; border-bottom-right-radius: 2px; font-weight: 500; }
         .fox-msg-bot .fox-msg-bubble { background: rgba(30, 41, 59, 0.85); color: #f1f5f9; border: 1px solid rgba(255, 255, 255, 0.1); border-top-left-radius: 2px; }
         .fox-msg-bot .fox-msg-bubble b { color: var(--fox-cyan); font-weight: 600; }
+
+        /* Action Buttons (Copy & Speaker) */
+        .fox-msg-actions {
+            position: absolute;
+            bottom: -20px;
+            right: 0px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .fox-msg-group:hover .fox-msg-actions { opacity: 1; }
+        .fox-action-btn {
+            background: #cbd5e1;
+            border: none;
+            border-radius: 4px;
+            color: #0f172a;
+            cursor: pointer;
+            font-size: 9.5px;
+            padding: 2px 6px;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .fox-action-btn:hover { background: #94a3b8; }
+        .fox-action-btn.speaking { background: #ef4444; color: #ffffff; }
+
+        /* Quick Suggestion Chips */
+        .fox-chips-container {
+            display: flex;
+            gap: 6px;
+            padding: 6px 10px;
+            overflow-x: auto;
+            background: rgba(15, 23, 42, 0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+        .fox-chips-container::-webkit-scrollbar { display: none; }
+        .fox-chip-btn {
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 10.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .fox-chip-btn:hover {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+        #fox-chat-box.light-theme .fox-chips-container {
+            background: #f1f5f9;
+            border-top: 1px solid #cbd5e1;
+        }
+        #fox-chat-box.light-theme .fox-chip-btn {
+            background: #e0f2fe;
+            border-color: #7dd3fc;
+            color: #0369a1;
+        }
+
+        /* Quick Data Insert Button */
+        .fox-data-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            margin-right: 2px;
+            font-size: 14px;
+        }
+        .fox-data-btn:hover {
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+        }
 
         /* MathJax MathType Styling */
         .mjx-chtml {
@@ -689,8 +776,21 @@
                 </div>
             </div>
         </div>
+
+        <!-- GỢI Ý CÂU HỎI NHANH (SUGGESTION CHIPS) -->
+        <div class="fox-chips-container">
+            <button class="fox-chip-btn" onclick="sendQuickQuestion('Hướng dẫn cách tính chu kỳ T và tần số f từ sóng đo')">📊 Tính T & f</button>
+            <button class="fox-chip-btn" onclick="sendQuickQuestion('Giải thích cách tính Mức cường độ âm (dB)')">🔊 Tính dB</button>
+            <button class="fox-chip-btn" onclick="sendQuickQuestion('Hiện tượng sóng phách là gì và cách xử lý FFT?')">🌊 Sóng phách</button>
+            <button class="fox-chip-btn" onclick="sendQuickQuestion('Đánh giá độ an toàn thính giác với mức dB hiện tại')">🛡 Mức an toàn</button>
+        </div>
+
         <div class="fox-input-container">
             <div class="fox-input-box">
+                <!-- NÚT GỬI NHANH SỐ LIỆU ĐO THỰC TẾ -->
+                <button class="fox-data-btn" id="foxDataBtn" title="Nhập số liệu đo hiện tại vào ô chat" onclick="insertLiveDataToInput()">
+                    📥
+                </button>
                 <button class="fox-mic-btn" id="foxMicBtn" title="Nói để nhập tin nhắn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -2374,13 +2474,13 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^\$\n]+?\$|\\\([\s\S]*?\\\))/g, function(match) {
+        let protectedStr = str.replace(/(\\$\\$\\s*\\S*?\\$\\$|\\\\[\\s*\\S*?\\\\]|\\$[^\\$\\n]+?\\$|\\\\([\\s*\\S*?\\\\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
         });
 
-        let texFormulaRegex = /(?:\b[a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)\b(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
+        let texFormulaRegex = /(?:\\b[a-zA-Z0-9_]{1,3}\\s*=\\s*)?(?:\\\\(?:[a-zA-Z]+|[^a-zA-Z])|\\{[^{}]*\\}|\\[[^\]]*\\]|\\([^\\)]*\\)|\\b[a-zA-Z0-9_]{1,3}\\b|[\\+\\-\\*/\\=\\^\\_\\<\\>°\\.,]|\\s)*?\\\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)\\b(?:\\\\(?:[a-zA-Z]+|[^a-zA-Z])|\\{[^{}]*\\}|\\[[^\]]*\\]|\\([^\\)]*\\)|\\b[a-zA-Z0-9_]{1,3}\\b|[\\+\\-\\*/\\=\\^\\_\\<\\>°\\.,]|\\s)*/g;
 
         protectedStr = protectedStr.replace(texFormulaRegex, function(match) {
             let raw = match.trim();
@@ -2482,36 +2582,149 @@
         }
     }
 
+    // --- 1. HÀM TỰ ĐỘNG CHÈN SỐ LIỆU THỰC TẾ VÀO Ô CHAT ---
+    function insertLiveDataToInput() {
+        let currentFreq = (lockedFrequency || detectedFrequency || 0).toFixed(1);
+        let modeText = getActiveChannelMode() === '2' ? "2 nguồn âm" : "1 nguồn âm";
+        let lastDb = "0.0";
+        if (dbHistoryA && dbHistoryA.length > 0) {
+            lastDb = dbHistoryA[dbHistoryA.length - 1].db.toFixed(1);
+        }
+        
+        chatInput.value = `Dữ liệu đo được: f = ${currentFreq} Hz, Mức cường độ âm L = ${lastDb} dB (${modeText}). AI hướng dẫn em xử lý số liệu này nhé!`;
+        sendBtn.disabled = false;
+        chatInput.focus();
+    }
+
+    // --- 2. HÀM GỬI CÂU HỎI NHANH TỪ CHIPS ---
+    function sendQuickQuestion(questionText) {
+        chatInput.value = questionText;
+        sendFoxMessage();
+    }
+
+    // --- 3. HÀM ĐỌC CÂU TRẢ LỜI CỦA AI (TEXT-TO-SPEECH) ---
+    let currentUtterance = null;
+    window.speakFoxText = function(btn, textId) {
+        if (!('speechSynthesis' in window)) {
+            alert("Trình duyệt không hỗ trợ đọc âm thanh.");
+            return;
+        }
+
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            document.querySelectorAll('.fox-action-btn.speaking').forEach(b => {
+                b.classList.remove('speaking');
+                b.innerText = "🔊 Đọc";
+            });
+            if (btn.dataset.isSpeaking === "true") {
+                btn.dataset.isSpeaking = "false";
+                return;
+            }
+        }
+
+        const msgBubble = document.getElementById(textId);
+        if (!msgBubble) return;
+
+        let textToRead = msgBubble.innerText.replace(/Copy/g, '').replace(/🔊 Đọc/g, '').trim();
+
+        currentUtterance = new SpeechSynthesisUtterance(textToRead);
+        currentUtterance.lang = 'vi-VN';
+        currentUtterance.rate = 1.0;
+
+        btn.classList.add('speaking');
+        btn.innerText = "⏹ Dừng";
+        btn.dataset.isSpeaking = "true";
+
+        currentUtterance.onend = function() {
+            btn.classList.remove('speaking');
+            btn.innerText = "🔊 Đọc";
+            btn.dataset.isSpeaking = "false";
+        };
+
+        currentUtterance.onerror = function() {
+            btn.classList.remove('speaking');
+            btn.innerText = "🔊 Đọc";
+            btn.dataset.isSpeaking = "false";
+        };
+
+        window.speechSynthesis.speak(currentUtterance);
+    };
+
+    // --- 4. HÀM GỬI TIN NHẮN TÍCH HỢP NGỮ CẢNH ĐO ĐẠC THỰC TẾ ---
     async function sendFoxMessage() {
         const text = chatInput.value.trim(); if (!text) return;
-        if (isDemoMode) { if (demoChatCount >= MAX_DEMO_CHAT) { alert("⚠️ Bản Demo chỉ cho phép hỏi AI tối đa 3 lần. Vui lòng nhập Key Bản Full để sử dụng tiếp!"); openLicenseModal(); return; } demoChatCount++; }
-        addChatMessage('user', text); chatInput.value = ''; sendBtn.disabled = true; document.getElementById('foxStatusText').innerText = "Đang phân tích...";
-        let thinkingId = addTypingIndicator(), currentFreq = lockedFrequency || detectedFrequency;
+        if (isDemoMode) { 
+            if (demoChatCount >= MAX_DEMO_CHAT) { 
+                alert("⚠️ Bản Demo chỉ cho phép hỏi AI tối đa 3 lần. Vui lòng nhập Key Bản Full để sử dụng tiếp!"); 
+                openLicenseModal(); 
+                return; 
+            } 
+            demoChatCount++; 
+        }
+        
+        addChatMessage('user', text); 
+        chatInput.value = ''; 
+        sendBtn.disabled = true; 
+        document.getElementById('foxStatusText').innerText = "Đang phân tích...";
+        
+        let thinkingId = addTypingIndicator(); 
+        let currentFreq = lockedFrequency || detectedFrequency || 0;
+        let modeText = getActiveChannelMode() === '2' ? "2 nguồn âm" : "1 nguồn âm";
+        let lastDb = (dbHistoryA && dbHistoryA.length > 0) ? dbHistoryA[dbHistoryA.length - 1].db.toFixed(1) : "Chưa đo";
+        
         try {
-            const response = await fetch(CHAT_GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ message: text, frequency: currentFreq }) });
+            const response = await fetch(CHAT_GAS_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                body: JSON.stringify({ 
+                    message: text, 
+                    frequency: currentFreq,
+                    db: lastDb,
+                    mode: modeText
+                }) 
+            });
             const result = await response.json();
-            removeTypingIndicator(thinkingId); document.getElementById('foxStatusText').innerText = "Trực tuyến";
+            removeTypingIndicator(thinkingId); 
+            document.getElementById('foxStatusText').innerText = "Trực tuyến";
             let replyText = result.reply || "Fox-lab AI đã ghi nhận câu hỏi của thầy.";
             replyText = formatCompleteSentences(replyText);
             addChatMessage('bot', replyText);
         } catch (e) {
-            removeTypingIndicator(thinkingId); document.getElementById('foxStatusText').innerText = "Trực tuyến";
-            let fallbackText = `Fox-lab AI hiện tại đang đo đạc tần số <b>${currentFreq.toFixed(1)} Hz</b>. (Phản hồi tự động do kết nối mạng tạm thời).`;
+            removeTypingIndicator(thinkingId); 
+            document.getElementById('foxStatusText').innerText = "Trực tuyến";
+            let fallbackText = `Fox-lab AI hiện tại đang đo đạc tần số <b>${currentFreq.toFixed(1)} Hz</b> và Mức cường độ âm <b>${lastDb} dB</b>. (Phản hồi tự động do kết nối mạng tạm thời).`;
             fallbackText = formatCompleteSentences(fallbackText);
             addChatMessage('bot', fallbackText);
         }
     }
 
     window.copyFoxText = function (btn, text) { navigator.clipboard.writeText(text).then(() => { let oldText = btn.innerText; btn.innerText = "Đã Copy ✓"; setTimeout(() => btn.innerText = oldText, 1500); }); }
-    
+
+    // --- 5. HÀM HIỂN THỊ TIN NHẮN BỔ SUNG NÚT LOA VÀ NÚT COPY ---
     async function addChatMessage(sender, text) {
-        const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
-        let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
+        const row = document.createElement('div'); 
+        row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
+        let html = ''; 
+        if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
+        
+        const msgId = 'msg_bubble_' + Date.now() + Math.floor(Math.random() * 1000);
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
         let copyStr = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-        let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>` : '';
-        html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText} ${copyBtn}</div></div>`;
-        row.innerHTML = html; chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
+        
+        let actionBtns = '';
+        if (sender === 'bot') {
+            actionBtns = `
+                <div class="fox-msg-actions">
+                    <button class="fox-action-btn" onclick="speakFoxText(this, '${msgId}')">🔊 Đọc</button>
+                    <button class="fox-action-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>
+                </div>
+            `;
+        }
+        
+        html += `<div class="fox-msg-group"><div class="fox-msg-bubble" id="${msgId}">${formattedText}</div>${actionBtns}</div>`;
+        row.innerHTML = html; 
+        chatContent.appendChild(row); 
+        chatContent.scrollTop = chatContent.scrollHeight;
 
         if (sender === 'bot' && window.MathJax && MathJax.typesetPromise) {
             try {
