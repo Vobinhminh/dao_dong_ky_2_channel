@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
+    <!-- Nhúng tệp keys.js chứa danh sách 10 Key luân phiên và cơ chế chống lỗi 429 -->
+    <script src="keys.js"></script>
+
     <!-- MathJax v3 Configuration & CDN -->
     <script>
         window.MathJax = {
@@ -98,14 +101,6 @@
             justify-content: space-between; min-height: 22px; position: relative; z-index: 5;
         }
 
-        .info-badge, .channel-tag-a, .channel-tag-b {
-            display: inline-block; padding: 0 4px; margin: 0 2px; border-radius: 3px; font-weight: 700;
-        }
-
-        .info-badge { background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .channel-tag-a { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); }
-        .channel-tag-b { color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
-
         .license-gear-btn {
             background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11.5px;
             font-weight: 700; color: #0f172a; cursor: pointer; padding: 2px 6px;
@@ -123,10 +118,7 @@
         button:disabled { background: linear-gradient(180deg, #94a3b8, #64748b) !important; cursor: not-allowed; opacity: 0.8; }
 
         .btn-green { background: linear-gradient(180deg, #10b981, #059669); }
-        .btn-red { background: linear-gradient(180deg, #ef4444, #dc2626); }
         .btn-orange { background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff !important; border: 1px solid #b45309; }
-        .btn-purple { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
-        .btn-pink { background: linear-gradient(180deg, #ec4899, #db2777); }
         .btn-slate { background: linear-gradient(180deg, #64748b, #475569); color: #fff !important; border: 1px solid #334155; }
         .btn-blue { background: linear-gradient(180deg, #3b82f6, #2563eb); color: #fff !important; border: 1px solid #1d4ed8; }
         .btn-dark { background: linear-gradient(180deg, #334155, #0f172a); }
@@ -164,11 +156,6 @@
             background: #020617; border-radius: 6px; margin: 6px 8px 8px 8px; border: 1px solid #1e293b;
         }
         .settings-group.expanded > .settings-group-items { display: flex; flex-direction: row; align-items: stretch; }
-        .settings-slider-pill {
-            position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
-            background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;
-            pointer-events: none; z-index: 1; transition: transform 0.24s ease, width 0.24s ease; opacity: 0;
-        }
         .settings-item {
             flex: 1; padding: 6px 4px; font-size: 11px; color: #94a3b8; cursor: pointer;
             border-radius: 4px; text-align: center; font-weight: 600; position: relative; z-index: 2;
@@ -230,34 +217,6 @@
             flex-grow: 1; position: relative;
         }
         .modal-display-canvas { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; height: 100%; display: block; touch-action: none; }
-        #fftModal .modal-header { background: linear-gradient(90deg, #7c3aed, #4f46e5); }
-        #twoSourceModal .modal-header { background: linear-gradient(90deg, #db2777, #c026d3); }
-
-        .hud-overlay {
-            position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.88);
-            color: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; z-index: 50; display: none; max-width: calc(100% - 32px);
-        }
-        .hud-title { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; color: #38bdf8; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 2px; }
-        .hud-highlight { color: #facc15; font-weight: bold; }
-        .hud-eq { color: #10b981; font-style: italic; }
-        .math-symbol { font-family: "Times New Roman", Times, serif; font-style: italic; font-size: 14.5px; }
-
-        .ts-mode-toggle { display: flex; gap: 4px; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid #334155; position: relative; overflow: hidden; }
-        .ts-mode-pill { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px; pointer-events: none; z-index: 1; transition: transform 0.24s ease, width 0.24s ease; opacity: 0; }
-        .ts-mode-toggle button { background: transparent; color: #94a3b8; border: none; font-weight: 600; padding: 5px 12px; font-size: 11px; position: relative; z-index: 2; cursor: pointer; border-radius: 4px; }
-        .ts-mode-toggle button.active-mode { color: #ffffff; font-weight: 700; }
-
-        .beat-warning {
-            position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-            background: rgba(220, 38, 38, 0.9); color: white; padding: 4px 12px; border-radius: 12px;
-            font-size: 11.5px; font-weight: bold; z-index: 60; display: none; border: 1px solid #f87171; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        :root { --fox-font: 'Be Vietnam Pro', sans-serif; --fox-font-mono: 'JetBrains Mono', monospace; --fox-cyan: #38bdf8; --fox-text-muted: #64748b; }
-
-        
-    
 
         /* FOX_LAB AI CHATBOX INTEGRATED STYLES */
         .fox-trigger-box { position: relative; display: flex; align-items: center; justify-content: center; }
@@ -355,8 +314,7 @@
         .fox-send-btn:disabled { background: rgba(255, 255, 255, 0.1) !important; color: #64748b !important; cursor: not-allowed; }
         .fox-send-btn svg { width: 14px; height: 14px; margin-left: 2px; }
         .fox-footer-meta { font-size: 9.5px; color: #64748b; text-align: center; }
-
-</style>
+    </style>
 </head>
 <body>
 
@@ -488,181 +446,72 @@
 
 <canvas id="oscilloscope"></canvas>
 
-<!-- MODAL PHÂN TÍCH HỌA ÂM FFT -->
-<div id="fftModalOverlay" class="modal-overlay">
-    <div id="fftModal" class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <span>Phân tích Họa âm (Spectrum - 5 Họa âm)</span>
-        </div>
-        <div class="modal-controls">
-            <button class="btn-dark" onclick="closeFFTModal()">⬅ Quay lại</button>
-            <label style="font-weight: 600; font-size: 11.5px; margin-left:10px;">Tần số (f<sub>0</sub>):</label>
-            <input type="number" id="fftTargetFreq" value="440" min="20" max="5000" oninput="processAndDrawFFT()">
-            <span style="font-weight: 600; font-size: 11.5px;">Hz</span>
-            <button class="btn-green" onclick="processAndDrawFFT()">Quét Họa âm</button>
-        </div>
-        <div class="fft-canvas-container">
-            <canvas id="fftDisplayCanvas" class="modal-display-canvas"></canvas>
-        </div>
+<!-- CHATBOT FOX_LAB AI TRỢ LÝ TRỰC TIẾP -->
+<div id="fox-chat-widget">
+    <div class="fox-trigger-box">
+        <div class="fox-ping-ring"></div>
+        <button id="fox-chat-trigger" onclick="toggleFoxChat()" title="Mở Trợ lý Fox-lab AI">
+            <span id="trigger-fox-icon"></span>
+        </button>
     </div>
-</div>
 
-<!-- MODAL PHÂN TÍCH 2 NGUỒN ÂM -->
-<div id="twoSourceModalOverlay" class="modal-overlay">
-    <div id="twoSourceModal" class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <span>Phân tích & Xử lý 2 Nguồn âm</span>
-        </div>
-        <div class="modal-controls" style="justify-content: space-between; padding: 6px 12px; display: flex; align-items: center;">
-            <button class="btn-dark" onclick="closeTwoSourceModal()">⬅ Quay lại</button>
-            <div class="ts-mode-toggle">
-                <button id="btnModeOverlay" class="active-mode" onclick="setTsMode('overlay')">Ghép sóng</button>
-                <button id="btnModeSum" onclick="setTsMode('sum')">Tổng hợp (A+B)</button>
-            </div>
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <button id="tsPlayBtn" onclick="toggleTsPlay()" class="btn-orange" style="margin-left: 4px;">⏸ Dừng</button>
-                <button id="tsResultBtn" onclick="showTsResultModal()" style="display: none !important; margin-left: 4px;" class="btn-blue">📊 Kết quả</button>
-                <button id="tsEquationBtn" onclick="showTsEquationModal()" style="display: none !important; margin-left: 4px;" class="btn-slate">📐 Phương trình</button>
-            </div>
-        </div>
-        <div class="fft-canvas-container" id="tsContainer">
-            <canvas id="twoSourceCanvas" class="modal-display-canvas"></canvas>
-
-            <div id="hudResults" class="hud-overlay">
-                <div class="hud-title">BẢNG KẾT QUẢ ĐỐI CHIẾU</div>
-                <div>Tần số Kênh A: <span class="hud-highlight" id="hudFreqA">0.0</span> Hz &nbsp;|&nbsp; Chu kỳ T<sub>A</sub> = <span class="hud-highlight" id="hudPerA">0.00</span> ms &nbsp;|&nbsp; Biên độ A: <span class="hud-highlight" id="hudAmpA">0.00</span></div>
-                <div>Tần số Kênh B: <span class="hud-highlight" id="hudFreqB">0.0</span> Hz &nbsp;|&nbsp; Chu kỳ T<sub>B</sub> = <span class="hud-highlight" id="hudPerB">0.00</span> ms &nbsp;|&nbsp; Biên độ B: <span class="hud-highlight" id="hudAmpB">0.00</span></div>
-                <div style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(255,255,255,0.2);">
-                    Độ lệch pha Δφ: <span class="hud-highlight" id="hudPhaseRad">0.00</span> rad (<span class="hud-highlight" id="hudPhaseDeg">0</span>°)
-                </div>
-            </div>
-
-            <div id="hudEquations" class="hud-overlay" style="top: auto; bottom: 16px; left: 16px;">
-                <div class="hud-title">PHƯƠNG TRÌNH DAO ĐỘNG</div>
-                <div class="hud-eq">Kênh A: <span class="math-symbol">u<sub>A</sub> = <span id="eqAmpA">A</span>·cos(2π·<span id="eqFreqA">0</span>·t)</span></div>
-                <div class="hud-eq">Kênh B: <span class="math-symbol">u<sub>B</sub> = <span id="eqAmpB">A</span>·cos(2π·<span id="eqFreqB">0</span>·t <span id="eqPhase">+ 0.00</span>)</span></div>
-                <div class="hud-eq" id="eqSumLine" style="margin-top:4px;">Tổng hợp: <span class="math-symbol">u = u<sub>A</sub> + u<sub>B</sub></span></div>
-            </div>
-
-            <div id="tsWarningText" class="beat-warning">⚠️ Hai nguồn khác tần số (Tạo Sóng Phách)</div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) -->
-<div id="mcdModalOverlay" class="modal-overlay">
-    <div id="mcdModal" class="modal-content" style="background: #ffffff; color: #0f172a;" onclick="event.stopPropagation()">
-        <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981);">
-            <span>📊 Phân tích Mức Cường độ âm (MCĐ) & Khoảng cách Nguồn âm</span>
-        </div>
-        
-        <div class="modal-controls" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-            <button class="btn-dark" onclick="closeMcdModal()">⬅ Quay lại</button>
-            <button class="btn-blue" onclick="calculateAvgDistance()">📏 Tính khoảng cách nguồn âm chính xác (Cố định / 2 Vị trí)</button>
-        </div>
-
-        <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-            <div id="mcdReportTableContainer" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;" id="mcdTableHeaderTitle">
-                    BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC
-                </h3>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;">
-                    <thead>
-                        <tr style="background: #f1f5f9; text-align: left; color: #475569;">
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Thông số đo</th>
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Giá trị (dB)</th>
-                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng an toàn</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mcdTableBody">
-                    </tbody>
-                </table>
-
-                <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <!-- CHATBOT FOX_LAB AI TRỢ LÝ TRỰC TIẾP -->
-    <div id="fox-chat-widget">
-        <div class="fox-trigger-box">
-            <div class="fox-ping-ring"></div>
-            <button id="fox-chat-trigger" onclick="toggleFoxChat()" title="Mở Trợ lý Fox-lab AI">
-                <span id="trigger-fox-icon"></span>
-            </button>
-        </div>
-
-        <div id="fox-chat-box">
-            <!-- Header -->
-            <div class="fox-chat-header">
-                <div class="fox-header-left">
-                    <div class="fox-avatar-container" id="header-fox-icon"></div>
-                    <div class="fox-header-info">
-                        <div class="fox-header-title">Fox-lab AI Assistant</div>
-                        <div class="fox-header-status">
-                            <span class="fox-status-dot"></span>
-                            <span id="foxStatusText">Trực tuyến (Direct Physics AI)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="fox-header-actions">
-                    <button class="fox-btn-icon" id="foxTtsToggleBtn" onclick="toggleTTS()" title="Bật/Tắt đọc bằng giọng nói">🔊 Đọc: Bật</button>
-                    <button class="fox-btn-icon" onclick="analyzeCurrentCanvas()" title="Phân tích ngữ cảnh sóng thực tế">🔍 Soi đồ thị</button>
-                </div>
-            </div>
-
-            <!-- Diagnostic Dynamic Bar -->
-            <div class="fox-diagnostic-bar">
-                <span>Tần số thu âm thực tế: <span class="fox-live-tag" id="foxLiveFreqTag">0.0 Hz</span></span>
-                <span id="foxModeTag">1 Nguồn</span>
-            </div>
-
-            <!-- Chat Content -->
-            <div id="fox-chat-content">
-                <div class="fox-msg-row fox-msg-bot">
-                    <div class="fox-msg-avatar" id="msg-fox-icon-1"></div>
-                    <div class="fox-msg-group">
-                        <div class="fox-msg-bubble">
-                            Xin chào Thầy/Cô và các em học sinh! Mình là <b>Fox-lab AI Pro</b>, trợ lý ảo chuyên trách chẩn đoán thực nghiệm và phân tích Vật lý Sóng cơ học.<br><br>
-                            Mình đang kết nối trực tiếp với Canvas và bộ lọc Web Audio API của thí nghiệm. Em cần hỗ trợ phân tích gì hôm nay?
-                        </div>
-                        <div class="fox-suggestions">
-                            <span class="fox-chip" onclick="askSuggestion('Giải thích hiện tượng Sóng phách?')">🌊 Sóng phách</span>
-                            <span class="fox-chip" onclick="askSuggestion('Cách tính độ lệch pha giữa 2 mic?')">📐 Độ lệch pha Δφ</span>
-                            <span class="fox-chip" onclick="askSuggestion('Phân tích các họa âm FFT f0, 2f0?')">📊 Phân tích FFT</span>
-                        </div>
+    <div id="fox-chat-box">
+        <div class="fox-chat-header">
+            <div class="fox-header-left">
+                <div class="fox-avatar-container" id="header-fox-icon"></div>
+                <div class="fox-header-info">
+                    <div class="fox-header-title">Fox-lab AI Assistant</div>
+                    <div class="fox-header-status">
+                        <span class="fox-status-dot"></span>
+                        <span id="foxStatusText">Trực tuyến (keys.js Rotation)</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Input Bar -->
-            <div class="fox-input-container">
-                <div class="fox-input-box">
-                    <input type="text" id="fox-chat-input" placeholder="Hỏi AI về kết quả đo hoặc hiện tượng sóng..." autocomplete="off">
-                    <button class="fox-send-btn" id="foxSendBtn" disabled onclick="sendFoxMessage()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                </div>
-                <div class="fox-footer-meta">FOX_LAB SOUND PHYSICS v4.0.1 • DIRECT AI INTEGRATION</div>
+            <div class="fox-header-actions">
+                <button class="fox-btn-icon" id="foxTtsToggleBtn" onclick="toggleTTS()" title="Bật/Tắt đọc bằng giọng nói">🔊 Đọc: Bật</button>
+                <button class="fox-btn-icon" onclick="analyzeCurrentCanvas()" title="Phân tích ngữ cảnh sóng thực tế">🔍 Soi đồ thị</button>
             </div>
         </div>
+
+        <div class="fox-diagnostic-bar">
+            <span>Tần số thu âm thực tế: <span class="fox-live-tag" id="foxLiveFreqTag">0.0 Hz</span></span>
+            <span id="foxModeTag">1 Nguồn</span>
+        </div>
+
+        <div id="fox-chat-content">
+            <div class="fox-msg-row fox-msg-bot">
+                <div class="fox-msg-avatar" id="msg-fox-icon-1"></div>
+                <div class="fox-msg-group">
+                    <div class="fox-msg-bubble">
+                        Xin chào Thầy/Cô và các em học sinh! Mình là <b>Fox-lab AI Pro</b>, trợ lý ảo chuyên trách chẩn đoán thực nghiệm và phân tích Vật lý Sóng cơ học.<br><br>
+                        Hệ thống đã kết nối hoàn tất với tệp quản lý Key độc lập (`keys.js`). Em cần hỗ trợ phân tích gì hôm nay?
+                    </div>
+                    <div class="fox-suggestions">
+                        <span class="fox-chip" onclick="askSuggestion('Giải thích hiện tượng Sóng phách?')">🌊 Sóng phách</span>
+                        <span class="fox-chip" onclick="askSuggestion('Cách tính độ lệch pha giữa 2 mic?')">📐 Độ lệch pha Δφ</span>
+                        <span class="fox-chip" onclick="askSuggestion('Phân tích các họa âm FFT f0, 2f0?')">📊 Phân tích FFT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fox-input-container">
+            <div class="fox-input-box">
+                <input type="text" id="fox-chat-input" placeholder="Hỏi AI về kết quả đo hoặc hiện tượng sóng..." autocomplete="off">
+                <button class="fox-send-btn" id="foxSendBtn" disabled onclick="sendFoxMessage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div class="fox-footer-meta">FOX_LAB SOUND PHYSICS v4.0.1 • KEYS.JS SECURE INTEGRATION</div>
+        </div>
     </div>
+</div>
 
 <script>
-
-    // =============================================================
-    // FOX_LAB AI ASSISTANT INTEGRATED ENGINE (TTS & REALTIME CONTEXT)
-    // =============================================================
-    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
-    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbyStGo5ETWCHq3UxtQEWIFL-R2mpEHdeYuX53EgfPf8LtG2Dfe4Dbk1-i59hf8LcY2bdg/exec";
+    const FOX_AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none"><polygon points="22,12 10,48 36,40" fill="#ff7a30"/><polygon points="23,19 16,44 32,38" fill="#1e293b"/><path d="M 19 36 Q 23 32 28 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="78,12 64,40 90,48" fill="#ff7a30"/><polygon points="77,19 68,38 84,44" fill="#1e293b"/><path d="M 81 36 Q 77 32 72 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="50,22 36,40 50,46" fill="#ff8f4a"/><polygon points="50,22 50,46 64,40" fill="#ff7a30"/><polygon points="36,40 10,48 20,68 38,58" fill="#d4380d"/><polygon points="64,40 38,58 50,46" fill="#e04006"/><polygon points="64,40 50,46 62,58" fill="#d4380d"/><polygon points="64,40 90,48 80,68 62,58" fill="#d4380d"/><polygon points="20,68 12,74 26,76 34,68" fill="#e2e8f0"/><polygon points="80,68 88,74 74,76 66,68" fill="#cbd5e1"/><polygon points="38,58 50,46 50,78 36,68" fill="#ff7a30"/><polygon points="62,58 50,46 50,78 64,68" fill="#e04006"/><polygon points="50,78 36,68 44,88 50,88" fill="#f8fafc"/><polygon points="50,78 64,68 56,88 50,88" fill="#e2e8f0"/><polygon points="50,88 45,82 55,82" fill="#0f172a"/><polygon points="25,48 50,54 75,48 71,59 50,65 29,59" fill="#090d16" stroke="rgba(56,189,248,0.5)" stroke-width="0.9"/><circle cx="34.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="44.5" cy="60" r="1.5" fill="#ffffff"/><circle cx="54.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="64.5" cy="60" r="1.5" fill="#ffffff"/></svg>`;
 
     document.addEventListener('DOMContentLoaded', () => {
         const trigIcon = document.getElementById('trigger-fox-icon');
@@ -756,11 +605,11 @@
         if (!text) return '';
         return text
             .replace(/<[^>]*>/g, '')
-            .replace(/\Delta/g, 'độ lệch')
-            .replace(/\varphi/g, 'phi')
-            .replace(/\omega/g, 'ôm-ga')
-            .replace(/\pi/g, 'pi')
-            .replace(/\frac/g, 'phân số')
+            .replace(/\\Delta/g, 'độ lệch')
+            .replace(/\\varphi/g, 'phi')
+            .replace(/\\omega/g, 'ôm-ga')
+            .replace(/\\pi/g, 'pi')
+            .replace(/\\frac/g, 'phân số')
             .replace(/[\$\*\_\#\~]/g, '')
             .trim();
     }
@@ -784,6 +633,7 @@
         window.speechSynthesis.speak(utterance);
     }
 
+    // Hàm gửi tin nhắn tích hợp cơ chế lấy endpoint xoay vòng từ keys.js
     async function sendFoxMessage(customQuery = null) {
         const text = customQuery || (chatInput ? chatInput.value.trim() : '');
         if (!text) return;
@@ -793,7 +643,7 @@
         if (sendBtn) sendBtn.disabled = true;
 
         const statusText = document.getElementById('foxStatusText');
-        if (statusText) statusText.innerText = "AI đang suy luận...";
+        if (statusText) statusText.innerText = "AI đang phân tích...";
         let typingId = addTypingIndicator();
 
         const ctx = getFoxLabRealtimeContext();
@@ -804,39 +654,62 @@
 
 [YÊU CẦU CỦA HỌC SINH/GIÁO VIÊN]: "${text}"
 
-(Bạn là trợ lý Fox-lab AI. Hãy phân tích chuyên sâu Vật lý, trả lời ngắn gọn, cô đọng, tự động bọc công thức bằng dấu $ hoặc $$ để MathJax render đẹp).`;
+(Bạn là trợ lý giải đáp thực nghiệm Vật lý Fox-lab. Hãy trả lời ngắn gọn, súc tích, dùng công thức LaTeX nếu cần).`;
 
-        try {
-            let aiReply = "";
-            if (GEMINI_API_KEY && GEMINI_API_KEY !== "YOUR_GEMINI_API_KEY_HERE") {
-                const response = await fetch(GEMINI_ENDPOINT, {
+        let aiReply = "";
+        let success = false;
+        let attempts = 0;
+        const maxRetries = (typeof GEMINI_KEYS !== 'undefined') ? GEMINI_KEYS.length : 1;
+
+        while (!success && attempts < maxRetries) {
+            // Gọi hàm getNextGeminiEndpoint() được định nghĩa bên tệp keys.js
+            const { endpoint, index } = getNextGeminiEndpoint();
+            try {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                parts: [
+                                    { text: systemPrompt }
+                                ]
+                            }
+                        ]
+                    })
                 });
-                const resData = await response.json();
-                aiReply = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-            } else {
-                const response = await fetch(GAS_BACKEND_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ message: text, frequency: parseFloat(ctx.freqA) })
-                });
-                const resData = await response.json();
-                aiReply = resData.reply;
-            }
 
-            removeTypingIndicator(typingId);
-            if (statusText) statusText.innerText = "Trực tuyến (Direct Physics AI)";
-            
-            if (!aiReply) aiReply = `Fox-lab AI đã ghi nhận tần số ${ctx.freqA} Hz. Em hãy kiểm tra lại kết nối mic nhé.`;
+                const resData = await response.json();
+
+                if (response.ok && resData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    aiReply = resData.candidates[0].content.parts[0].text;
+                    success = true;
+                } else if (response.status === 429 || (resData.error && resData.error.code === 429)) {
+                    // Nếu lỗi 429, gọi hàm đánh dấu cooldown từ keys.js
+                    if (typeof markCurrentKeyAsRateLimited === 'function') {
+                        markCurrentKeyAsRateLimited();
+                    }
+                    attempts++;
+                } else {
+                    attempts++;
+                }
+            } catch (err) {
+                if (typeof markCurrentKeyAsRateLimited === 'function') {
+                    markCurrentKeyAsRateLimited();
+                }
+                attempts++;
+            }
+        }
+
+        removeTypingIndicator(typingId);
+
+        if (success) {
+            if (statusText) statusText.innerText = `Trực tuyến (keys.js Active)`;
             addMessageRow('bot', aiReply);
             speakText(aiReply);
-
-        } catch (err) {
-            removeTypingIndicator(typingId);
-            if (statusText) statusText.innerText = "Trực tuyến (Fallback)";
-            addMessageRow('bot', `Phản hồi dự phòng: Hiện tại Kênh A đang thu ở tần số **${ctx.freqA} Hz**. (Vui lòng kiểm tra lại cấu hình API Key).`);
+        } else {
+            if (statusText) statusText.innerText = "Tất cả Key đang bận";
+            addMessageRow('bot', `⚠️ Hệ thống 10 Key đang đạt giới hạn tần suất yêu cầu (429). Tần số Kênh A hiện tại là **${ctx.freqA} Hz**. Thầy vui lòng thử lại sau ít phút.`);
         }
     }
 
@@ -867,7 +740,7 @@
         if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         
         const formatted = sender === 'bot' ? formatMathContent(text) : text;
-        const copyEsc = text.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        const copyEsc = text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
         const copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyText(this, '${copyEsc}')">Copy</button>` : '';
         
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formatted}</div>${copyBtn}</div>`;
@@ -887,7 +760,7 @@
         const row = document.createElement('div');
         row.className = 'fox-msg-row fox-msg-bot';
         row.id = id;
-        row.innerHTML = `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div><div class="fox-msg-group"><div class="fox-msg-bubble"><i>Fox-lab AI đang soi dữ liệu đồ thị...</i></div></div>`;
+        row.innerHTML = `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div><div class="fox-msg-group"><div class="fox-msg-bubble"><i>Fox-lab AI đang quét tệp keys.js...</i></div></div>`;
         chatContent.appendChild(row);
         chatContent.scrollTop = chatContent.scrollHeight;
         return id;
@@ -905,6 +778,6 @@
             setTimeout(() => btn.innerText = old, 1500);
         });
     }
-
 </script>
-</body></html>
+</body>
+</html>
