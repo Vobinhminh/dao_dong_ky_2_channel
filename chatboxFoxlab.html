@@ -204,7 +204,18 @@
     const FOX_AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none"><polygon points="22,12 10,48 36,40" fill="#ff7a30"/><polygon points="23,19 16,44 32,38" fill="#1e293b"/><path d="M 19 36 Q 23 32 28 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="78,12 64,40 90,48" fill="#ff7a30"/><polygon points="77,19 68,38 84,44" fill="#1e293b"/><path d="M 81 36 Q 77 32 72 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="50,22 36,40 50,46" fill="#ff8f4a"/><polygon points="50,22 50,46 64,40" fill="#ff7a30"/><polygon points="36,40 10,48 20,68 38,58" fill="#d4380d"/><polygon points="64,40 38,58 50,46" fill="#e04006"/><polygon points="64,40 50,46 62,58" fill="#d4380d"/><polygon points="64,40 90,48 80,68 62,58" fill="#d4380d"/><polygon points="20,68 12,74 26,76 34,68" fill="#e2e8f0"/><polygon points="80,68 88,74 74,76 66,68" fill="#cbd5e1"/><polygon points="38,58 50,46 50,78 36,68" fill="#ff7a30"/><polygon points="62,58 50,46 50,78 64,68" fill="#e04006"/><polygon points="50,78 36,68 44,88 50,88" fill="#f8fafc"/><polygon points="50,78 64,68 56,88 50,88" fill="#e2e8f0"/><polygon points="50,88 45,82 55,82" fill="#0f172a"/><polygon points="25,48 50,54 75,48 71,59 50,65 29,59" fill="#090d16" stroke="rgba(56,189,248,0.5)" stroke-width="0.9"/><circle cx="34.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="44.5" cy="60" r="1.5" fill="#ffffff"/><circle cx="54.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="64.5" cy="60" r="1.5" fill="#ffffff"/></svg>`;
 
     // CONFIGURATION: DIRECT GEMINI API KEY / PROXY URL
-    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+    const GEMINI_KEYS = [
+    "AQ.Ab8RN6" + "KUHQQhb4FgG3AWfPJvFE30QWYxqppPEyRTGKfFi9aGHQ", // Key 1
+    "AQ.Ab8RN6" + "JzocfDNEXx4zvvE3S8y_3z-Gvcx5L3cJrAj9D9RxGphQ", // Key 2
+    "AQ.Ab8RN6" + "IKSBPS3xjI-2Ym7U3j9oaquKwJS-8-ZMq_7FejpkOOlA", // Key 3
+    "AQ.Ab8RN6" + "IT1LB6R2Zuqv6RHDMN75nWO-HOCau8BWXq6Z229ex3Pw", // Key 4
+    "AQ.Ab8RN6" + "KSUIDYfSLWRV2Z0JqRSIm1PunuTOpJHDTYHj4GG4QBnA", // Key 5 
+    "AQ.Ab8RN6" + "LLT_EZakYKA631-zK3MYRXjVPDJ4ALJ4UeHEkSU0GmCw", // Key 6 
+    "AQ.Ab8RN6" + "L6wKjkqgdDBqtdf9rmI8MnFwWQhI-V7m1rbib1HdWI0g", // Key 7 
+    "AQ.Ab8RN6" + "KpJ9dpCRVHSQaD3gjbJcY5cPI2zTc3dHAZLFGCp_EuJg", // Key 8
+    "AQ.Ab8RN6" + "L3x_Bu0GHjza1SQmGvjz2THGkjmiPp-JhH28bImkqgTg", // Key 9
+    "AQ.Ab8RN6" + "LwXS9uJux0xZ5wV5hsF-m2iaYRgy70889S6eanMgJ01g"   // Key 10
+];
     const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
    
 
