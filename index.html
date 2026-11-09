@@ -632,7 +632,7 @@
         </div>
 
         <div class="info-panel" id="infoText">
-            <span id="infoMessageText">Đang tải hệ thống phân tích...</span>
+            <span id="infoMessageText">Đã sẵn sàng. Nhấn Kênh A hoặc Kênh B để bật Micro.</span>
             <button class="license-gear-btn" onclick="openLicenseModal()" title="Kích hoạt bản Full">⚙️ Nhập Key</button>
         </div>
     </div>
@@ -951,6 +951,7 @@
             const gearBtn = document.querySelector('.license-gear-btn');
             if (gearBtn) gearBtn.style.display = 'inline-flex';
             updateAnalysisButtonState();
+            populateMics();
         } else {
             document.getElementById('keyInputContainer').style.display = 'block';
         }
@@ -1010,7 +1011,7 @@
         infoMessageText.innerHTML = "✅ Bản Full Chính Thức đã kích hoạt thành công!";
         const gearBtn = document.querySelector('.license-gear-btn');
         if (gearBtn) gearBtn.style.display = 'none';
-        updateAnalysisButtonState(); checkAndShowQR();
+        updateAnalysisButtonState(); checkAndShowQR(); populateMics();
     }
 
     async function verifyKeyWithServer(key, type, isSilent = false) {
@@ -1113,6 +1114,7 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
         restoreAppState();
+        populateMics();
         const urlParams = new URLSearchParams(window.location.search);
         const keyParam = urlParams.get('key');
         if (keyParam) {
@@ -1571,19 +1573,24 @@
 
     async function populateMics() {
         try {
-            const devices = await navigator.mediaDevices.enumerateDevices(), audioInputs = devices.filter(device => device.kind === 'audioinput');
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
             let valA = micSelectA.value, valB = micSelectB.value;
             micSelectA.innerHTML = '<option value="">-- Kênh A: Mặc định hệ thống --</option>';
             micSelectB.innerHTML = '<option value="">-- Kênh B: Mặc định hệ thống --</option>';
             audioInputs.forEach((device, index) => {
-                let optA = document.createElement('option'); optA.value = device.deviceId; optA.text = `Mic ${index + 1}: ${device.label || 'Tự chọn'}`;
-                let optB = document.createElement('option'); optB.value = device.deviceId; optB.text = `Mic ${index + 1}: ${device.label || 'Tự chọn'}`;
+                let optA = document.createElement('option'); optA.value = device.deviceId; optA.text = `Mic ${index + 1}: ${device.label || 'Thiết bị âm thanh ' + (index + 1)}`;
+                let optB = document.createElement('option'); optB.value = device.deviceId; optB.text = `Mic ${index + 1}: ${device.label || 'Thiết bị âm thanh ' + (index + 1)}`;
                 micSelectA.appendChild(optA); micSelectB.appendChild(optB);
             });
             if (localStorage.getItem('fox_mic_a')) micSelectA.value = localStorage.getItem('fox_mic_a');
             if (localStorage.getItem('fox_mic_b')) micSelectB.value = localStorage.getItem('fox_mic_b');
-            if (valA) micSelectA.value = valA; if (valB) micSelectB.value = valB;
-        } catch (e) { }
+            if (valA && Array.from(micSelectA.options).some(o => o.value === valA)) micSelectA.value = valA;
+            if (valB && Array.from(micSelectB.options).some(o => o.value === valB)) micSelectB.value = valB;
+        } catch (e) {
+            console.log("Error enumerating audio devices:", e);
+        }
     }
 
     function updateUIState() {
@@ -1622,7 +1629,7 @@
             cfg.dummy = audioCtx.createGain(); cfg.dummy.gain.value = 0;
             finalSourceNode.connect(cfg.filterHP); cfg.filterHP.connect(cfg.filterLP); cfg.filterLP.connect(cfg.workletNode); cfg.workletNode.connect(cfg.dummy); cfg.dummy.connect(audioCtx.destination);
             cfg.active = true;
-            if (micSelectA.options.length <= 1) await populateMics();
+            await populateMics();
             updateUIState();
             if (isPaused) { resizeCanvas(); drawFrame(true); } else { let text = "Đang thu liên tục: "; if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A</span>"; if (channelConfig.A.active && channelConfig.B.active) text += " &amp; "; if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B</span>"; infoMessageText.innerHTML = text; }
         } catch (err) { alert(`Lỗi Micro Kênh ${channelId}. Vui lòng kiểm tra quyền truy cập: ` + err.message); }
@@ -2474,7 +2481,7 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\\$\\$\\s*\\S*?\\$\\$|\\\\[\\s*\\S*?\\\\]|\\$[^\\$\\n]+?\\$|\\\\([\\s*\\S*?\\\\))/g, function(match) {
+        let protectedStr = str.replace(/(\\$\\$\s*\\S*?\\$\\$|\\\\[\\s*\\S*?\\\\]|\\$[^\\$\\n]+?\\$|\\\\([\\s*\\S*?\\\\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
@@ -2738,7 +2745,7 @@
     function addTypingIndicator() {
         const id = 'typing_' + Date.now(), row = document.createElement('div');
         row.className = 'fox-msg-row fox-msg-bot'; row.id = id;
-        row.innerHTML = '<div class="fox-msg-avatar">' + FOX_AVATAR_SVG + '</div><div class="fox-msg-group"><div class="fox-msg-bubble"><div class="fox-typing-indicator"><span class="fox-typing-text">Fox-lab đang phân tích...</span></div></div></div>';
+        row.innerHTML = '<div class="fox-msg-row fox-msg-bot"><div class="fox-msg-avatar">' + FOX_AVATAR_SVG + '</div><div class="fox-msg-group"><div class="fox-msg-bubble"><div class="fox-typing-indicator"><span class="fox-typing-text">Fox-lab đang phân tích...</span></div></div></div></div>';
         chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight; return id;
     }
     function removeTypingIndicator(id) { const el = document.getElementById(id); if (el) el.remove(); }
