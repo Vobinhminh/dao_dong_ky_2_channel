@@ -20,8 +20,8 @@
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                inlineMath: [['$', '$'], ['\(', '\)']],
+                displayMath: [['$$', '$$'], ['\[', '\]']],
                 processEscapes: true,
                 processEnvironments: true,
                 packages: ['base', 'ams', 'noerrors', 'noundefined']
@@ -745,26 +745,19 @@
     }
     checkAppVersion();
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
-            e.preventDefault(); return false;
-        }
-    });
-    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    // REMOVED: Rigid F12 and contextmenu blocking that caused console stack errors with Chrome extensions / onboarding.js
 
-    // REQ 2: Smooth state maintenance during tab change, camera capture & photo upload without forced resets
     let wasAppBackgrounded = false;
     let isUploadingOrCapturing = false;
 
     function onAppLeave() {
-        if (isUploadingOrCapturing) return; // Do not interrupt or reset audio context state during camera/photo upload
+        if (isUploadingOrCapturing) return;
         wasAppBackgrounded = true;
     }
 
     function onAppEnter() {
         if (wasAppBackgrounded) {
             wasAppBackgrounded = false;
-            // Maintain current view state safely without resetting or forcing exit
             if (audioCtx && audioCtx.state === 'suspended' && !isPaused) {
                 audioCtx.resume();
             }
@@ -824,13 +817,12 @@
     let lastDbSampleTime = 0;
     let dbStartTime = 0;
     
-    // REQ 3: Preserve measurement duration for Sound Level Meter (MCĐ) auto-stop mode
-    let lastMcdDurationMs = 10000; // Default 10s auto-stop duration for dB mode
+    let lastMcdDurationMs = 10000;
     let stopTimer = null;
 
     const SAFETY_THRESHOLD_DB = 85.0;
 
-    let currentFoxRole = 'student'; // 'student' or 'teacher'
+    let currentFoxRole = 'student';
     let uploadedImageBase64 = null;
 
     function getDisplayMode() {
@@ -879,11 +871,13 @@
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
+(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?
+(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
                 try {
                     infoMessageText.innerHTML = "Đang gửi yêu cầu giải phóng device ID...";
                     await fetch(LICENSE_GAS_URL, {
@@ -898,7 +892,8 @@
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
+Bạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
                 try {
                     infoMessageText.innerHTML = "Đang xóa Key & Device ID trên Google Sheet...";
                     await fetch(LICENSE_GAS_URL, {
@@ -938,7 +933,10 @@
                 activateFullMode(key);
             } else {
                 if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
+                    let confirmChange = confirm(`❌ Lỗi: ${result.message}
+
+Mã Key này có thể đang được sử dụng ở thiết bị khác.
+Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
                     if (confirmChange) {
                         forceChangeDevice(key, type);
                     } else {
@@ -964,7 +962,8 @@
                 alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
                 activateFullMode(key);
             } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
+                alert(`❌ Không thể đổi thiết bị: ${result.message}
+(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
                 forceLogout();
             }
         } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
@@ -999,11 +998,10 @@
         localStorage.setItem('fox_mic_b', micSelectB.value);
     }
 
-    // REQ 2: Default application settings on initial load/login: Oscilloscope, 1-source mode, auto-stop survey mode
     function restoreAppState() {
         channelModeSelect.value = '1';
-        modeSelect.value = 'auto'; // Default: Tự dừng per user requirement
-        if (displayModeSelect) displayModeSelect.value = 'oscilloscope'; // Default: Dao động ký
+        modeSelect.value = 'auto';
+        if (displayModeSelect) displayModeSelect.value = 'oscilloscope';
         speedSelect.value = 'fast';
 
         if (typeof isContinuousMode !== 'undefined') isContinuousMode = false;
@@ -1021,7 +1019,7 @@
             el.classList.toggle('active', el.dataset.value === 'fast');
         });
 
-        document.getElementById('groupSpeed').style.display = 'none'; // Auto mode hides speed control
+        document.getElementById('groupSpeed').style.display = 'none';
         document.getElementById('cardChannelB').style.display = 'none'; 
         updateToolbarButtonsVisibility();
     }
@@ -1263,7 +1261,7 @@
     });
 
     function updateToolbarButtonsVisibility() {
-        if (btnCalib) btnCalib.style.display = 'none'; // Calibration completely removed per Requirement 1
+        if (btnCalib) btnCalib.style.display = 'none';
     }
 
     displayModeSelect.addEventListener('change', () => {
@@ -1580,7 +1578,6 @@
         } catch (err) { alert(`Lỗi Micro Kênh ${channelId}. Vui lòng kiểm tra quyền truy cập: ` + err.message); }
     }
 
-    // REQ 3: Synchronized measurement duration for auto-stop across all modes
     function triggerAutoStop() {
         clearTimeout(stopTimer);
         isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
@@ -1634,7 +1631,6 @@
             isPaused = true;
             clearTimeout(stopTimer);
             
-            // REQ 3: Save actual measurement duration when stopped manually
             if (dbStartTime > 0) {
                 lastMcdDurationMs = performance.now() - dbStartTime;
             }
@@ -1911,7 +1907,6 @@
         if (typeof saveAppState === 'function') saveAppState();
     }
 
-    // REQ 1: Clean Mức Cường độ âm Analysis Modal (mcdModal) without calibration confusion
     function openMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         overlay.style.display = 'flex';
@@ -2060,14 +2055,13 @@
         if (overlay) overlay.style.display = 'none';
     }
 
-    // REQ 1: Robust Distance Calculation Logic without bugs or missing variables
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
 
-        let r0 = 1.0; // Standard reference distance 1 meter
-        let L0 = 90.0; // Reference sound level 90 dB at 1m
+        let r0 = 1.0;
+        let L0 = 90.0;
 
         if (mode === '2') {
             if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
@@ -2078,7 +2072,6 @@
             let avgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
             let avgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
             
-            // Inverse-square law distance calculation: L = L0 - 20*log10(r/r0) => r = r0 * 10^((L0 - L)/20)
             let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
             let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
             let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
@@ -2466,18 +2459,17 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^\$
-]+?\$|\\([\s\S]*?\\))/g, function(match) {
+        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\[[\s\S]*?\\]|\$[^\$]+?\$|\([\s\S]*?\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
         });
 
-        let texFormulaRegex = /(?: [a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times) (?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
+        let texFormulaRegex = /(?: [a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times) (?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
 
         protectedStr = protectedStr.replace(texFormulaRegex, function(match) {
             let raw = match.trim();
-            if (!raw || raw.indexOf('\\') === -1) return match;
+            if (!raw || raw.indexOf('\') === -1) return match;
             let punct = "";
             while (raw && '.,;:!?'.indexOf(raw.charAt(raw.length - 1)) !== -1) {
                 punct = raw.charAt(raw.length - 1) + punct;
@@ -2521,7 +2513,6 @@
         sendFoxMessage();
     }
 
-    // REQ 2: Photo capture & image upload handling without page navigation / exit
     function handleImageSelected(event) {
         isUploadingOrCapturing = true;
         const file = event.target.files[0];
@@ -2552,9 +2543,13 @@
 
     function exportChatReport(btn) {
         const chatRows = document.querySelectorAll('.fox-msg-row');
-        let reportText = "=== BÁO CÁO KẾT QUẢ THỰC HÀNH VẬT LÝ SÓNG CƠ - FOX_LAB ===\n";
-        reportText += "Thời gian xuất: " + new Date().toLocaleString() + "\n";
-        reportText += "Tần số khảo sát hiện tại: " + (lockedFrequency || detectedFrequency).toFixed(1) + " Hz\n\n";
+        let reportText = "=== BÁO CÁO KẾT QUẢ THỰC HÀNH VẬT LÝ SÓNG CƠ - FOX_LAB ===
+";
+        reportText += "Thời gian xuất: " + new Date().toLocaleString() + "
+";
+        reportText += "Tần số khảo sát hiện tại: " + (lockedFrequency || detectedFrequency).toFixed(1) + " Hz
+
+";
 
         chatRows.forEach(row => {
             const isUser = row.classList.contains('fox-msg-user');
@@ -2563,7 +2558,9 @@
                 let clone = bubble.cloneNode(true);
                 clone.querySelectorAll('button, img').forEach(el => el.remove());
                 let text = clone.innerText.trim();
-                reportText += (isUser ? "[Học sinh/Thầy giáo]: " : "[Fox-lab AI]: ") + text + "\n\n";
+                reportText += (isUser ? "[Học sinh/Thầy giáo]: " : "[Fox-lab AI]: ") + text + "
+
+";
             }
         });
 
@@ -2706,7 +2703,8 @@
         const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
         let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
-        let copyStr = text.replace(/<[^>]+>/g, '').replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        let copyStr = text.replace(/<[^>]+>/g, '').replace(/'/g, "'").replace(/"/g, '&quot;').replace(/
+/g, '\n');
         let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button><button class="fox-export-btn" onclick="exportChatReport(this)">📥 Tải báo cáo</button>` : '';
         let actionsBar = sender === 'bot' ? `<div class="fox-msg-actions-bar">${copyBtn}</div>` : '';
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText}</div>${actionsBar}</div>`;
@@ -2736,14 +2734,6 @@
             navigator.serviceWorker.register('./sw.js')
                 .then(reg => {
                     console.log('ServiceWorker registered:', reg.scope);
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('Phiên bản mới đã được tải ngầm.');
-                            }
-                        };
-                    };
                 })
                 .catch(err => console.log('ServiceWorker registration failed:', err));
         });
