@@ -312,7 +312,6 @@
         .fox-btn-icon { width: 26px; height: 26px; border-radius: 4px; background: transparent; border: none; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .fox-btn-icon:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
         
-        /* Role Toggle Switch */
         .fox-role-toggle { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 12px; border: 1px solid #475569; background: #1e293b; color: #38bdf8; cursor: pointer; transition: 0.2s; }
         .fox-role-toggle:hover { background: #334155; }
 
@@ -337,13 +336,11 @@
 
         .fox-preview-img { max-width: 120px; max-height: 120px; border-radius: 6px; margin-bottom: 4px; display: block; border: 1px solid rgba(255,255,255,0.2); }
 
-        /* Quick Prompt Chips */
         .fox-chips-container { display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px; flex-shrink: 0; scrollbar-width: none; }
         .fox-chips-container::-webkit-scrollbar { display: none; }
         .fox-chip { background: rgba(51, 65, 85, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1; font-size: 10.5px; padding: 3px 8px; border-radius: 12px; white-space: nowrap; cursor: pointer; transition: 0.2s; font-weight: 600; }
         .fox-chip:hover { background: #f97316; color: #fff; border-color: #f97316; }
 
-        /* MathJax MathType Styling */
         .mjx-chtml {
             font-size: 106% !important;
             outline: none !important;
@@ -371,7 +368,6 @@
         .fox-footer-meta { font-size: 9px; color: var(--fox-text-muted); text-align: center; }
         .fox-freq-tag { color: var(--fox-cyan); font-weight: 600; }
 
-        /* Styling nút Camera / Upload ảnh & Microphone */
         .fox-action-icon-btn {
             width: 28px; height: 28px; border-radius: 50%; background: transparent; border: none;
             color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -398,6 +394,12 @@
         #imagePreviewThumb { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid #38bdf8; }
         #imagePreviewName { font-size: 11px; color: #e2e8f0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .fox-remove-img { background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Custom Card Styling cho Khoảng Cách Nguồn Âm */
+        .dist-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+        .dist-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .dist-card-title { font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .dist-card-val { font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
 <body>
@@ -628,14 +630,14 @@
                     <tbody id="mcdTableBody">
                     </tbody>
                 </table>
+            </div>
 
-                <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
-                </div>
+            <!-- CARD KẾT QUẢ TÍNH KHOẢNG CÁCH -->
+            <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 16px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;">
             </div>
         </div>
     </div>
 </div>
-
 
 <!-- MODAL HIỆU CHUẨN MICROPHONE -->
 <div id="calibModalOverlay" class="modal-overlay" style="z-index: 150000;">
@@ -2202,16 +2204,17 @@
         if (overlay) overlay.style.display = 'none';
     }
 
+    /* TINH CHỈNH TÍNH KHOẢNG CÁCH NGUỒN ÂM R_A, R_B */
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
 
-        let r0 = 1.0, L0 = 90.0;
+        let r0 = 1.0, L0 = 90.0; // Mức cường độ âm chuẩn L0 tại khoảng cách r0 = 1m
 
         if (mode === '2') {
             if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
-                box.innerHTML = "⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B! Vui lòng thực hiện đo trước.";
+                box.innerHTML = `<div style="color: #dc2626; font-weight: bold; text-align: center;">⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B! Vui lòng thực hiện đo trước khi phân tích.</div>`;
                 return;
             }
 
@@ -2224,27 +2227,66 @@
             let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
 
             box.innerHTML = `
-                <div style="padding: 6px; line-height: 1.7;">
-                    <h4 style="margin:0 0 8px 0; color:#1e40af; font-size:14.5px;">📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM (r<sub>A</sub>, r<sub>B</sub>):</h4>
-                    • <b>Kênh A:</b> Mức cường độ âm trung bình $L_A = ${avgDbA.toFixed(1)}\text{ dB}$ ➔ Khoảng cách ước tính $r_A \approx$ <span style="color:#dc2626; font-size:15px; font-weight:bold;">${rA.toFixed(2)} m</span><br>
-                    • <b>Kênh B:</b> Mức cường độ âm trung bình $L_B = ${avgDbB.toFixed(1)}\text{ dB}$ ➔ Khoảng cách ước tính $r_B \approx$ <span style="color:#2563eb; font-size:15px; font-weight:bold;">${rB.toFixed(2)} m</span><br>
-                    • <b>Khoảng cách giữa 2 điểm đo:</b> $\Delta r = |r_A - r_B| \approx$ <span style="color:#059669; font-size:15px; font-weight:bold;">${deltaR.toFixed(2)} m</span><br>
-                    • <b>Tỷ số khoảng cách:</b> $\frac{r_B}{r_A} = 10^{\frac{L_A - L_B}{20}} \approx$ <span style="color:#8b5cf6; font-size:15px; font-weight:bold;">${ratio.toFixed(3)}</span> lần
+                <div style="border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; color: #1e293b; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM (r<sub>A</sub>, r<sub>B</sub>)
+                    </h4>
+                    <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Công thức: $L_A - L_B = 20\\lg\\left(\\frac{r_B}{r_A}\\right)$</span>
+                </div>
+
+                <div class="dist-card-grid">
+                    <div class="dist-card" style="border-left: 4px solid #ef4444;">
+                        <div class="dist-card-title">Khoảng cách Kênh A ($r_A$)</div>
+                        <div class="dist-card-val" style="color: #dc2626;">${rA.toFixed(2)} m</div>
+                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$L_{A,tb} = ${avgDbA.toFixed(1)}\\text{ dB}$</div>
+                    </div>
+
+                    <div class="dist-card" style="border-left: 4px solid #3b82f6;">
+                        <div class="dist-card-title">Khoảng cách Kênh B ($r_B$)</div>
+                        <div class="dist-card-val" style="color: #2563eb;">${rB.toFixed(2)} m</div>
+                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$L_{B,tb} = ${avgDbB.toFixed(1)}\\text{ dB}$</div>
+                    </div>
+
+                    <div class="dist-card" style="border-left: 4px solid #10b981;">
+                        <div class="dist-card-title">Khoảng cách giữa 2 Mic ($\Delta r$)</div>
+                        <div class="dist-card-val" style="color: #059669;">${deltaR.toFixed(2)} m</div>
+                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$\\Delta r = |r_A - r_B|$</div>
+                    </div>
+
+                    <div class="dist-card" style="border-left: 4px solid #8b5cf6;">
+                        <div class="dist-card-title">Tỷ số khoảng cách ($r_B / r_A$)</div>
+                        <div class="dist-card-val" style="color: #7c3aed;">${ratio.toFixed(3)}</div>
+                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$10^{\\frac{L_A - L_B}{20}}$ lần</div>
+                    </div>
                 </div>
             `;
         } else {
             if (dbHistoryA.length === 0) {
-                box.innerHTML = "⚠️ Chưa có dữ liệu đo cường độ âm! Vui lòng thực hiện đo trước.";
+                box.innerHTML = `<div style="color: #dc2626; font-weight: bold; text-align: center;">⚠️ Chưa có dữ liệu đo cường độ âm! Vui lòng thực hiện đo trước khi phân tích.</div>`;
                 return;
             }
             let avgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
             let dist = r0 * Math.pow(10, (L0 - avgDb) / 20);
 
             box.innerHTML = `
-                <div style="padding: 6px; line-height: 1.7;">
-                    <h4 style="margin:0 0 8px 0; color:#1e40af; font-size:14.5px;">📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM:</h4>
-                    • Mức cường độ âm trung bình: $L_{tb} = ${avgDb.toFixed(1)}\text{ dB}$<br>
-                    • Khoảng cách ước tính từ nguồn âm đến Micro: $r = r_0 \cdot 10^{\frac{L_0 - L}{20}} \approx$ <span style="font-size: 16px; color: #dc2626; font-weight: bold;">${dist.toFixed(2)} m</span>
+                <div style="border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; color: #1e293b; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM TỚI MICRO
+                    </h4>
+                    <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Công thức: $r = r_0 \\cdot 10^{\\frac{L_0 - L}{20}}$</span>
+                </div>
+
+                <div class="dist-card-grid">
+                    <div class="dist-card" style="border-left: 4px solid #10b981;">
+                        <div class="dist-card-title">Mức CĐÂ Trung Bình ($L_{tb}$)</div>
+                        <div class="dist-card-val" style="color: #059669;">${avgDb.toFixed(1)} dB</div>
+                    </div>
+
+                    <div class="dist-card" style="border-left: 4px solid #ef4444;">
+                        <div class="dist-card-title">Khoảng cách ước tính ($r$)</div>
+                        <div class="dist-card-val" style="color: #dc2626;">${dist.toFixed(2)} m</div>
+                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">Ước tính từ chuẩn $L_0 = 90\\text{ dB}$ tại $1\\text{m}$</div>
+                    </div>
                 </div>
             `;
         }
@@ -2640,7 +2682,6 @@
     function toggleChatTheme() { const chatBox = document.getElementById('fox-chat-box'); chatBox.classList.toggle('light-theme'); }
     function updateFoxLiveFrequency(freq) { const freqTag = document.getElementById('foxLiveFreqTag'); if (freqTag) freqTag.innerText = freq.toFixed(1) + ' Hz'; }
 
-    // --- CHỨC NĂNG 4: CHUYỂN ĐỔI CHẾ ĐỘ GIÁO VIÊN / HỌC SINH ---
     function toggleFoxRole() {
         const btn = document.getElementById('foxRoleToggleBtn');
         if (currentFoxRole === 'student') {
@@ -2658,13 +2699,11 @@
         }
     }
 
-    // --- CHỨC NĂNG 1: GỢI Ý CÂU HỎI NHANH (QUICK PROMPT CHIPS) ---
     function sendQuickPrompt(promptText) {
         document.getElementById('fox-chat-input').value = promptText;
         sendFoxMessage();
     }
 
-    // --- CHỨC NĂNG 2: TẢI LÊN HÌNH ẢNH ĐỀ BÀI (IMAGE OCR / VISION) ---
     function handleImageSelected(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -2684,7 +2723,6 @@
         document.getElementById('imagePreviewContainer').style.display = 'none';
     }
 
-    // --- CHỨC NĂNG 3: XUẤT BẢN BÁO CÁO THÍ NGHIỆM (EXPORT REPORT WORD/TXT) ---
     function exportChatReport(btn) {
         const chatRows = document.querySelectorAll('.fox-msg-row');
         let reportText = "=== BÁO CÁO KẾT QUẢ THỰC HÀNH VẬT LÝ SÓNG CƠ - FOX_LAB ===\n";
@@ -2718,7 +2756,6 @@
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !sendBtn.disabled) sendFoxMessage(); });
     sendBtn.addEventListener('click', sendFoxMessage);
 
-    // --- XỬ LÝ NHẬN DIỆN GIỌNG NÓI (SPEECH-TO-TEXT) ---
     const foxMicBtn = document.getElementById('foxMicBtn');
     let recognition = null;
     let isListening = false;
