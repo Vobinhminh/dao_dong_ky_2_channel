@@ -605,9 +605,6 @@
                 <button class="btn-dark" onclick="closeMcdModal()" style="display:inline-flex; align-items:center; gap:4px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Quay lại
                 </button>
-                <button class="btn-green" onclick="openCalibModal()" style="display:inline-flex; align-items:center; gap:4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> 🎯 Hiệu chuẩn Micro
-                </button>
             </div>
             <button class="btn-blue" onclick="calculateAvgDistance()" style="display:inline-flex; align-items:center; gap:4px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg> 📏 Tính khoảng cách nguồn âm (rA, rB)
@@ -889,8 +886,6 @@
         });
     }
 
-
-    
     let micCalibOffsetA = parseFloat(localStorage.getItem('fox_mic_calib_offset_a') || '0.0');
     let micCalibOffsetB = parseFloat(localStorage.getItem('fox_mic_calib_offset_b') || '0.0');
 
@@ -2005,7 +2000,6 @@
         drawFrame(false);
     }
 
-    
     function openCalibModal() {
         const overlay = document.getElementById('calibModalOverlay');
         if (overlay) overlay.style.display = 'flex';
@@ -2201,14 +2195,14 @@
             `;
             tableContainer.innerHTML = htmlContent;
         }
-}
+    }
 
-function closeMcdModal() {
+    function closeMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         if (overlay) overlay.style.display = 'none';
-}
+    }
 
-function calculateAvgDistance() {
+    function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
@@ -2258,8 +2252,9 @@ function calculateAvgDistance() {
         if (window.MathJax && MathJax.typesetPromise) {
             MathJax.typesetPromise([box]).catch(err => console.log('MathJax error:', err));
         }
-}
-function openFFTModal() {
+    }
+
+    function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
         document.getElementById('fftModalOverlay').classList.add('animUI-visible'); document.getElementById('fftModalOverlay').style.display = 'flex';
         const inputFreq = document.getElementById('fftTargetFreq'); if (lockedFrequency > 20) inputFreq.value = Math.round(lockedFrequency);
@@ -2700,7 +2695,6 @@ function openFFTModal() {
             const isUser = row.classList.contains('fox-msg-user');
             const bubble = row.querySelector('.fox-msg-bubble');
             if (bubble) {
-                // Lọc bỏ nút copy hoặc thẻ ảnh base64 dài
                 let clone = bubble.cloneNode(true);
                 clone.querySelectorAll('button, img').forEach(el => el.remove());
                 let text = clone.innerText.trim();
