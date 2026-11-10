@@ -752,12 +752,12 @@
     });
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-    // REQ 2: When camera/file upload, tab change or backgrounding occurs, DO NOT navigate away or force exit.
+    // REQ 2: Smooth state maintenance during tab change, camera capture & photo upload without forced resets
     let wasAppBackgrounded = false;
     let isUploadingOrCapturing = false;
 
     function onAppLeave() {
-        if (isUploadingOrCapturing) return; // Do not interrupt or reset state during camera/photo upload
+        if (isUploadingOrCapturing) return; // Do not interrupt or reset audio context state during camera/photo upload
         wasAppBackgrounded = true;
     }
 
@@ -826,7 +826,7 @@
     
     // REQ 3: Preserve measurement duration for Sound Level Meter (MCĐ) auto-stop mode
     let lastMcdDurationMs = 10000; // Default 10s auto-stop duration for dB mode
-    let mcdAutoStopTimer = null;
+    let stopTimer = null;
 
     const SAFETY_THRESHOLD_DB = 85.0;
 
@@ -837,7 +837,7 @@
         return displayModeSelect ? displayModeSelect.value : 'oscilloscope';
     }
 
-    function calculateRMSdB(buffer, channel = 'A', isRaw = false) {
+    function calculateRMSdB(buffer, channel = 'A') {
         if (!buffer || buffer.length === 0) return 30.0;
         let sum = 0;
         for (let i = 0; i < buffer.length; i++) {
@@ -987,7 +987,7 @@
         if (gearBtn) gearBtn.style.display = 'inline-flex';
         infoMessageText.innerHTML = "Bản Dùng thử Demo (Khóa tính năng nâng cao)."; infoMessageText.style.color = "#dc2626";
         isPaused = true; clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green";
-        updateUIState(); checkAndShowQR(); drawFrame(true);
+        restoreAppState(); updateUIState(); checkAndShowQR(); drawFrame(true);
     }
 
     function saveAppState() {
@@ -999,7 +999,7 @@
         localStorage.setItem('fox_mic_b', micSelectB.value);
     }
 
-    // REQ 2: Default application settings on login/load: Oscilloscope, 1-source, auto-stop mode
+    // REQ 2: Default application settings on initial load/login: Oscilloscope, 1-source mode, auto-stop survey mode
     function restoreAppState() {
         channelModeSelect.value = '1';
         modeSelect.value = 'auto'; // Default: Tự dừng per user requirement
@@ -1170,7 +1170,7 @@
         });
     });
 
-    let audioCtx, sampleRate = 48000, isPaused = true, isContinuousMode = (modeSelect ? modeSelect.value === 'continuous' : false), stopTimer;
+    let audioCtx, sampleRate = 48000, isPaused = true, isContinuousMode = (modeSelect ? modeSelect.value === 'continuous' : false);
     const channelConfig = {
         A: { stream: null, source: null, workletNode: null, filterHP: null, filterLP: null, dummy: null, data: null, index: 0, color: '#dc2626', active: false },
         B: { stream: null, source: null, workletNode: null, filterHP: null, filterLP: null, dummy: null, data: null, index: 0, color: '#2563eb', active: false }
@@ -1263,7 +1263,7 @@
     });
 
     function updateToolbarButtonsVisibility() {
-        if (btnCalib) btnCalib.style.display = 'none'; // Calibration removed per Requirement 1
+        if (btnCalib) btnCalib.style.display = 'none'; // Calibration completely removed per Requirement 1
     }
 
     displayModeSelect.addEventListener('change', () => {
@@ -1580,10 +1580,14 @@
         } catch (err) { alert(`Lỗi Micro Kênh ${channelId}. Vui lòng kiểm tra quyền truy cập: ` + err.message); }
     }
 
+    // REQ 3: Synchronized measurement duration for auto-stop across all modes
     function triggerAutoStop() {
         clearTimeout(stopTimer);
         isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
         if (isContinuousMode) return;
+        
+        let targetDuration = (getDisplayMode() === 'dbMeter' && lastMcdDurationMs > 0) ? lastMcdDurationMs : 2000;
+
         if (!isPaused) {
             stopTimer = setTimeout(() => {
                 isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
@@ -1594,7 +1598,6 @@
                     infoMessageText.innerHTML = "Đã tự dừng đo &mdash; Sẵn sàng khảo sát";
                     infoMessageText.style.color = "#dc2626";
                     
-                    // REQ 3: Save actual measurement duration elapsed in auto mode
                     if (dbStartTime > 0) {
                         lastMcdDurationMs = performance.now() - dbStartTime;
                     }
@@ -1602,7 +1605,7 @@
                     updateAnalysisButtonState();
                     drawFrame();
                 }
-            }, 2000);
+            }, targetDuration);
         }
     }
 
@@ -1631,7 +1634,7 @@
             isPaused = true;
             clearTimeout(stopTimer);
             
-            // REQ 3: Save actual duration when stopped manually
+            // REQ 3: Save actual measurement duration when stopped manually
             if (dbStartTime > 0) {
                 lastMcdDurationMs = performance.now() - dbStartTime;
             }
@@ -1931,7 +1934,7 @@
                     for (let i = 0; i < chunkSize; i++) {
                         chunk[i] = channelCfg.data[((chunkStart + i) % len + len) % len];
                     }
-                    let calDb = calculateRMSdB(chunk, channelName, false);
+                    let calDb = calculateRMSdB(chunk, channelName);
                     historyArr.push({ time: now - c * 50, elapsedMs: (chunks - 1 - c) * 50, db: calDb });
                 }
             }
@@ -1943,7 +1946,6 @@
         const mode = getActiveChannelMode();
         const tableContainer = document.getElementById('mcdReportTableContainer');
 
-        // Display measurement duration synchronized per REQ 3
         let durationSec = (lastMcdDurationMs / 1000).toFixed(1);
 
         if (mode === '2') {
@@ -2058,7 +2060,7 @@
         if (overlay) overlay.style.display = 'none';
     }
 
-    // REQ 1: Fixed Distance Calculation Logic without bugs or missing variables
+    // REQ 1: Robust Distance Calculation Logic without bugs or missing variables
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
@@ -2076,7 +2078,7 @@
             let avgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
             let avgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
             
-            // Formula for distance: L = L0 - 20*log10(r/r0) => r = r0 * 10^((L0 - L)/20)
+            // Inverse-square law distance calculation: L = L0 - 20*log10(r/r0) => r = r0 * 10^((L0 - L)/20)
             let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
             let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
             let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
@@ -2464,18 +2466,18 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\[[\s\S]*?\\]|\$[^\$
+        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^\$
 ]+?\$|\\([\s\S]*?\\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
         });
 
-        let texFormulaRegex = /(?:[a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|[a-zA-Z0-9_]{1,3}|[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)(?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|[a-zA-Z0-9_]{1,3}|[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
+        let texFormulaRegex = /(?: [a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times) (?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)| [a-zA-Z0-9_]{1,3} |[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
 
         protectedStr = protectedStr.replace(texFormulaRegex, function(match) {
             let raw = match.trim();
-            if (!raw || raw.indexOf('\') === -1) return match;
+            if (!raw || raw.indexOf('\\') === -1) return match;
             let punct = "";
             while (raw && '.,;:!?'.indexOf(raw.charAt(raw.length - 1)) !== -1) {
                 punct = raw.charAt(raw.length - 1) + punct;
@@ -2519,7 +2521,7 @@
         sendFoxMessage();
     }
 
-    // REQ 2: Photo capture / upload handling without navigating away or causing app exits
+    // REQ 2: Photo capture & image upload handling without page navigation / exit
     function handleImageSelected(event) {
         isUploadingOrCapturing = true;
         const file = event.target.files[0];
