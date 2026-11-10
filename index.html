@@ -12,7 +12,7 @@
     <title>FOX_LAB - Phòng thí nghiệm Vật lý về sóng cơ học</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- QRCode.js library for reliable QR code generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -395,11 +395,18 @@
         #imagePreviewName { font-size: 11px; color: #e2e8f0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .fox-remove-img { background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* Custom Card Styling cho Khoảng Cách Nguồn Âm */
-        .dist-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
-        .dist-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .dist-card-title { font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .dist-card-val { font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        /* Style Tối Ưu Mới Cho Thẻ Khoảng Cách Nguồn Âm (Tránh đè/ép chữ) */
+        .dist-card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; }
+        .dist-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+        .dist-card-border-a { border-left: 4px solid #ef4444; }
+        .dist-card-border-b { border-left: 4px solid #3b82f6; }
+        .dist-card-border-diff { border-left: 4px solid #10b981; }
+        .dist-card-border-ratio { border-left: 4px solid #8b5cf6; }
+        .dist-card-title { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+        .dist-card-value { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1.2; margin: 4px 0; }
+        .dist-card-sub { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 500; }
+        .dist-header-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 8px; }
+        .dist-formula-badge { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -595,11 +602,11 @@
     </div>
 </div>
 
-<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM -->
+<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) -->
 <div id="mcdModalOverlay" class="modal-overlay">
     <div id="mcdModal" class="modal-content" style="background: #ffffff; color: #0f172a;" onclick="event.stopPropagation()">
         <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981);">
-            <span>📊 Phân tích Mức Cường độ âm & Xác định khoảng cách Nguồn âm</span>
+            <span>📊 Phân tích Mức Cường độ âm (MCĐ) & Khoảng cách Nguồn âm</span>
         </div>
         
         <div class="modal-controls" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; gap:8px; align-items:center; justify-content:space-between;">
@@ -609,7 +616,7 @@
                 </button>
             </div>
             <button class="btn-blue" onclick="calculateAvgDistance()" style="display:inline-flex; align-items:center; gap:4px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg> 📏 Tính khoảng cách nguồn âm (rA, rB)
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg> 📏 Tính khoảng cách nguồn âm ($r_A, r_B$)
             </button>
         </div>
 
@@ -632,7 +639,7 @@
                 </table>
             </div>
 
-            <!-- CARD KẾT QUẢ TÍNH KHOẢNG CÁCH -->
+            <!-- CONTAINER KẾT QUẢ KHOẢNG CÁCH NGUỒN ÂM (TỐI ƯU DISPLAY) -->
             <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 16px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;">
             </div>
         </div>
@@ -2204,17 +2211,17 @@
         if (overlay) overlay.style.display = 'none';
     }
 
-    /* TINH CHỈNH TÍNH KHOẢNG CÁCH NGUỒN ÂM R_A, R_B */
+    // TỐI ƯU GIAO DIỆN HỂN THỊ THẺ KHOẢNG CÁCH (KHÔNG ĐÈ CHỮ / KHÔNG ÉP KHUNG)
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
 
-        let r0 = 1.0, L0 = 90.0; // Mức cường độ âm chuẩn L0 tại khoảng cách r0 = 1m
+        let r0 = 1.0, L0 = 90.0;
 
         if (mode === '2') {
             if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
-                box.innerHTML = `<div style="color: #dc2626; font-weight: bold; text-align: center;">⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B! Vui lòng thực hiện đo trước khi phân tích.</div>`;
+                box.innerHTML = `<div style="color:#dc2626; font-weight:bold; padding:8px;">⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B! Vui lòng bấm "Đo / Dừng" để lấy mẫu trước.</div>`;
                 return;
             }
 
@@ -2227,65 +2234,82 @@
             let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
 
             box.innerHTML = `
-                <div style="border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; color: #1e293b; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                        📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM (r<sub>A</sub>, r<sub>B</sub>)
-                    </h4>
-                    <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Công thức: $L_A - L_B = 20\\lg\\left(\\frac{r_B}{r_A}\\right)$</span>
+                <div class="dist-header-bar">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:16px;">📐</span>
+                        <span style="font-weight:700; color:#0f172a; font-size:14px; text-transform:uppercase;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM ($r_A, r_B$)</span>
+                    </div>
+                    <div class="dist-formula-badge">
+                        <span>Công thức:</span>
+                        <span>$L_A - L_B = 20\\lg\\left(\\frac{r_B}{r_A}\\right)$</span>
+                    </div>
                 </div>
 
-                <div class="dist-card-grid">
-                    <div class="dist-card" style="border-left: 4px solid #ef4444;">
-                        <div class="dist-card-title">Khoảng cách Kênh A ($r_A$)</div>
-                        <div class="dist-card-val" style="color: #dc2626;">${rA.toFixed(2)} m</div>
-                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$L_{A,tb} = ${avgDbA.toFixed(1)}\\text{ dB}$</div>
+                <div class="dist-card-container">
+                    <div class="dist-card dist-card-border-a">
+                        <div class="dist-card-title">
+                            <span>KHOẢNG CÁCH KÊNH A ($r_A$)</span>
+                        </div>
+                        <div class="dist-card-value" style="color:#ef4444;">${rA.toFixed(2)} <span style="font-size:14px; font-weight:bold;">m</span></div>
+                        <div class="dist-card-sub">$L_{A,tb} = ${avgDbA.toFixed(1)}\\text{ dB}$</div>
                     </div>
 
-                    <div class="dist-card" style="border-left: 4px solid #3b82f6;">
-                        <div class="dist-card-title">Khoảng cách Kênh B ($r_B$)</div>
-                        <div class="dist-card-val" style="color: #2563eb;">${rB.toFixed(2)} m</div>
-                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$L_{B,tb} = ${avgDbB.toFixed(1)}\\text{ dB}$</div>
+                    <div class="dist-card dist-card-border-b">
+                        <div class="dist-card-title">
+                            <span>KHOẢNG CÁCH KÊNH B ($r_B$)</span>
+                        </div>
+                        <div class="dist-card-value" style="color:#3b82f6;">${rB.toFixed(2)} <span style="font-size:14px; font-weight:bold;">m</span></div>
+                        <div class="dist-card-sub">$L_{B,tb} = ${avgDbB.toFixed(1)}\\text{ dB}$</div>
                     </div>
 
-                    <div class="dist-card" style="border-left: 4px solid #10b981;">
-                        <div class="dist-card-title">Khoảng cách giữa 2 Mic ($\Delta r$)</div>
-                        <div class="dist-card-val" style="color: #059669;">${deltaR.toFixed(2)} m</div>
-                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$\\Delta r = |r_A - r_B|$</div>
+                    <div class="dist-card dist-card-border-diff">
+                        <div class="dist-card-title">
+                            <span>KHOẢNG CÁCH GIỮA 2 MIC</span>
+                        </div>
+                        <div class="dist-card-value" style="color:#10b981;">${deltaR.toFixed(2)} <span style="font-size:14px; font-weight:bold;">m</span></div>
+                        <div class="dist-card-sub">$\\Delta r = |r_A - r_B|$</div>
                     </div>
 
-                    <div class="dist-card" style="border-left: 4px solid #8b5cf6;">
-                        <div class="dist-card-title">Tỷ số khoảng cách ($r_B / r_A$)</div>
-                        <div class="dist-card-val" style="color: #7c3aed;">${ratio.toFixed(3)}</div>
-                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">$10^{\\frac{L_A - L_B}{20}}$ lần</div>
+                    <div class="dist-card dist-card-border-ratio">
+                        <div class="dist-card-title">
+                            <span>TỶ SỐ KHOẢNG CÁCH ($r_B/r_A$)</span>
+                        </div>
+                        <div class="dist-card-value" style="color:#8b5cf6;">${ratio.toFixed(3)} <span style="font-size:14px; font-weight:bold;">lần</span></div>
+                        <div class="dist-card-sub">$10^{\\frac{L_A - L_B}{20}}$</div>
                     </div>
                 </div>
             `;
         } else {
             if (dbHistoryA.length === 0) {
-                box.innerHTML = `<div style="color: #dc2626; font-weight: bold; text-align: center;">⚠️ Chưa có dữ liệu đo cường độ âm! Vui lòng thực hiện đo trước khi phân tích.</div>`;
+                box.innerHTML = `<div style="color:#dc2626; font-weight:bold; padding:8px;">⚠️ Chưa có dữ liệu đo cường độ âm! Vui lòng thực hiện đo trước.</div>`;
                 return;
             }
             let avgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
             let dist = r0 * Math.pow(10, (L0 - avgDb) / 20);
 
             box.innerHTML = `
-                <div style="border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; color: #1e293b; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                        📐 KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM TỚI MICRO
-                    </h4>
-                    <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Công thức: $r = r_0 \\cdot 10^{\\frac{L_0 - L}{20}}$</span>
+                <div class="dist-header-bar">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:16px;">📐</span>
+                        <span style="font-weight:700; color:#0f172a; font-size:14px; text-transform:uppercase;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM TỚI MICRO</span>
+                    </div>
+                    <div class="dist-formula-badge">
+                        <span>Công thức:</span>
+                        <span>$r = r_0 \\cdot 10^{\\frac{L_0 - L}{20}}$</span>
+                    </div>
                 </div>
 
-                <div class="dist-card-grid">
-                    <div class="dist-card" style="border-left: 4px solid #10b981;">
-                        <div class="dist-card-title">Mức CĐ Âm Trung Bình($L_{tb}$ )</div>
-                        <div class="dist-card-val" style="color: #059669;">${avgDb.toFixed(1)} dB</div>
+                <div class="dist-card-container">
+                    <div class="dist-card dist-card-border-diff">
+                        <div class="dist-card-title">MỨC CĐ ÂM TRUNG BÌNH ($L_{tb}$)</div>
+                        <div class="dist-card-value" style="color:#10b981;">${avgDb.toFixed(1)} <span style="font-size:14px; font-weight:bold;">dB</span></div>
+                        <div class="dist-card-sub">Trung bình chuỗi đo</div>
                     </div>
 
-                    <div class="dist-card" style="border-left: 4px solid #ef4444;">
-                        <div class="dist-card-title">Khoảng cách ước tính($r$)</div>
-                        <div class="dist-card-val" style="color: #dc2626;">${dist.toFixed(2)} m</div>
-                        <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">Ước tính từ chuẩn $L_0 = 90\\text{ dB}$ tại $1\\text{m} $</div>
+                    <div class="dist-card dist-card-border-a">
+                        <div class="dist-card-title">KHOẢNG CÁCH ƯỚC TÍNH ($r$)</div>
+                        <div class="dist-card-value" style="color:#ef4444;">${dist.toFixed(2)} <span style="font-size:14px; font-weight:bold;">m</span></div>
+                        <div class="dist-card-sub">Ước tính từ chuẩn $L_0 = 90\\text{ dB}$ tại $1\\text{m}$</div>
                     </div>
                 </div>
             `;
