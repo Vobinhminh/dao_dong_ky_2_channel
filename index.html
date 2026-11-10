@@ -14,6 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
+    <!-- QRCode.js library for reliable QR code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- MathJax v3 Configuration & CDN -->
     <script>
         window.MathJax = {
@@ -434,8 +436,8 @@
             <option value="2">2 nguồn âm</option>
         </select>
         <select id="modeSelect" style="display:none">
-            <option value="auto">Khảo sát tần số (Tự dừng)</option>
-            <option value="continuous" selected>Khảo sát liên tục</option>
+            <option value="auto" selected>Khảo sát tần số (Tự dừng)</option>
+            <option value="continuous">Khảo sát liên tục</option>
         </select>
         <select id="displayModeSelect" style="display:none">
             <option value="oscilloscope" selected>Dao động ký</option>
@@ -462,8 +464,8 @@
                     <div class="settings-group" id="groupMode">
                         <div class="settings-group-header" data-group="mode"><span>Chức năng khảo sát</span><span class="group-arrow">›</span></div>
                         <div class="settings-group-items">
-                            <div class="settings-item" data-target="modeSelect" data-value="auto">Tự dừng</div>
-                            <div class="settings-item active" data-target="modeSelect" data-value="continuous">Liên tục</div>
+                            <div class="settings-item active" data-target="modeSelect" data-value="auto">Tự dừng</div>
+                            <div class="settings-item" data-target="modeSelect" data-value="continuous">Liên tục</div>
                         </div>
                     </div>
                     <div class="settings-group" id="groupDisplayMode">
@@ -496,6 +498,7 @@
 
             <button id="pauseButton" class="btn-green" disabled>Đo / Dừng</button>
             <button id="resetButton" class="btn-orange">Làm mới</button>
+            <button id="btnCalib" class="btn-orange" style="display: none;">🎯 Hiệu chuẩn</button>
             <button id="btnAnalysis" class="btn-slate" disabled>Xử lý nguồn âm</button>
             <button id="fullscreenButton" class="btn-slate" onclick="toggleFullScreen()">Mở rộng</button>
         </div>
@@ -521,8 +524,9 @@
         </div>
     </div>
 
-    <div class="qr-panel" id="qrPanel">
-        <img id="qrImage" src="" alt="QR Code"><span class="scan-title">FOX_LAB</span>
+    <div class="qr-panel" id="qrPanel" title="Quét mã QR để mở ứng dụng">
+        <div id="qrCodeContainer" style="width:48px; height:48px; display:flex; align-items:center; justify-content:center; background:#fff; padding:2px; border-radius:4px;"></div>
+        <span class="scan-title">FOX_LAB</span>
     </div>
 </div>
 
@@ -601,9 +605,6 @@
                 <button class="btn-dark" onclick="closeMcdModal()" style="display:inline-flex; align-items:center; gap:4px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Quay lại
                 </button>
-                <button class="btn-green" onclick="openCalibModal()" style="display:inline-flex; align-items:center; gap:4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> 🎯 Hiệu chuẩn Micro
-                </button>
             </div>
             <button class="btn-blue" onclick="calculateAvgDistance()" style="display:inline-flex; align-items:center; gap:4px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg> 📏 Tính khoảng cách nguồn âm (rA, rB)
@@ -630,68 +631,6 @@
 
                 <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- MODAL HIỆU CHUẨN MICROPHONE -->
-<div id="calibModalOverlay" class="modal-overlay" style="z-index: 150000;">
-    <div id="calibModal" class="modal-content" style="max-width: 520px; height: auto; max-height: 90dvh; background: #ffffff; color: #0f172a; border-radius: 12px; margin: auto; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
-        <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981); padding: 12px 16px;">
-            <span style="display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                Hiệu chuẩn Micro (Microphone Calibration)
-            </span>
-            <button class="btn-slate" onclick="closeCalibModal()" style="padding: 2px 8px; font-size:12px;">✕ Đóng</button>
-        </div>
-        <div style="padding: 16px 20px; overflow-y: auto; line-height: 1.5; font-size: 13px;">
-            <p style="margin-top:0; color:#475569;">
-                <b>Mục đích:</b> Đồng bộ độ nhạy Micro của thiết bị này với <i>Máy đo Mức cường độ âm (dB) chuẩn</i> thực tế để loại bỏ sai số phần cứng.
-            </p>
-            
-            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
-                <h4 style="margin:0 0 8px 0; color:#0f172a; font-size:13.5px; display:flex; align-items:center; gap:6px;">
-                    <span style="color:#ef4444;">🔴</span> Hiệu chuẩn Kênh A
-                </h4>
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Giá trị đo thô hiện tại (Uncalibrated):</label>
-                    <span id="calibRawValueA" style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#dc2626; font-size:14px;">-- dB</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Nhập MCĐ Chuẩn từ Máy đo chuẩn (dB):</label>
-                    <input type="number" id="calibRefInputA" placeholder="VD: 75.0" step="0.1" style="width:100px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-weight:700; text-align:center;">
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Hằng số lệch bù (Offset ΔL):</label>
-                    <span id="calibOffsetDisplayA" style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#059669; font-size:14px;">+0.0 dB</span>
-                    <button class="btn-green" onclick="applyCalibFromRef('A')" style="padding:4px 10px; font-size:12px;">✅ Áp dụng A</button>
-                </div>
-            </div>
-
-            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:14px;">
-                <h4 style="margin:0 0 8px 0; color:#0f172a; font-size:13.5px; display:flex; align-items:center; gap:6px;">
-                    <span style="color:#2563eb;">🔵</span> Hiệu chuẩn Kênh B
-                </h4>
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Giá trị đo thô hiện tại (Uncalibrated):</label>
-                    <span id="calibRawValueB" style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#2563eb; font-size:14px;">-- dB</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Nhập MCĐ Chuẩn từ Máy đo chuẩn (dB):</label>
-                    <input type="number" id="calibRefInputB" placeholder="VD: 75.0" step="0.1" style="width:100px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-weight:700; text-align:center;">
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <label style="flex:1; font-weight:600; color:#334155;">Hằng số lệch bù (Offset ΔL):</label>
-                    <span id="calibOffsetDisplayB" style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#059669; font-size:14px;">+0.0 dB</span>
-                    <button class="btn-blue" onclick="applyCalibFromRef('B')" style="padding:4px 10px; font-size:12px;">✅ Áp dụng B</button>
-                </div>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; gap:10px;">
-                <button class="btn-orange" onclick="resetCalibOffsets()" style="flex:1; padding:8px;">🔄 Đặt lại về Mặc định (0 dB)</button>
-                <button class="btn-dark" onclick="closeCalibModal()" style="flex:1; padding:8px;">Lưu &amp; Hoàn tất</button>
             </div>
         </div>
     </div>
@@ -813,26 +752,21 @@
     });
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
+    // REQ 2: When camera/file upload, tab change or backgrounding occurs, DO NOT navigate away or force exit.
     let wasAppBackgrounded = false;
-    let lastBackgroundTime = 0;
-    let lastReturnProcessTime = 0;
-    let isSelectActive = false;
+    let isUploadingOrCapturing = false;
 
     function onAppLeave() {
-        if (isSelectActive) return;
+        if (isUploadingOrCapturing) return; // Do not interrupt or reset state during camera/photo upload
         wasAppBackgrounded = true;
-        lastBackgroundTime = performance.now();
-        if (typeof stopTimer !== 'undefined') clearTimeout(stopTimer);
     }
 
     function onAppEnter() {
-        const now = performance.now();
-        if (now - lastReturnProcessTime < 400) return;
-        if (wasAppBackgrounded || (document.visibilityState === 'visible' && (now - lastBackgroundTime > 200))) {
+        if (wasAppBackgrounded) {
             wasAppBackgrounded = false;
-            lastReturnProcessTime = now;
-            if (typeof handleAppReturn === 'function') {
-                handleAppReturn();
+            // Maintain current view state safely without resetting or forcing exit
+            if (audioCtx && audioCtx.state === 'suspended' && !isPaused) {
+                audioCtx.resume();
             }
         }
     }
@@ -864,7 +798,7 @@
     const CHAT_GAS_URL = "https://script.google.com/macros/s/AKfycbwllsi_eXt98JRwTDyHPtD8qtgx6nnyhnDD8sSk5mIgEeB0EGLHkIwydpATOWohKJLuEg/exec";
 
     const btnStartA = document.getElementById('btnStartA'), btnStartB = document.getElementById('btnStartB');
-    const pauseButton = document.getElementById('pauseButton'), resetButton = document.getElementById('resetButton');
+    const pauseButton = document.getElementById('pauseButton'), resetButton = document.getElementById('resetButton'), btnCalib = document.getElementById('btnCalib');
     const btnAnalysis = document.getElementById('btnAnalysis'), infoMessageText = document.getElementById('infoMessageText');
     const channelModeSelect = document.getElementById('channelModeSelect'), modeSelect = document.getElementById('modeSelect'), speedSelect = document.getElementById('speedSelect');
     const displayModeSelect = document.getElementById('displayModeSelect');
@@ -874,11 +808,7 @@
 
     window.resetButton = resetButton;
 
-    
-    let micCalibOffsetA = parseFloat(localStorage.getItem('fox_mic_calib_offset_a') || '0.0');
-    let micCalibOffsetB = parseFloat(localStorage.getItem('fox_mic_calib_offset_b') || '0.0');
-
-    let isDemoMode = true; let demoTimer = null; let demoChatCount = 0; const MAX_DEMO_CHAT = 3;
+    let isDemoMode = true; let demoTimer = null; let demoChatCount = 0; const MAX_DEMO_CHAT = 5;
     let detectedFrequency = 0, lockedFrequency = 440;
     let isUserZoomed = false, totalTimeOnScreen = 5 * (1.0 / 440), currentZoomY = 2.0;
 
@@ -893,6 +823,11 @@
     let selectedBarIndexB = -1;
     let lastDbSampleTime = 0;
     let dbStartTime = 0;
+    
+    // REQ 3: Preserve measurement duration for Sound Level Meter (MCĐ) auto-stop mode
+    let lastMcdDurationMs = 10000; // Default 10s auto-stop duration for dB mode
+    let mcdAutoStopTimer = null;
+
     const SAFETY_THRESHOLD_DB = 85.0;
 
     let currentFoxRole = 'student'; // 'student' or 'teacher'
@@ -911,11 +846,7 @@
         let rms = Math.sqrt(sum / buffer.length);
         if (rms < 0.0001) rms = 0.0001;
         let rawDb = 20 * Math.log10(rms / 0.00002);
-        rawDb = Math.max(30.0, Math.min(120.0, rawDb));
-        if (isRaw) return rawDb;
-        let offset = (channel === 'B') ? micCalibOffsetB : micCalibOffsetA;
-        let calibDb = rawDb + offset;
-        return Math.max(30.0, Math.min(120.0, calibDb));
+        return Math.max(30.0, Math.min(120.0, rawDb));
     }
 
     function getDeviceId() {
@@ -1068,19 +999,20 @@
         localStorage.setItem('fox_mic_b', micSelectB.value);
     }
 
+    // REQ 2: Default application settings on login/load: Oscilloscope, 1-source, auto-stop mode
     function restoreAppState() {
         channelModeSelect.value = '1';
-        modeSelect.value = 'continuous';
-        if (displayModeSelect) displayModeSelect.value = 'oscilloscope';
+        modeSelect.value = 'auto'; // Default: Tự dừng per user requirement
+        if (displayModeSelect) displayModeSelect.value = 'oscilloscope'; // Default: Dao động ký
         speedSelect.value = 'fast';
 
-        if (typeof isContinuousMode !== 'undefined') isContinuousMode = true;
+        if (typeof isContinuousMode !== 'undefined') isContinuousMode = false;
 
         document.querySelectorAll('#groupChannelMode .settings-item').forEach(el => {
             el.classList.toggle('active', el.dataset.value === '1');
         });
         document.querySelectorAll('#groupMode .settings-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.value === 'continuous');
+            el.classList.toggle('active', el.dataset.value === 'auto');
         });
         document.querySelectorAll('#groupDisplayMode .settings-item').forEach(el => {
             el.classList.toggle('active', el.dataset.value === 'oscilloscope');
@@ -1089,8 +1021,9 @@
             el.classList.toggle('active', el.dataset.value === 'fast');
         });
 
-        document.getElementById('groupSpeed').style.display = 'block';
-        document.getElementById('cardChannelB').style.display = 'none';
+        document.getElementById('groupSpeed').style.display = 'none'; // Auto mode hides speed control
+        document.getElementById('cardChannelB').style.display = 'none'; 
+        updateToolbarButtonsVisibility();
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -1140,15 +1073,32 @@
     }, 45000);
 
     function checkAndShowQR() {
-        const qrPanel = document.getElementById('qrPanel'), qrImage = document.getElementById('qrImage');
-        if (!qrImage || !qrPanel) return;
+        const qrPanel = document.getElementById('qrPanel'), container = document.getElementById('qrCodeContainer');
+        if (!container || !qrPanel) return;
         const isSmartDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 900;
         if (isSmartDevice) { qrPanel.style.display = 'none'; return; }
         qrPanel.style.display = 'flex';
         let currentUrl = window.location.href.split('?')[0];
         let activeKey = localStorage.getItem('fox_license_key') || '', qrUrl = currentUrl;
         if (activeKey) { qrUrl += '?key=' + encodeURIComponent(activeKey); }
-        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
+        
+        container.innerHTML = '';
+        try {
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, {
+                    text: qrUrl,
+                    width: 44,
+                    height: 44,
+                    colorDark: "#0f172a",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}" style="width:44px;height:44px;">`;
+            }
+        } catch(e) {
+            container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}" style="width:44px;height:44px;">`;
+        }
     }
     window.addEventListener('resize', checkAndShowQR);
 
@@ -1220,7 +1170,7 @@
         });
     });
 
-    let audioCtx, sampleRate = 48000, isPaused = true, isContinuousMode = (modeSelect ? modeSelect.value === 'continuous' : true), stopTimer;
+    let audioCtx, sampleRate = 48000, isPaused = true, isContinuousMode = (modeSelect ? modeSelect.value === 'continuous' : false), stopTimer;
     const channelConfig = {
         A: { stream: null, source: null, workletNode: null, filterHP: null, filterLP: null, dummy: null, data: null, index: 0, color: '#dc2626', active: false },
         B: { stream: null, source: null, workletNode: null, filterHP: null, filterLP: null, dummy: null, data: null, index: 0, color: '#2563eb', active: false }
@@ -1280,10 +1230,25 @@
 
     btnAnalysis.addEventListener('click', () => {
         if (getDisplayMode() === 'dbMeter') {
+            if (isDemoMode) {
+                alert("⚠️ Chức năng Phân tích Mức cường độ âm bị khóa ở chế độ Dùng thử Demo. Vui lòng nhập Key bản Full!");
+                openLicenseModal();
+                return;
+            }
             openMcdModal();
         } else if (getActiveChannelMode() === '1') {
+            if (isDemoMode) {
+                alert("⚠️ Chức năng Phân tích Họa âm FFT chỉ dành cho bản Full.");
+                openLicenseModal();
+                return;
+            }
             openFFTModal();
         } else {
+            if (isDemoMode) {
+                alert("⚠️ Chức năng Xử lý 2 Nguồn âm chỉ dành cho bản Full.");
+                openLicenseModal();
+                return;
+            }
             openTwoSourceModal();
         }
     });
@@ -1297,14 +1262,19 @@
         updateAnalysisButtonState(); saveAppState();
     });
 
+    function updateToolbarButtonsVisibility() {
+        if (btnCalib) btnCalib.style.display = 'none'; // Calibration removed per Requirement 1
+    }
+
     displayModeSelect.addEventListener('change', () => {
+        updateToolbarButtonsVisibility();
         updateAnalysisButtonState();
         drawFrame();
         saveAppState();
     });
 
     channelModeSelect.addEventListener('change', () => {
-        if (getActiveChannelMode() === '1') { document.getElementById('cardChannelB').style.display = 'none'; stopAudioChannel('B'); }
+        if (getActiveChannelMode() === '1') { document.getElementById('cardChannelB').style.display = 'none'; updateToolbarButtonsVisibility(); stopAudioChannel('B'); }
         else { document.getElementById('cardChannelB').style.display = 'flex'; }
         updateUIState(); drawFrame(); saveAppState();
     });
@@ -1621,8 +1591,14 @@
                     isPaused = true;
                     pauseButton.textContent = "Đo / Dừng";
                     pauseButton.className = "btn-green";
-                    infoMessageText.innerHTML = "Đã khóa sóng &mdash; Sẵn sàng khảo sát";
+                    infoMessageText.innerHTML = "Đã tự dừng đo &mdash; Sẵn sàng khảo sát";
                     infoMessageText.style.color = "#dc2626";
+                    
+                    // REQ 3: Save actual measurement duration elapsed in auto mode
+                    if (dbStartTime > 0) {
+                        lastMcdDurationMs = performance.now() - dbStartTime;
+                    }
+                    
                     updateAnalysisButtonState();
                     drawFrame();
                 }
@@ -1636,7 +1612,7 @@
         if (isPaused) {
             isPaused = false;
             pauseButton.disabled = false;
-            dbStartTime = 0;
+            dbStartTime = performance.now();
             lastDbSampleTime = 0;
             if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; }
             if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
@@ -1654,9 +1630,15 @@
         } else {
             isPaused = true;
             clearTimeout(stopTimer);
+            
+            // REQ 3: Save actual duration when stopped manually
+            if (dbStartTime > 0) {
+                lastMcdDurationMs = performance.now() - dbStartTime;
+            }
+            
             pauseButton.textContent = "Đo / Dừng";
             pauseButton.className = "btn-green";
-            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ. Nhấp vào thanh cột để xem chi tiết." : "Đã khóa sóng an toàn.";
+            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng đo. Nhấp vào thanh cột để xem chi tiết." : "Đã dừng đo an toàn.";
             infoMessageText.style.color = "#dc2626";
             updateAnalysisButtonState();
             drawFrame();
@@ -1744,11 +1726,7 @@
                 let y = (boxY + boxH - bottomPadding) - barHeight;
 
                 let isSelected = (i === selectedIndex);
-                if (isSelected) {
-                    ctx.fillStyle = '#f59e0b';
-                } else {
-                    ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ea580c' : titleColor;
-                }
+                ctx.fillStyle = isSelected ? '#f59e0b' : ((item.db > SAFETY_THRESHOLD_DB) ? '#ea580c' : titleColor);
                 
                 ctx.fillRect(x, y, Math.max(2, barWidth - 1), barHeight);
 
@@ -1804,7 +1782,7 @@
                     let lenA = channelConfig.A.data.length, idxA = channelConfig.A.index;
                     for (let i = 0; i < chunkSize; i++) recentA[i] = channelConfig.A.data[((idxA - chunkSize + i) % lenA + lenA) % lenA];
                     let currentDbA = calculateRMSdB(recentA);
-                    let rawDbA = calculateRMSdB(recentA, 'A', true); dbHistoryA.push({ time: now, elapsedMs: elapsedMs, db: currentDbA, rawDb: rawDbA });
+                    dbHistoryA.push({ time: now, elapsedMs: elapsedMs, db: currentDbA });
                     if (dbHistoryA.length > 120) dbHistoryA.shift();
                 }
 
@@ -1813,7 +1791,7 @@
                     let lenB = channelConfig.B.data.length, idxB = channelConfig.B.index;
                     for (let i = 0; i < chunkSize; i++) recentB[i] = channelConfig.B.data[((idxB - chunkSize + i) % lenB + lenB) % lenB];
                     let currentDbB = calculateRMSdB(recentB);
-                    let rawDbB = calculateRMSdB(recentB, 'B', true); dbHistoryB.push({ time: now, elapsedMs: elapsedMs, db: currentDbB, rawDb: rawDbB });
+                    dbHistoryB.push({ time: now, elapsedMs: elapsedMs, db: currentDbB });
                     if (dbHistoryB.length > 120) dbHistoryB.shift();
                 }
             }
@@ -1917,103 +1895,20 @@
 
         isUserZoomed = false; currentZoomY = 2.0; detectedFrequency = 0; lockedFrequency = 440; totalTimeOnScreen = 5 * (1.0 / 440);
 
-        if (modeSelect) modeSelect.value = 'continuous';
-        isContinuousMode = true; clearTimeout(stopTimer);
+        if (modeSelect) modeSelect.value = 'auto';
+        isContinuousMode = false; clearTimeout(stopTimer);
         if (speedSelect) speedSelect.value = 'fast';
         targetFPS = 60;
         const groupSpeed = document.getElementById('groupSpeed');
-        if (groupSpeed) groupSpeed.style.display = 'block';
+        if (groupSpeed) groupSpeed.style.display = 'none';
 
-        document.querySelectorAll('#groupMode .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'continuous'); });
+        document.querySelectorAll('#groupMode .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'auto'); });
         document.querySelectorAll('#groupSpeed .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'fast'); });
 
         if (typeof saveAppState === 'function') saveAppState();
     }
 
-    function handleAppReturn() {
-        resetFeaturesAndAdjustments();
-
-        isPaused = true;
-        clearTimeout(stopTimer);
-
-        pauseButton.textContent = "Đo / Dừng";
-        pauseButton.className = "btn-green";
-        pauseButton.disabled = true;
-        resetButton.disabled = false;
-
-        infoMessageText.innerHTML = "⚠️ Ứng dụng vừa quay lại. Vui lòng bấm <span class='info-badge'>Làm mới</span> để tiếp tục đo.";
-        infoMessageText.style.color = "#dc2626";
-
-        updateAnalysisButtonState();
-        drawFrame(false);
-    }
-
-    
-    function openCalibModal() {
-        const overlay = document.getElementById('calibModalOverlay');
-        if (overlay) overlay.style.display = 'flex';
-        updateCalibDisplay();
-    }
-
-    function closeCalibModal() {
-        const overlay = document.getElementById('calibModalOverlay');
-        if (overlay) overlay.style.display = 'none';
-        if (typeof openMcdModal === 'function' && document.getElementById('mcdModalOverlay').style.display === 'flex') {
-            openMcdModal();
-        }
-    }
-
-    function updateCalibDisplay() {
-        const rawAEl = document.getElementById('calibRawValueA');
-        const rawBEl = document.getElementById('calibRawValueB');
-        const offAEl = document.getElementById('calibOffsetDisplayA');
-        const offBEl = document.getElementById('calibOffsetDisplayB');
-
-        let lastA = (dbHistoryA.length > 0) ? dbHistoryA[dbHistoryA.length - 1].rawDb : 60.0;
-        let lastB = (dbHistoryB.length > 0) ? dbHistoryB[dbHistoryB.length - 1].rawDb : 60.0;
-
-        if (rawAEl) rawAEl.innerText = lastA.toFixed(1) + " dB";
-        if (rawBEl) rawBEl.innerText = lastB.toFixed(1) + " dB";
-
-        if (offAEl) offAEl.innerText = (micCalibOffsetA >= 0 ? "+" : "") + micCalibOffsetA.toFixed(1) + " dB";
-        if (offBEl) offBEl.innerText = (micCalibOffsetB >= 0 ? "+" : "") + micCalibOffsetB.toFixed(1) + " dB";
-    }
-
-    function applyCalibFromRef(channel) {
-        let inputId = (channel === 'B') ? 'calibRefInputB' : 'calibRefInputA';
-        let refVal = parseFloat(document.getElementById(inputId).value);
-        if (isNaN(refVal) || refVal <= 0) {
-            alert("⚠️ Vui lòng nhập Mức cường độ âm chuẩn hợp lệ (dB)!");
-            return;
-        }
-
-        let history = (channel === 'B') ? dbHistoryB : dbHistoryA;
-        let rawVal = (history.length > 0) ? history[history.length - 1].rawDb : 60.0;
-
-        let offset = refVal - rawVal;
-        if (channel === 'B') {
-            micCalibOffsetB = offset;
-            localStorage.setItem('fox_mic_calib_offset_b', offset.toString());
-        } else {
-            micCalibOffsetA = offset;
-            localStorage.setItem('fox_mic_calib_offset_a', offset.toString());
-        }
-
-        updateCalibDisplay();
-        alert(`✅ Đã hiệu chuẩn Kênh ${channel}! Offset mới ΔL = ${offset >= 0 ? '+' : ''}${offset.toFixed(1)} dB`);
-    }
-
-    function resetCalibOffsets() {
-        micCalibOffsetA = 0.0;
-        micCalibOffsetB = 0.0;
-        localStorage.removeItem('fox_mic_calib_offset_a');
-        localStorage.removeItem('fox_mic_calib_offset_b');
-        document.getElementById('calibRefInputA').value = '';
-        document.getElementById('calibRefInputB').value = '';
-        updateCalibDisplay();
-        alert("🔄 Đã đặt lại tất cả hằng số hiệu chuẩn Micro về 0 dB!");
-    }
-
+    // REQ 1: Clean Mức Cường độ âm Analysis Modal (mcdModal) without calibration confusion
     function openMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         overlay.style.display = 'flex';
@@ -2037,16 +1932,8 @@
                         chunk[i] = channelCfg.data[((chunkStart + i) % len + len) % len];
                     }
                     let calDb = calculateRMSdB(chunk, channelName, false);
-                    let rDb = calculateRMSdB(chunk, channelName, true);
-                    historyArr.push({ time: now - c * 50, elapsedMs: (chunks - 1 - c) * 50, db: calDb, rawDb: rDb });
+                    historyArr.push({ time: now - c * 50, elapsedMs: (chunks - 1 - c) * 50, db: calDb });
                 }
-            } else if (historyArr.length > 0) {
-                // Ensure rawDb and calibrated db are up to date with latest calibration offsets
-                let offset = (channelName === 'B') ? micCalibOffsetB : micCalibOffsetA;
-                historyArr.forEach(item => {
-                    if (item.rawDb === undefined) item.rawDb = item.db;
-                    item.db = Math.max(30.0, Math.min(120.0, item.rawDb + offset));
-                });
             }
         }
 
@@ -2056,241 +1943,152 @@
         const mode = getActiveChannelMode();
         const tableContainer = document.getElementById('mcdReportTableContainer');
 
-        let offsetA = micCalibOffsetA;
-        let offsetB = micCalibOffsetB;
-        let offsetBadgeA = (offsetA >= 0 ? '+' : '') + offsetA.toFixed(1) + ' dB';
-        let offsetBadgeB = (offsetB >= 0 ? '+' : '') + offsetB.toFixed(1) + ' dB';
+        // Display measurement duration synchronized per REQ 3
+        let durationSec = (lastMcdDurationMs / 1000).toFixed(1);
 
         if (mode === '2') {
-            let rawDbA = dbHistoryA.map(h => h.rawDb);
-            let rawDbB = dbHistoryB.map(h => h.rawDb);
-            let calDbA = dbHistoryA.map(h => h.db);
-            let calDbB = dbHistoryB.map(h => h.db);
+            let dbA = dbHistoryA.map(h => h.db);
+            let dbB = dbHistoryB.map(h => h.db);
 
-            let rawAvgA = rawDbA.length > 0 ? (rawDbA.reduce((a, b) => a + b, 0) / rawDbA.length) : 0;
-            let rawAvgB = rawDbB.length > 0 ? (rawDbB.reduce((a, b) => a + b, 0) / rawDbB.length) : 0;
-            let rawMaxA = rawDbA.length > 0 ? Math.max(...rawDbA) : 0;
-            let rawMaxB = rawDbB.length > 0 ? Math.max(...rawDbB) : 0;
+            let avgA = dbA.length > 0 ? (dbA.reduce((a, b) => a + b, 0) / dbA.length) : 0;
+            let avgB = dbB.length > 0 ? (dbB.reduce((a, b) => a + b, 0) / dbB.length) : 0;
+            let maxA = dbA.length > 0 ? Math.max(...dbA) : 0;
+            let maxB = dbB.length > 0 ? Math.max(...dbB) : 0;
 
-            let calAvgA = calDbA.length > 0 ? (calDbA.reduce((a, b) => a + b, 0) / calDbA.length) : 0;
-            let calAvgB = calDbB.length > 0 ? (calDbB.reduce((a, b) => a + b, 0) / calDbB.length) : 0;
-            let calMaxA = calDbA.length > 0 ? Math.max(...calDbA) : 0;
-            let calMaxB = calDbB.length > 0 ? Math.max(...calDbB) : 0;
-
-            tableContainer.innerHTML = `
-                <!-- BẢNG 1: CHƯA HIỆU CHUẨN (THÔ) -->
-                <div style="margin-bottom: 24px; padding: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
-                    <h3 style="margin-top: 0; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 15px; text-transform: uppercase;">
-                        📋 1. BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM - CHƯA HIỆU CHUẨN (GIÁ TRỊ THÔ)
-                    </h3>
+            let htmlContent = `
+                <div style="margin-bottom: 12px; padding: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
+                        <h3 style="margin: 0; color: #1e293b; font-size: 15px; text-transform: uppercase;">
+                            📊 BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM (2 NGUỒN ÂM)
+                        </h3>
+                        <span style="font-size: 12px; background: #e0f2fe; color: #0369a1; font-weight: bold; padding: 3px 10px; border-radius: 12px; border: 1px solid #bae6fd;">
+                            ⏱ Thời gian đo tự dừng: ${durationSec} s
+                        </span>
+                    </div>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px;">
                         <thead>
                             <tr style="background: #f1f5f9; text-align: left; color: #475569;">
                                 <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Vị trí đo</th>
-                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Thô (dB)</th>
-                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Mức cường độ âm L<sub>tb</sub> (dB)</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">L<sub>max</sub> (dB)</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng an toàn</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #dc2626;">Kênh A (Vị trí 1)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${rawAvgA.toFixed(1)} dB (L<sub>max</sub>: ${rawMaxA.toFixed(1)} dB)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${rawAvgA > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${rawAvgA > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color:#1e293b; font-size:14px;">${avgA.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${maxA.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${avgA > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                                    ${avgA > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
                                 </td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #2563eb;">Kênh B (Vị trí 2)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${rawAvgB.toFixed(1)} dB (L<sub>max</sub>: ${rawMaxB.toFixed(1)} dB)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${rawAvgB > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${rawAvgB > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color:#1e293b; font-size:14px;">${avgB.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${maxB.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${avgB > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                                    ${avgB > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">Chênh lệch (ΔL<sub>thô</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #64748b;">${(rawAvgA - rawAvgB).toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #64748b;">Chưa qua hiệu chuẩn phần cứng</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- BẢNG 2: SAU HIỆU CHUẨN (ĐÃ CHUẨN HÓA) -->
-                <div style="padding: 14px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 10px;">
-                        <h3 style="margin: 0; color: #166534; font-size: 15px; text-transform: uppercase;">
-                            📊 2. BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM - SAU HIỆU CHUẨN (ĐÃ HIỆU CHỈNH)
-                        </h3>
-                        <span style="font-size: 12px; background: #dcfce7; color: #15803d; font-weight: bold; padding: 3px 8px; border-radius: 12px; border: 1px solid #86efac;">
-                            ΔL<sub>A</sub> = ${offsetBadgeA} | ΔL<sub>B</sub> = ${offsetBadgeB}
-                        </span>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
-                        <thead>
-                            <tr style="background: #dcfce7; text-align: left; color: #166534;">
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Vị trí đo</th>
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Mức cường độ âm Chuẩn (dB)</th>
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Đánh giá ngưỡng an toàn</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #dc2626;">Kênh A (Vị trí 1)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #166534; font-size: 14.5px;">${calAvgA.toFixed(1)} dB (L<sub>max</sub>: ${calMaxA.toFixed(1)} dB)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: ${calAvgA > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${calAvgA > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #2563eb;">Kênh B (Vị trí 2)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #166534; font-size: 14.5px;">${calAvgB.toFixed(1)} dB (L<sub>max</sub>: ${calMaxB.toFixed(1)} dB)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: ${calAvgB > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${calAvgB > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold;">Chênh lệch chuẩn (ΔL = L<sub>A</sub> - L<sub>B</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #8b5cf6; font-size: 14.5px;">${(calAvgA - calAvgB).toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: #15803d;">Chuẩn xác để tính tỷ số khoảng cách</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">Chênh lệch (ΔL = L<sub>A</sub> - L<sub>B</sub>)</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #8b5cf6; font-size:14px;" colspan="2">${(avgA - avgB).toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #0284c7;">Cơ sở tính tỷ số khoảng cách nguồn âm</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             `;
+            tableContainer.innerHTML = htmlContent;
         } else {
-            let rawDbValues = dbHistoryA.map(h => h.rawDb);
-            let rawMaxDb = rawDbValues.length > 0 ? Math.max(...rawDbValues) : 0;
-            let rawMinDb = rawDbValues.length > 0 ? Math.min(...rawDbValues) : 0;
-            let rawAvgDb = rawDbValues.length > 0 ? (rawDbValues.reduce((a, b) => a + b, 0) / rawDbValues.length) : 0;
+            let dbValues = dbHistoryA.map(h => h.db);
+            let maxDb = dbValues.length > 0 ? Math.max(...dbValues) : 0;
+            let minDb = dbValues.length > 0 ? Math.min(...dbValues) : 0;
+            let avgDb = dbValues.length > 0 ? (dbValues.reduce((a, b) => a + b, 0) / dbValues.length) : 0;
 
-            let calDbValues = dbHistoryA.map(h => h.db);
-            let calMaxDb = calDbValues.length > 0 ? Math.max(...calDbValues) : 0;
-            let calMinDb = calDbValues.length > 0 ? Math.min(...calDbValues) : 0;
-            let calAvgDb = calDbValues.length > 0 ? (calDbValues.reduce((a, b) => a + b, 0) / calDbValues.length) : 0;
-
-            tableContainer.innerHTML = `
-                <!-- BẢNG 1: CHƯA HIỆU CHUẨN (THÔ) -->
-                <div style="margin-bottom: 24px; padding: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
-                    <h3 style="margin-top: 0; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 15px; text-transform: uppercase;">
-                        📋 1. BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM - CHƯA HIỆU CHUẨN (GIÁ TRỊ THÔ)
-                    </h3>
+            let htmlContent = `
+                <div style="margin-bottom: 12px; padding: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
+                        <h3 style="margin: 0; color: #1e293b; font-size: 15px; text-transform: uppercase;">
+                            📋 BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM (1 NGUỒN ÂM)
+                        </h3>
+                        <span style="font-size: 12px; background: #e0f2fe; color: #0369a1; font-weight: bold; padding: 3px 10px; border-radius: 12px; border: 1px solid #bae6fd;">
+                            ⏱ Thời gian đo tự dừng: ${durationSec} s
+                        </span>
+                    </div>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px;">
                         <thead>
                             <tr style="background: #f1f5f9; text-align: left; color: #475569;">
                                 <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Thông số đo</th>
-                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Giá trị thô (dB)</th>
+                                <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Giá trị đo (dB)</th>
                                 <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng an toàn</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${rawMaxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${rawMaxDb.toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${rawMaxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${rawMaxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${maxDb.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                                    ${maxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
                                 </td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${rawMinDb.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold;">${minDb.toFixed(1)} dB</td>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: #059669; font-weight: bold;">✅ Bình thường</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${rawAvgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${rawAvgDb.toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${rawAvgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${rawAvgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- BẢNG 2: SAU HIỆU CHUẨN (ĐÃ CHUẨN HÓA) -->
-                <div style="padding: 14px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 10px;">
-                        <h3 style="margin: 0; color: #166534; font-size: 15px; text-transform: uppercase;">
-                            📊 2. BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM - SAU HIỆU CHUẨN (ĐÃ HIỆU CHỈNH)
-                        </h3>
-                        <span style="font-size: 12px; background: #dcfce7; color: #15803d; font-weight: bold; padding: 3px 8px; border-radius: 12px; border: 1px solid #86efac;">
-                            Hằng số lệch bù ΔL<sub>A</sub> = ${offsetBadgeA}
-                        </span>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
-                        <thead>
-                            <tr style="background: #dcfce7; text-align: left; color: #166534;">
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Thông số đo (Sau hiệu chuẩn)</th>
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Giá trị chuẩn (dB)</th>
-                                <th style="padding: 8px 10px; border: 1px solid #a7f3d0;">Đánh giá ngưỡng an toàn</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #166534; font-size: 14.5px;">${calMaxDb.toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: ${calMaxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${calMaxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #166534; font-size: 14.5px;">${calMinDb.toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: #059669; font-weight: bold;">✅ Bình thường</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; font-weight: bold; color: #166534; font-size: 14.5px;">${calAvgDb.toFixed(1)} dB</td>
-                                <td style="padding: 8px 10px; border: 1px solid #a7f3d0; color: ${calAvgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
-                                    ${calAvgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'}; font-size:14.5px;">${avgDb.toFixed(1)} dB</td>
+                                <td style="padding: 8px 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                                    ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             `;
+            tableContainer.innerHTML = htmlContent;
         }
-    }function closeMcdModal() {
+    }
+
+    function closeMcdModal() {
         const overlay = document.getElementById('mcdModalOverlay');
         if (overlay) overlay.style.display = 'none';
     }
 
+    // REQ 1: Fixed Distance Calculation Logic without bugs or missing variables
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
         box.style.display = 'block';
 
-        let r0 = 1.0, L0 = 90.0;
+        let r0 = 1.0; // Standard reference distance 1 meter
+        let L0 = 90.0; // Reference sound level 90 dB at 1m
 
         if (mode === '2') {
             if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
-                box.innerHTML = "⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B!";
+                box.innerHTML = "⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B! Vui lòng thực hiện đo MCĐ ở cả 2 kênh.";
                 return;
             }
 
-            let rawAvgDbA = dbHistoryA.reduce((sum, item) => sum + item.rawDb, 0) / dbHistoryA.length;
-            let rawAvgDbB = dbHistoryB.reduce((sum, item) => sum + item.rawDb, 0) / dbHistoryB.length;
-            let rawRA = r0 * Math.pow(10, (L0 - rawAvgDbA) / 20);
-            let rawRB = r0 * Math.pow(10, (L0 - rawAvgDbB) / 20);
-
-            let calAvgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
-            let calAvgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
-            let calRA = r0 * Math.pow(10, (L0 - calAvgDbA) / 20);
-            let calRB = r0 * Math.pow(10, (L0 - calAvgDbB) / 20);
-            let calDeltaR = Math.abs(calRA - calRB);
-            let calRatio = Math.pow(10, (calAvgDbA - calAvgDbB) / 20);
+            let avgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let avgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
+            
+            // Formula for distance: L = L0 - 20*log10(r/r0) => r = r0 * 10^((L0 - L)/20)
+            let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
+            let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
+            let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
+            let deltaR = Math.abs(rA - rB);
 
             box.innerHTML = `
-                <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #93c5fd;">
-                    📍 <b>KẾT QUẢ KHOẢNG CÁCH THÔ (CHƯA HIỆU CHUẨN):</b><br>
-                    • MCĐ Thô Kênh A: <b>${rawAvgDbA.toFixed(1)} dB</b> ➔ r<sub>A, thô</sub> ≈ <b>${rawRA.toFixed(2)} m</b><br>
-                    • MCĐ Thô Kênh B: <b>${rawAvgDbB.toFixed(1)} dB</b> ➔ r<sub>B, thô</sub> ≈ <b>${rawRB.toFixed(2)} m</b>
-                </div>
-                <div>
-                    🎯 <b>KẾT QUẢ KHOẢNG CÁCH CHUẨN (SAU HIỆU CHUẨN):</b><br>
-                    • MCĐ Chuẩn Kênh A: <b>${calAvgDbA.toFixed(1)} dB</b> ➔ r<sub>A</sub> ≈ <span style="color:#dc2626; font-size:15px; font-weight:bold;">${calRA.toFixed(2)} m</span><br>
-                    • MCĐ Chuẩn Kênh B: <b>${calAvgDbB.toFixed(1)} dB</b> ➔ r<sub>B</sub> ≈ <span style="color:#2563eb; font-size:15px; font-weight:bold;">${calRB.toFixed(2)} m</span><br>
-                    • <b>Khoảng cách giữa 2 vị trí đo:</b> Δr = |r<sub>A</sub> - r<sub>B</sub>| ≈ <span style="color:#059669; font-size:16px; font-weight:bold;">${calDeltaR.toFixed(2)} m</span><br>
-                    • <b>Tỷ số khoảng cách chính xác:</b> r<sub>B</sub> / r<sub>A</sub> = 10<sup>(L<sub>A</sub> - L<sub>B</sub>)/20</sup> ≈ <span style="color:#8b5cf6; font-size:16px; font-weight:bold;">${calRatio.toFixed(3)}</span> lần
+                <div style="padding: 4px; line-height:1.7;">
+                    🎯 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TỪ NGUỒN ÂM THỰC TẾ:</b><br>
+                    • MCĐ Kênh A: <b>${avgDbA.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>A</sub> ≈ <span style="color:#dc2626; font-size:15.5px; font-weight:bold;">${rA.toFixed(2)} m</span><br>
+                    • MCĐ Kênh B: <b>${avgDbB.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>B</sub> ≈ <span style="color:#2563eb; font-size:15.5px; font-weight:bold;">${rB.toFixed(2)} m</span><br>
+                    • <b>Khoảng cách chênh lệch giữa 2 vị trí:</b> Δr = |r<sub>A</sub> - r<sub>B</sub>| ≈ <span style="color:#059669; font-size:16px; font-weight:bold;">${deltaR.toFixed(2)} m</span><br>
+                    • <b>Tỷ số khoảng cách:</b> r<sub>B</sub> / r<sub>A</sub> = 10<sup>(L<sub>A</sub> - L<sub>B</sub>)/20</sup> ≈ <span style="color:#8b5cf6; font-size:16px; font-weight:bold;">${ratio.toFixed(3)}</span> lần
                 </div>
             `;
         } else {
@@ -2298,25 +2096,20 @@
                 box.innerHTML = "⚠️ Chưa có dữ liệu đo cường độ âm!";
                 return;
             }
-            let rawAvgDb = dbHistoryA.reduce((sum, item) => sum + item.rawDb, 0) / dbHistoryA.length;
-            let rawDist = r0 * Math.pow(10, (L0 - rawAvgDb) / 20);
-
-            let calAvgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
-            let calDist = r0 * Math.pow(10, (L0 - calAvgDb) / 20);
+            let avgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let dist = r0 * Math.pow(10, (L0 - avgDb) / 20);
 
             box.innerHTML = `
-                <div style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #93c5fd; color: #475569;">
-                    📍 <b>CHƯA HIỆU CHUẨN (SỐ LIỆU THÔ):</b><br>
-                    • MCĐ Trung bình thô: <b>${rawAvgDb.toFixed(1)} dB</b> ➔ Khoảng cách thô: <b>r<sub>thô</sub> ≈ ${rawDist.toFixed(2)} m</b>
-                </div>
-                <div>
-                    🎯 <b>SAU HIỆU CHUẨN (SỐ LIỆU CHUẨN):</b><br>
-                    • MCĐ Trung bình chuẩn: <b>${calAvgDb.toFixed(1)} dB</b><br>
-                    • Khoảng cách ước tính chuẩn từ nguồn âm: <span style="font-size: 16.5px; color: #dc2626; font-weight: bold;">r ≈ ${calDist.toFixed(2)} m</span>
+                <div style="padding: 4px; line-height:1.7;">
+                    🎯 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TỪ NGUỒN ÂM (1 KÊNH):</b><br>
+                    • Mức cường độ âm trung bình: <b>${avgDb.toFixed(1)} dB</b><br>
+                    • Khoảng cách ước tính từ nguồn phát: <span style="font-size: 16.5px; color: #dc2626; font-weight: bold;">r ≈ ${dist.toFixed(2)} m</span>
                 </div>
             `;
         }
-    }function openFFTModal() {
+    }
+
+    function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
         document.getElementById('fftModalOverlay').classList.add('animUI-visible'); document.getElementById('fftModalOverlay').style.display = 'flex';
         const inputFreq = document.getElementById('fftTargetFreq'); if (lockedFrequency > 20) inputFreq.value = Math.round(lockedFrequency);
@@ -2671,17 +2464,18 @@
         let str = text;
 
         let mathBlocks = [];
-        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^\$\n]+?\$|\\\([\s\S]*?\\\))/g, function(match) {
+        let protectedStr = str.replace(/(\$\$[\s\S]*?\$\$|\\[[\s\S]*?\\]|\$[^\$
+]+?\$|\\([\s\S]*?\\))/g, function(match) {
             let idx = mathBlocks.length;
             mathBlocks.push(match);
             return `___MATH_BLOCK_${idx}___`;
         });
 
-        let texFormulaRegex = /(?:\b[a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)\b(?:\\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|\b[a-zA-Z0-9_]{1,3}\b|[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
+        let texFormulaRegex = /(?:[a-zA-Z0-9_]{1,3}\s*=\s*)?(?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|[a-zA-Z0-9_]{1,3}|[\+\-\*/\=\^\_\<\>°\.,]|\s)*?\(?:cos|sin|tan|cot|omega|varphi|pi|lambda|Delta|frac|sqrt|mathbb|text|cdot|approx|ge|le|in|times)(?:\(?:[a-zA-Z]+|[^a-zA-Z])|\{[^{}]*\}|\[[^\]]*\]|\([^\)]*\)|[a-zA-Z0-9_]{1,3}|[\+\-\*/\=\^\_\<\>°\.,]|\s)*/g;
 
         protectedStr = protectedStr.replace(texFormulaRegex, function(match) {
             let raw = match.trim();
-            if (!raw || raw.indexOf('\\') === -1) return match;
+            if (!raw || raw.indexOf('\') === -1) return match;
             let punct = "";
             while (raw && '.,;:!?'.indexOf(raw.charAt(raw.length - 1)) !== -1) {
                 punct = raw.charAt(raw.length - 1) + punct;
@@ -2695,14 +2489,14 @@
             protectedStr = protectedStr.replace(`___MATH_BLOCK_${i}___`, mathBlocks[i]);
         }
 
-        return protectedStr.replace(/\n/g, '<br>');
+        return protectedStr.replace(/
+/g, '<br>');
     }
 
     function toggleChat() { const widget = document.getElementById('fox-chat-widget'); widget.classList.toggle('open'); if (widget.classList.contains('open')) { setTimeout(() => document.getElementById('fox-chat-input').focus(), 300); } }
     function toggleChatTheme() { const chatBox = document.getElementById('fox-chat-box'); chatBox.classList.toggle('light-theme'); }
     function updateFoxLiveFrequency(freq) { const freqTag = document.getElementById('foxLiveFreqTag'); if (freqTag) freqTag.innerText = freq.toFixed(1) + ' Hz'; }
 
-    // --- CHỨC NĂNG 4: CHUYỂN ĐỔI CHẾ ĐỘ GIÁO VIÊN / HỌC SINH ---
     function toggleFoxRole() {
         const btn = document.getElementById('foxRoleToggleBtn');
         if (currentFoxRole === 'student') {
@@ -2720,22 +2514,29 @@
         }
     }
 
-    // --- CHỨC NĂNG 1: GỢI Ý CÂU HỎI NHANH (QUICK PROMPT CHIPS) ---
     function sendQuickPrompt(promptText) {
         document.getElementById('fox-chat-input').value = promptText;
         sendFoxMessage();
     }
 
-    // --- CHỨC NĂNG 2: TẢI LÊN HÌNH ẢNH ĐỀ BÀI (IMAGE OCR / VISION) ---
+    // REQ 2: Photo capture / upload handling without navigating away or causing app exits
     function handleImageSelected(event) {
+        isUploadingOrCapturing = true;
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            isUploadingOrCapturing = false;
+            return;
+        }
         const reader = new FileReader();
         reader.onload = function(e) {
             uploadedImageBase64 = e.target.result;
             document.getElementById('imagePreviewThumb').src = uploadedImageBase64;
             document.getElementById('imagePreviewName').innerText = file.name;
             document.getElementById('imagePreviewContainer').style.display = 'flex';
+            isUploadingOrCapturing = false;
+        };
+        reader.onerror = function() {
+            isUploadingOrCapturing = false;
         };
         reader.readAsDataURL(file);
     }
@@ -2744,9 +2545,9 @@
         uploadedImageBase64 = null;
         document.getElementById('foxImageUpload').value = '';
         document.getElementById('imagePreviewContainer').style.display = 'none';
+        isUploadingOrCapturing = false;
     }
 
-    // --- CHỨC NĂNG 3: XUẤT BẢN BÁO CÁO THÍ NGHIỆM (EXPORT REPORT WORD/TXT) ---
     function exportChatReport(btn) {
         const chatRows = document.querySelectorAll('.fox-msg-row');
         let reportText = "=== BÁO CÁO KẾT QUẢ THỰC HÀNH VẬT LÝ SÓNG CƠ - FOX_LAB ===\n";
@@ -2757,7 +2558,6 @@
             const isUser = row.classList.contains('fox-msg-user');
             const bubble = row.querySelector('.fox-msg-bubble');
             if (bubble) {
-                // Lọc bỏ nút copy hoặc thẻ ảnh base64 dài
                 let clone = bubble.cloneNode(true);
                 clone.querySelectorAll('button, img').forEach(el => el.remove());
                 let text = clone.innerText.trim();
@@ -2781,7 +2581,6 @@
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !sendBtn.disabled) sendFoxMessage(); });
     sendBtn.addEventListener('click', sendFoxMessage);
 
-    // --- XỬ LÝ NHẬN DIỆN GIỌNG NÓI (SPEECH-TO-TEXT) ---
     const foxMicBtn = document.getElementById('foxMicBtn');
     let recognition = null;
     let isListening = false;
@@ -2898,7 +2697,7 @@
             addChatMessage('bot', fallbackText);
         }
     }
-    
+
     window.copyFoxText = function (btn, text) { navigator.clipboard.writeText(text).then(() => { let oldText = btn.innerText; btn.innerText = "Đã Copy ✓"; setTimeout(() => btn.innerText = oldText, 1500); }); }
     
     async function addChatMessage(sender, text) {
