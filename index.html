@@ -2898,7 +2898,7 @@
             addChatMessage('bot', fallbackText);
         }
     }
-
+    
     window.copyFoxText = function (btn, text) { navigator.clipboard.writeText(text).then(() => { let oldText = btn.innerText; btn.innerText = "Đã Copy ✓"; setTimeout(() => btn.innerText = oldText, 1500); }); }
     
     async function addChatMessage(sender, text) {
