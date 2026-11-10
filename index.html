@@ -395,7 +395,7 @@
         #imagePreviewName { font-size: 11px; color: #e2e8f0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .fox-remove-img { background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* Style Tối Ưu Mới Cho Thẻ Khoảng Cách Nguồn Âm (Gom gọn tiêu đề card, tránh khoảng trắng quá xa) */
+        /* Style Tối Ưu Mới Cho Thẻ Khoảng Cách Nguồn Âm & Header Bar Chống Tràn/Đè */
         .dist-card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; }
         .dist-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
         .dist-card-border-a { border-left: 4px solid #ef4444; }
@@ -406,7 +406,7 @@
         .dist-card-value { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1.2; margin: 4px 0; }
         .dist-card-sub { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 500; }
         .dist-header-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 8px; }
-        .dist-formula-badge { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .dist-formula-badge { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -2211,7 +2211,7 @@
         if (overlay) overlay.style.display = 'none';
     }
 
-    // TỐI ƯU TIÊU ĐỀ CARD (GOM GỌN KÝ HIỆU SÁT TÊN TIẾNG VIỆT, TRÁNH KHOẢNG TRẮNG QUÁ XA)
+    // TỐI ƯU TIÊU ĐỀ CARD & HEADER BAR (TRÁNH TRÀN CHỮ / ĐÈ NHAU TRÊN MỌI MÀN HÌNH)
     function calculateAvgDistance() {
         const mode = getActiveChannelMode();
         const box = document.getElementById('distanceResultBox');
@@ -2235,9 +2235,9 @@
 
             box.innerHTML = `
                 <div class="dist-header-bar">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:16px;">📐</span>
-                        <span style="font-weight:700; color:#0f172a; font-size:14px; text-transform:uppercase;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM ($r_A, r_B$)</span>
+                    <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                        <span style="font-size:16px; flex-shrink:0;">📐</span>
+                        <span style="font-weight:700; color:#0f172a; font-size:13.5px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM ($r_A, r_B$)</span>
                     </div>
                     <div class="dist-formula-badge">
                         <span>Công thức:</span>
@@ -2281,9 +2281,9 @@
 
             box.innerHTML = `
                 <div class="dist-header-bar">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:16px;">📐</span>
-                        <span style="font-weight:700; color:#0f172a; font-size:14px; text-transform:uppercase;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM TỚI MICRO</span>
+                    <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                        <span style="font-size:16px; flex-shrink:0;">📐</span>
+                        <span style="font-weight:700; color:#0f172a; font-size:13.5px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">KẾT QUẢ TÍNH KHOẢNG CÁCH NGUỒN ÂM TỚI MICRO</span>
                     </div>
                     <div class="dist-formula-badge">
                         <span>Công thức:</span>
@@ -2934,7 +2934,7 @@
                         };
                     };
                 })
-                .catch(err => console.log('ServiceWorker registration failed:', err));
+                .catch(err => console.log('ServiceWorker registration registration failed:', err));
         });
     }
 </script>
