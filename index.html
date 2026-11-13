@@ -8,6 +8,7 @@
     <link rel="apple-touch-icon" href="icon-512.png">
     <meta name="theme-color" content="#f97316">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>FOX_LAB - Phòng thí nghiệm Vật lý về sóng cơ học</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -769,13 +770,11 @@
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
-(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?
-(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
                 try {
                     infoMessageText.innerHTML = "Đang gửi yêu cầu giải phóng device ID...";
                     await fetch(LICENSE_GAS_URL, {
@@ -790,8 +789,7 @@
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
-Bạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
                 try {
                     infoMessageText.innerHTML = "Đang xóa Key & Device ID trên Google Sheet...";
                     await fetch(LICENSE_GAS_URL, {
@@ -831,10 +829,7 @@ Bạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? 
                 activateFullMode(key);
             } else {
                 if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}
-
-Mã Key này có thể đang được sử dụng ở thiết bị khác.
-Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
+                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
                     if (confirmChange) {
                         forceChangeDevice(key, type);
                     } else {
@@ -860,8 +855,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
                 alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
                 activateFullMode(key);
             } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}
-(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
+                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
                 forceLogout();
             }
         } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
@@ -938,7 +932,6 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
         let now = Date.now();
 
         if (savedKey) {
-            // Nếu thoát ra vào lại trong vòng 20s trên cùng thiết bị -> Tính 1 lần, kích hoạt ngay lập tức không bắt chờ/đếm trùng
             if (now - lastVerify < 20000) {
                 activateFullMode(savedKey);
             } else {
@@ -2265,8 +2258,7 @@ Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất má
             .replace(/([a-zA-Z])cos/g, '$1·cos')
             .replace(/([a-zA-Z])sin/g, '$1·sin')
             .replace(/([a-zA-Z])tan/g, '$1·tan')
-            .replace(/
-/g, '<br>');
+            .replace(/\n/g, '<br>');
 
         return formatted;
     }
