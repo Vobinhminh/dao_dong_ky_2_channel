@@ -12,30 +12,7 @@
     <title>FOX_LAB - Phòng thí nghiệm Vật lý về sóng cơ học</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true,
-                processEnvironments: true,
-                packages: ['base', 'ams', 'noerrors', 'noundefined']
-            },
-            options: {
-                ignoreHtmlClass: 'tex2jax_ignore',
-                processHtmlClass: 'tex2jax_process|fox-msg-bubble|hud-overlay'
-            },
-            chtml: {
-                scale: 1.05,
-                displayAlign: 'left'
-            }
-        };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
         @keyframes animUI-fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes animUI-slideDown { from { opacity: 0; transform: translateY(-8px) scaleY(0.95); } to { opacity: 1; transform: none; } }
@@ -229,7 +206,7 @@
             display: flex; justify-content: center; align-items: center; overflow: hidden;
             flex-grow: 1; position: relative;
         }
-        .modal-display-canvas { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; height: 100%; display: block; touch-action: none; }
+        .modal-display-canvas { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; height: 100%; display: block; }
         #fftModal .modal-header { background: linear-gradient(90deg, #7c3aed, #4f46e5); }
         #twoSourceModal .modal-header { background: linear-gradient(90deg, #db2777, #c026d3); }
 
@@ -242,6 +219,9 @@
         .hud-highlight { color: #facc15; font-weight: bold; }
         .hud-eq { color: #10b981; font-style: italic; }
         .math-symbol { font-family: "Times New Roman", Times, serif; font-style: italic; font-size: 14.5px; }
+        .math-fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; font-size: 0.95em; }
+        .math-numerator { border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+        .math-denominator { padding-top: 1px; }
 
         .ts-mode-toggle { display: flex; gap: 4px; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid #334155; position: relative; overflow: hidden; }
         .ts-mode-pill { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px; pointer-events: none; z-index: 1; transition: transform 0.24s ease, width 0.24s ease; opacity: 0; }
@@ -315,7 +295,6 @@
         .fox-msg-group { position: relative; display: flex; flex-direction: column; max-width: 85%; gap: 2px; }
         .fox-copy-btn { position: absolute; bottom: -18px; right: 0px; background: #cbd5e1; border: none; border-radius: 4px; color: #0f172a; cursor: pointer; font-size: 9px; padding: 2px 6px; font-weight: bold; opacity: 0; transition: opacity 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
         .fox-msg-group:hover .fox-copy-btn { opacity: 1; }
-
         .fox-msg-user .fox-msg-group { align-items: flex-end; }
         .fox-msg-bot .fox-msg-group { align-items: flex-start; }
         .fox-msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.4; word-wrap: break-word; max-width: 100%; }
@@ -325,7 +304,6 @@
 
         .fox-typing-indicator { display: inline-flex; align-items: center; width: auto; white-space: nowrap; }
         .fox-typing-text { font-size: 11px; color: #94a3b8; font-style: italic; margin-left: 6px; }
-
         .fox-input-container { padding: 10px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
         .fox-input-box { display: flex; align-items: center; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 4px 6px 4px 12px; }
         #fox-chat-input { flex: 1; background: transparent; border: none; color: #f8fafc; font-size: 12px; outline: none; padding: 6px 0; }
@@ -334,14 +312,31 @@
         .fox-send-btn svg { width: 12px; height: 12px; margin-left: 2px; }
         .fox-footer-meta { font-size: 9px; color: var(--fox-text-muted); text-align: center; }
         .fox-freq-tag { color: var(--fox-cyan); font-weight: 600; }
+
+        .doppler-card {
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-top: 16px;
+        }
+        .doppler-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px;
+        }
+        .doppler-field {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .doppler-field label {
+            font-size: 11.5px; font-weight: 700; color: #334155;
+        }
+        .doppler-field input, .doppler-field select {
+            padding: 6px 8px; font-size: 12px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; color: #0f172a;
+        }
     </style>
 </head>
 <body>
 
+<!-- MODAL BẢN QUYỀN -->
 <div id="licenseModalOverlay" class="license-modal-overlay" style="display: none;">
     <div class="license-selection-box">
-        <h2>🦊 FOX_LAB - Phòng thí nghiệm Vật lý về sóng cơ</h2>
-        <p>Phần mềm phòng thí nghiệm Vật lý chuyên đề sóng cơ dành cho Giáo viên & Học sinh.</p>
+        <h2>🦊 FOX_LAB- Phòng thí nghiệm Vật lý về sóng cơ</h2>
+        <p>Phần mềm phòng thí nghiệm Vật lý chuyên đề sóng cơ nghiệp dành cho Giáo viên & Học sinh.</p>
         <div class="license-btn-group">
             <button class="license-btn btn-demo-mode" onclick="selectMode('demo')">🧪 Dùng thử Demo (Giới hạn tính năng)</button>
             <button class="license-btn btn-full-mode" onclick="selectMode('full')">🔑 Kích hoạt Bản Full (Nhập Key)</button>
@@ -353,6 +348,7 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-green" style="flex: 1; padding: 10px; font-size: 12.5px; font-weight: bold;" onclick="verifyEnteredKey('verify')">✅ Xác thực & Mở khóa</button>
+                <button class="btn-orange" style="flex: 1; padding: 10px; font-size: 12.5px; font-weight: bold;" onclick="verifyEnteredKey('change')">🔄 Đổi sang máy này</button>
             </div>
         </div>
         <div class="contact-box">
@@ -372,6 +368,10 @@
         <select id="modeSelect" style="display:none">
             <option value="auto">Khảo sát tần số (Tự dừng)</option>
             <option value="continuous" selected>Khảo sát liên tục</option>
+        </select>
+        <select id="displayModeSelect" style="display:none">
+            <option value="oscilloscope" selected>Dao động ký</option>
+            <option value="dbMeter">Cường độ âm (dB)</option>
         </select>
         <select id="speedSelect" style="display:none">
             <option value="fast" selected>Nhanh</option>
@@ -396,6 +396,13 @@
                         <div class="settings-group-items">
                             <div class="settings-item" data-target="modeSelect" data-value="auto">Tự dừng</div>
                             <div class="settings-item active" data-target="modeSelect" data-value="continuous">Liên tục</div>
+                        </div>
+                    </div>
+                    <div class="settings-group" id="groupDisplayMode">
+                        <div class="settings-group-header" data-group="displayMode"><span>Chế độ hiển thị</span><span class="group-arrow">›</span></div>
+                        <div class="settings-group-items">
+                            <div class="settings-item active" data-target="displayModeSelect" data-value="oscilloscope">Dao động ký</div>
+                            <div class="settings-item" data-target="displayModeSelect" data-value="dbMeter">Cường độ âm (dB)</div>
                         </div>
                     </div>
                     <div class="settings-group" id="groupSpeed" style="display: block;">
@@ -461,7 +468,7 @@
         </div>
         <div class="modal-controls">
             <button class="btn-dark" onclick="closeFFTModal()">⬅ Quay lại</button>
-            <label style="font-weight: 600; font-size: 11.5px; margin-left:10px;">Tần số (f<sub>0</sub>):</label>
+            <label style="font-weight: 600; font-size: 11.5px; margin-left:10px;">Tần số (f0):</label>
             <input type="number" id="fftTargetFreq" value="440" min="20" max="5000" oninput="processAndDrawFFT()">
             <span style="font-weight: 600; font-size: 11.5px;">Hz</span>
             <button class="btn-green" onclick="processAndDrawFFT()">Quét Họa âm</button>
@@ -492,6 +499,7 @@
         </div>
         <div class="fft-canvas-container" id="tsContainer">
             <canvas id="twoSourceCanvas" class="modal-display-canvas"></canvas>
+
             <div id="hudResults" class="hud-overlay">
                 <div class="hud-title">BẢNG KẾT QUẢ ĐỐI CHIẾU</div>
                 <div>Tần số Kênh A: <span class="hud-highlight" id="hudFreqA">0.0</span> Hz &nbsp;|&nbsp; Chu kỳ T<sub>A</sub> = <span class="hud-highlight" id="hudPerA">0.00</span> ms &nbsp;|&nbsp; Biên độ A: <span class="hud-highlight" id="hudAmpA">0.00</span></div>
@@ -500,13 +508,54 @@
                     Độ lệch pha Δφ: <span class="hud-highlight" id="hudPhaseRad">0.00</span> rad (<span class="hud-highlight" id="hudPhaseDeg">0</span>°)
                 </div>
             </div>
+
             <div id="hudEquations" class="hud-overlay" style="top: auto; bottom: 16px; left: 16px;">
                 <div class="hud-title">PHƯƠNG TRÌNH DAO ĐỘNG</div>
                 <div class="hud-eq">Kênh A: <span class="math-symbol">u<sub>A</sub> = <span id="eqAmpA">A</span>·cos(2π·<span id="eqFreqA">0</span>·t)</span></div>
                 <div class="hud-eq">Kênh B: <span class="math-symbol">u<sub>B</sub> = <span id="eqAmpB">A</span>·cos(2π·<span id="eqFreqB">0</span>·t <span id="eqPhase">+ 0.00</span>)</span></div>
                 <div class="hud-eq" id="eqSumLine" style="margin-top:4px;">Tổng hợp: <span class="math-symbol">u = u<sub>A</sub> + u<sub>B</sub></span></div>
             </div>
+
             <div id="tsWarningText" class="beat-warning">⚠️ Hai nguồn khác tần số (Tạo Sóng Phách)</div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PHÂN TÍCH MỨC CƯỜNG ĐỘ ÂM (MCĐ) & HIỆU ỨNG DOPPLER -->
+<div id="mcdModalOverlay" class="modal-overlay">
+    <div id="mcdModal" class="modal-content" style="background: #ffffff; color: #0f172a;" onclick="event.stopPropagation()">
+        <div class="modal-header" style="background: linear-gradient(90deg, #059669, #10b981);">
+            <span>📊 Phân tích Mức Cường độ âm (MCĐ) & Khoảng cách Nguồn âm</span>
+        </div>
+        
+        <div class="modal-controls" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <button class="btn-dark" onclick="closeMcdModal()">⬅ Quay lại</button>
+            <button class="btn-blue" onclick="calculateAvgDistance()">📏 Tính khoảng cách nguồn âm chính xác (Cố định / 2 Vị trí)</button>
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
+            <div id="mcdReportTableContainer" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;" id="mcdTableHeaderTitle">
+                    BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC
+                </h3>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; text-align: left; color: #475569;">
+                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Thông số đo</th>
+                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Giá trị (dB)</th>
+                            <th style="padding: 10px; border: 1px solid #cbd5e1;">Đánh giá ngưỡng an toàn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mcdTableBody">
+                    </tbody>
+                </table>
+
+                <div id="distanceResultBox" style="display: none; margin-top: 16px; padding: 14px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-weight: 600; line-height: 1.6;">
+                </div>
+
+
+            </div>
         </div>
     </div>
 </div>
@@ -561,6 +610,14 @@
 </div>
 
 <script>
+    const sharedRecA = new Float32Array(2048);
+    const sharedRecB = new Float32Array(2048);
+    const sharedFFTRec = new Float32Array(4096);
+    const sharedDbChunkA = new Float32Array(1024);
+    const sharedDbChunkB = new Float32Array(1024);
+    let analysisPoints = [];
+    let resizeTimeout = null;
+
     async function checkAppVersion() {
         try {
             const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
@@ -594,14 +651,6 @@
     let lastBackgroundTime = 0;
     let lastReturnProcessTime = 0;
     let isSelectActive = false;
-
-    // FIX: Sửa lỗi đóng băng trên ĐTDĐ do sự kiện focus của menu chọn
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('select').forEach(sel => {
-            sel.addEventListener('focus', () => { isSelectActive = true; });
-            sel.addEventListener('blur', () => { setTimeout(() => { isSelectActive = false; }, 300); });
-        });
-    });
 
     function onAppLeave() {
         if (isSelectActive) return;
@@ -652,6 +701,7 @@
     const pauseButton = document.getElementById('pauseButton'), resetButton = document.getElementById('resetButton');
     const btnAnalysis = document.getElementById('btnAnalysis'), infoMessageText = document.getElementById('infoMessageText');
     const channelModeSelect = document.getElementById('channelModeSelect'), modeSelect = document.getElementById('modeSelect'), speedSelect = document.getElementById('speedSelect');
+    const displayModeSelect = document.getElementById('displayModeSelect');
     const micSelectA = document.getElementById('micSelectA'), micSelectB = document.getElementById('micSelectB');
     const canvas = document.getElementById('oscilloscope'), canvasCtx = canvas.getContext('2d', { alpha: false });
     const settingsDropdown = document.getElementById('settingsDropdown'), settingsMenu = document.getElementById('settingsMenu');
@@ -663,12 +713,31 @@
     let isUserZoomed = false, totalTimeOnScreen = 5 * (1.0 / 440), currentZoomY = 2.0;
 
     let isTwoSourceModalOpen = false, isTsPaused = false;
-    let snapDataA = [], snapDataB = [], tsViewMode = 'overlay';
+    let snapDataA = [], snapDataB = [], snapIdxA = 0, snapIdxB = 0, tsViewMode = 'overlay';
     let showTsResults = false, showTsEquations = false;
     let currentCalcFreqA = 0, currentCalcFreqB = 0, currentAmpA = 0, currentAmpB = 0;
-    
-    // Mảng lưu trữ điểm phân tích trên đồ thị
-    let pickedPoints = [];
+
+    let dbHistoryA = [];
+    let dbHistoryB = [];
+    let selectedBarIndexA = -1;
+    let selectedBarIndexB = -1;
+    const SAFETY_THRESHOLD_DB = 85.0;
+
+    function getDisplayMode() {
+        return displayModeSelect ? displayModeSelect.value : 'oscilloscope';
+    }
+
+    function calculateRMSdB(buffer) {
+        if (!buffer || buffer.length === 0) return 30.0;
+        let sum = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            sum += buffer[i] * buffer[i];
+        }
+        let rms = Math.sqrt(sum / buffer.length);
+        if (rms < 0.0001) rms = 0.0001;
+        let db = 20 * Math.log10(rms / 0.00002);
+        return Math.max(30.0, Math.min(120.0, db));
+    }
 
     function getDeviceId() {
         let deviceId = localStorage.getItem('fox_device_id');
@@ -695,24 +764,45 @@
         document.getElementById('keyInputContainer').style.display = 'none';
     }
 
-    window.handleLicenseAction = function (action) {
+    window.handleLicenseAction = async function (action) {
         let key = localStorage.getItem('fox_license_key');
         if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
 
         if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn được lưu trên hệ thống, nhưng sẽ bị đăng xuất khỏi máy này)")) {
+            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?
+(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
                 forceLogout(false);
             }
         } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị hiện tại sẽ bị đăng xuất để bạn có thể dùng Key này đăng nhập vào máy tính khác)")) {
-                fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() }) });
-                alert("Đã gửi yêu cầu giải phóng thiết bị!");
+            if (confirm("🔄 Bạn muốn Đổi thiết bị?
+(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
+                try {
+                    infoMessageText.innerHTML = "Đang gửi yêu cầu giải phóng device ID...";
+                    await fetch(LICENSE_GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() })
+                    });
+                    alert("✅ Đã tự động xóa Device ID trên Google Sheet! Bạn có thể nhập Key này trên máy mới.");
+                } catch (e) {
+                    console.log("Lỗi gửi releaseDevice:", e);
+                }
                 forceLogout(false);
             }
         } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa hẳn Key này khỏi hệ thống? (Thao tác này không thể hoàn tác)")) {
-                fetch(LICENSE_GAS_URL, { method: 'POST', body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() }) });
-                alert("Đã gửi lệnh xóa Key vĩnh viễn!");
+            if (confirm("🗑 XÓA KEY VĨNH VIỄN?
+Bạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
+                try {
+                    infoMessageText.innerHTML = "Đang xóa Key & Device ID trên Google Sheet...";
+                    await fetch(LICENSE_GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() })
+                    });
+                    alert("✅ Đã gửi lệnh xóa Key & Device ID vĩnh viễn khỏi hệ thống!");
+                } catch (e) {
+                    console.log("Lỗi xóa key:", e);
+                }
                 forceLogout(false);
             }
         }
@@ -741,7 +831,10 @@
                 activateFullMode(key);
             } else {
                 if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
+                    let confirmChange = confirm(`❌ Lỗi: ${result.message}
+
+Mã Key này có thể đang được sử dụng ở thiết bị khác.
+Bạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
                     if (confirmChange) {
                         forceChangeDevice(key, type);
                     } else {
@@ -767,7 +860,8 @@
                 alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
                 activateFullMode(key);
             } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
+                alert(`❌ Không thể đổi thiết bị: ${result.message}
+(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
                 forceLogout();
             }
         } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
@@ -796,30 +890,35 @@
     function saveAppState() {
         localStorage.setItem('fox_channel_mode', channelModeSelect.value);
         localStorage.setItem('fox_mode_select', modeSelect.value);
+        if (displayModeSelect) localStorage.setItem('fox_display_mode', displayModeSelect.value);
         localStorage.setItem('fox_speed_select', speedSelect.value);
         localStorage.setItem('fox_mic_a', micSelectA.value);
         localStorage.setItem('fox_mic_b', micSelectB.value);
     }
 
     function restoreAppState() {
-        if (localStorage.getItem('fox_channel_mode')) channelModeSelect.value = localStorage.getItem('fox_channel_mode');
-        const savedMode = localStorage.getItem('fox_mode_select');
-        modeSelect.value = savedMode ? savedMode : 'continuous';
-        if (typeof isContinuousMode !== 'undefined') isContinuousMode = (modeSelect.value === 'continuous');
-        if (localStorage.getItem('fox_speed_select')) speedSelect.value = localStorage.getItem('fox_speed_select');
+        channelModeSelect.value = '1';
+        modeSelect.value = 'continuous';
+        if (displayModeSelect) displayModeSelect.value = 'oscilloscope';
+        speedSelect.value = 'fast';
+
+        if (typeof isContinuousMode !== 'undefined') isContinuousMode = true;
 
         document.querySelectorAll('#groupChannelMode .settings-item').forEach(el => {
-            if (el.dataset.value === channelModeSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
+            el.classList.toggle('active', el.dataset.value === '1');
         });
         document.querySelectorAll('#groupMode .settings-item').forEach(el => {
-            if (el.dataset.value === modeSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
+            el.classList.toggle('active', el.dataset.value === 'continuous');
+        });
+        document.querySelectorAll('#groupDisplayMode .settings-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === 'oscilloscope');
         });
         document.querySelectorAll('#groupSpeed .settings-item').forEach(el => {
-            if (el.dataset.value === speedSelect.value) { el.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
+            el.classList.toggle('active', el.dataset.value === 'fast');
         });
 
-        document.getElementById('groupSpeed').style.display = (modeSelect.value === 'continuous') ? 'block' : 'none';
-        document.getElementById('cardChannelB').style.display = (channelModeSelect.value === '2') ? 'flex' : 'none';
+        document.getElementById('groupSpeed').style.display = 'block';
+        document.getElementById('cardChannelB').style.display = 'none';
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -835,9 +934,22 @@
         }
 
         let savedKey = localStorage.getItem('fox_license_key');
-        if (savedKey) { verifyKeyWithServer(savedKey, "full", true); }
-        else if (keyParam) { document.getElementById('licenseModalOverlay').style.display = 'none'; await verifyKeyWithServer(keyParam, "full"); }
-        else { openLicenseModal(); }
+        let lastVerify = parseInt(localStorage.getItem('fox_last_verify_time') || '0', 10);
+        let now = Date.now();
+
+        if (savedKey) {
+            // Nếu thoát ra vào lại trong vòng 20s trên cùng thiết bị -> Tính 1 lần, kích hoạt ngay lập tức không bắt chờ/đếm trùng
+            if (now - lastVerify < 20000) {
+                activateFullMode(savedKey);
+            } else {
+                verifyKeyWithServer(savedKey, "full", true);
+            }
+        } else if (keyParam) {
+            document.getElementById('licenseModalOverlay').style.display = 'none';
+            await verifyKeyWithServer(keyParam, "full");
+        } else {
+            openLicenseModal();
+        }
     });
 
     setInterval(async () => {
@@ -846,10 +958,15 @@
             try {
                 const response = await fetch(LICENSE_GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "verifyKey", key: activeKey, deviceId: getDeviceId(), type: "full" }) });
                 const result = await response.json();
-                if (result.status !== "success") { alert("⚠️ Key bản quyền của bạn đã bị đăng xuất hoặc xóa khỏi hệ thống. Ứng dụng sẽ khóa lại!"); forceLogout(); }
+                if (result.status !== "success") {
+                    alert("⚠️ Key bản quyền của bạn đã bị đăng xuất hoặc giải phóng khỏi thiết bị. Ứng dụng sẽ quay lại bản dùng thử!");
+                    forceLogout();
+                } else {
+                    localStorage.setItem('fox_last_verify_time', Date.now().toString());
+                }
             } catch (e) { }
         }
-    }, 30000);
+    }, 45000);
 
     function checkAndShowQR() {
         const qrPanel = document.getElementById('qrPanel'), qrImage = document.getElementById('qrImage');
@@ -862,24 +979,19 @@
         if (activeKey) { qrUrl += '?key=' + encodeURIComponent(activeKey); }
         qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
     }
-    window.addEventListener('resize', checkAndShowQR);
+    
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => { resizeCanvas(); checkAndShowQR(); }, 150);
+    });
 
     let workletUrl = null;
-    let isWorkletLoaded = false;
-    // FIX: Thêm cờ chống nạp lại AudioWorklet gây lỗi bộ nhớ
     async function setupAudioWorklet(ctx) {
-        if (isWorkletLoaded) return true;
         if (!workletUrl) {
             const workletCode = `class FoxAudioProcessor extends AudioWorkletProcessor { process(inputs, outputs) { const input = inputs[0]; if (input && input.length > 0 && input[0]) { this.port.postMessage(input[0]); } return true; } } registerProcessor('fox-audio-processor', FoxAudioProcessor);`;
             workletUrl = URL.createObjectURL(new Blob([workletCode], { type: 'application/javascript' }));
         }
-        try { 
-            await ctx.audioWorklet.addModule(workletUrl); 
-            isWorkletLoaded = true;
-            return true; 
-        } catch (e) { 
-            return false; 
-        }
+        try { await ctx.audioWorklet.addModule(workletUrl); return true; } catch (e) { return false; }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -889,6 +1001,7 @@
         document.getElementById('qrPanel').addEventListener('click', function () { this.style.display = 'none'; });
         document.getElementById('fftModalOverlay').addEventListener('click', closeFFTModal);
         document.getElementById('twoSourceModalOverlay').addEventListener('click', closeTwoSourceModal);
+        document.getElementById('mcdModalOverlay').addEventListener('click', closeMcdModal);
         resizeCanvas(); updateUIState(); drawFrame(true);
     });
 
@@ -951,15 +1064,7 @@
 
     function stopAudioChannel(channelId) {
         const cfg = channelConfig[channelId]; if (!cfg) return;
-        if (cfg.stream) { 
-            // FIX: Xử lý dùng chung thiết bị, không tắt stream nếu kênh kia đang dùng
-            const otherChannelId = channelId === 'A' ? 'B' : 'A';
-            const otherCfg = channelConfig[otherChannelId];
-            if (!otherCfg.active || otherCfg.stream !== cfg.stream) {
-                cfg.stream.getTracks().forEach(track => track.stop()); 
-            }
-            cfg.stream = null; 
-        }
+        if (cfg.stream) { cfg.stream.getTracks().forEach(track => track.stop()); cfg.stream = null; }
         if (cfg.workletNode) { cfg.workletNode.port.onmessage = null; try { cfg.workletNode.disconnect(); } catch (e) { } cfg.workletNode = null; }
         if (cfg.source) { try { cfg.source.disconnect(); } catch (e) { } cfg.source = null; }
         if (cfg.filterHP) { try { cfg.filterHP.disconnect(); } catch (e) { } cfg.filterHP = null; }
@@ -970,22 +1075,52 @@
 
     function updateAnalysisButtonState() {
         const mode = getActiveChannelMode(), surveyMode = modeSelect.value, activeChannels = (channelConfig.A.active ? 1 : 0) + (channelConfig.B.active ? 1 : 0);
-        if (isDemoMode) { btnAnalysis.disabled = true; btnAnalysis.textContent = (mode === '1') ? "Phân tích FFT (Bản Full)" : "Xử lý nguồn âm (Bản Full)"; btnAnalysis.className = 'btn-slate'; return; }
-        if (mode === '2') {
+        
+        if (isDemoMode) {
+            btnAnalysis.disabled = true;
+            btnAnalysis.textContent = (getDisplayMode() === 'dbMeter') ? "Phân tích MCĐ (Bản Full)" : (mode === '1' ? "Phân tích FFT (Bản Full)" : "Xử lý nguồn âm (Bản Full)");
+            btnAnalysis.className = 'btn-slate';
+            return;
+        }
+
+        if (getDisplayMode() === 'dbMeter') {
             btnAnalysis.style.display = 'inline-block';
-            if (activeChannels === 2) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-pink'; }
-            else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-slate'; }
+            let hasHistory = (mode === '2') ? (dbHistoryA.length > 0 || dbHistoryB.length > 0) : (dbHistoryA.length > 0);
+            if (isPaused && hasHistory) {
+                btnAnalysis.disabled = false;
+                btnAnalysis.textContent = "Phân tích MCĐ nguồn âm";
+                btnAnalysis.className = 'btn-green';
+            } else {
+                btnAnalysis.disabled = true;
+                btnAnalysis.textContent = "Phân tích MCĐ nguồn âm";
+                btnAnalysis.className = 'btn-slate';
+            }
         } else {
-            if (surveyMode === 'auto') { btnAnalysis.style.display = 'none'; }
-            else {
+            if (mode === '2') {
                 btnAnalysis.style.display = 'inline-block';
-                if (channelConfig.A.active && isPaused) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-purple'; }
-                else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-slate'; }
+                if (activeChannels === 2) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-pink'; }
+                else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Xử lý nguồn âm"; btnAnalysis.className = 'btn-slate'; }
+            } else {
+                if (surveyMode === 'auto') { btnAnalysis.style.display = 'none'; }
+                else {
+                    btnAnalysis.style.display = 'inline-block';
+                    if (channelConfig.A.active && isPaused) { btnAnalysis.disabled = false; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-purple'; }
+                    else { btnAnalysis.disabled = true; btnAnalysis.textContent = "Phân tích FFT"; btnAnalysis.className = 'btn-slate'; }
+                }
             }
         }
     }
 
-    btnAnalysis.addEventListener('click', () => { if (getActiveChannelMode() === '1') { openFFTModal(); } else { openTwoSourceModal(); } });
+    btnAnalysis.addEventListener('click', () => {
+        if (getDisplayMode() === 'dbMeter') {
+            openMcdModal();
+        } else if (getActiveChannelMode() === '1') {
+            openFFTModal();
+        } else {
+            openTwoSourceModal();
+        }
+    });
+
     speedSelect.addEventListener('change', (e) => { targetFPS = (e.target.value === 'slow') ? 15 : 60; saveAppState(); });
     modeSelect.addEventListener('change', (e) => {
         isContinuousMode = (e.target.value === 'continuous'); clearTimeout(stopTimer);
@@ -993,6 +1128,12 @@
         if (isContinuousMode) { speedGroup.style.display = 'block'; targetFPS = (speedSelect.value === 'slow') ? 15 : 60; }
         else { speedGroup.style.display = 'none'; targetFPS = 60; speedSelect.value = "fast"; if (!isPaused) triggerAutoStop(); }
         updateAnalysisButtonState(); saveAppState();
+    });
+
+    displayModeSelect.addEventListener('change', () => {
+        updateAnalysisButtonState();
+        drawFrame();
+        saveAppState();
     });
 
     channelModeSelect.addEventListener('change', () => {
@@ -1013,69 +1154,68 @@
         if (isTwoSourceModalOpen) { const container = document.getElementById('tsContainer'), canv = document.getElementById('twoSourceCanvas'); if (container && canv) { canv.width = container.clientWidth - 12; canv.height = container.clientHeight - 12; } }
         drawFrame();
     }
-    window.addEventListener('resize', resizeCanvas);
 
-    let initialPinchDistance = 0, initialPinchTime = 0, initialZoomY = 0;
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const leftMargin = 55;
+        const rightMargin = 20;
+        const chartW = width - leftMargin - rightMargin;
+        const mode = getActiveChannelMode();
+
+        if (getDisplayMode() === 'dbMeter') {
+            if (mode === '2') {
+                const subH = height / 2;
+                if (clickX >= leftMargin && clickX <= width - rightMargin) {
+                    let barWidth = chartW / 120;
+                    let index = Math.floor((clickX - leftMargin) / barWidth);
+                    if (clickY < subH) {
+                        if (index >= 0 && index < dbHistoryA.length) { selectedBarIndexA = index; if (isPaused) drawFrame(); }
+                    } else {
+                        if (index >= 0 && index < dbHistoryB.length) { selectedBarIndexB = index; if (isPaused) drawFrame(); }
+                    }
+                }
+            } else {
+                if (clickX >= leftMargin && clickX <= width - rightMargin && dbHistoryA.length > 0) {
+                    let barWidth = chartW / 120;
+                    let index = Math.floor((clickX - leftMargin) / barWidth);
+                    if (index >= 0 && index < dbHistoryA.length) {
+                        selectedBarIndexA = index;
+                        if (isPaused) drawFrame();
+                    }
+                }
+            }
+        } else if (getDisplayMode() === 'oscilloscope' && isPaused && modeSelect && modeSelect.value === 'auto' && mode === '1') {
+            if (channelConfig.A.active && channelConfig.A.data) {
+                const samplesNeeded = Math.floor(sampleRate * totalTimeOnScreen);
+                const offset = findZeroCrossingOffset(channelConfig.A, channelConfig.A.index, samplesNeeded);
+                let timeMs = (clickX / width) * totalTimeOnScreen * 1000;
+                
+                let startIdx = channelConfig.A.index - offset - samplesNeeded;
+                let stepIndex = Math.floor((clickX / width) * samplesNeeded);
+                let len = channelConfig.A.data.length;
+                let idx = ((startIdx + stepIndex) % len + len) % len;
+                let amp = channelConfig.A.data[idx];
+                
+                let screenY = (height / 2) - (amp * currentZoomY * height / 2);
+                
+                if (analysisPoints.length >= 2) analysisPoints = [];
+                analysisPoints.push({ screenX: clickX, screenY: screenY, time: timeMs, amp: amp });
+                drawFrame();
+            }
+        }
+    });
 
     canvas.addEventListener('wheel', (e) => {
-        e.preventDefault(); isUserZoomed = true;
+        e.preventDefault(); isUserZoomed = true; analysisPoints = [];
         if (e.deltaY < 0) { totalTimeOnScreen *= 0.88; currentZoomY *= 1.12; } else { totalTimeOnScreen *= 1.12; currentZoomY /= 1.12; }
         totalTimeOnScreen = Math.max(0.0005, Math.min(totalTimeOnScreen, 5.0));
         currentZoomY = Math.max(0.1, Math.min(currentZoomY, 50.0));
         if (isPaused) drawFrame();
     }, { passive: false });
-
-    canvas.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault(); isUserZoomed = true;
-            let dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
-            initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
-            initialPinchTime = totalTimeOnScreen; initialZoomY = currentZoomY;
-        }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault();
-            let dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
-            let dist = Math.sqrt(dx * dx + dy * dy); let scale = initialPinchDistance / dist;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                totalTimeOnScreen = initialPinchTime * scale; totalTimeOnScreen = Math.max(0.0005, Math.min(totalTimeOnScreen, 5.0));
-            } else {
-                currentZoomY = initialZoomY / scale; currentZoomY = Math.max(0.1, Math.min(currentZoomY, 50.0));
-            }
-            if (isPaused) drawFrame();
-        }
-    }, { passive: false });
-
-    // TÍNH NĂNG MỚI: Bắt sự kiện click để chấm điểm phân tích sóng
-    canvas.addEventListener('click', (e) => {
-        if (isPaused && getActiveChannelMode() === '1' && modeSelect.value === 'auto') {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            const width = canvas.clientWidth;
-            
-            if (clickX >= 0 && clickX <= width) {
-                const samplesNeeded = Math.floor(sampleRate * totalTimeOnScreen);
-                if (channelConfig.A.active && channelConfig.A.data) {
-                    let offset = isContinuousMode ? 0 : findZeroCrossingOffset(channelConfig.A, channelConfig.A.index, samplesNeeded);
-                    let startIdx = channelConfig.A.index - offset - samplesNeeded;
-                    
-                    let i = Math.round((clickX / width) * samplesNeeded);
-                    if (i >= 0 && i < samplesNeeded) {
-                        let len = channelConfig.A.data.length;
-                        let bufferIdx = ((startIdx + i) % len + len) % len;
-                        let val = channelConfig.A.data[bufferIdx];
-                        
-                        if (pickedPoints.length >= 2) pickedPoints = [];
-                        pickedPoints.push({ x: clickX, y: clickY, val: val, bufferIdx: bufferIdx });
-                        drawFrame();
-                    }
-                }
-            }
-        }
-    });
 
     function autoCorrelate(buffer, sampleRate) {
         let SIZE = buffer.length, sumSq = 0; for (let i = 0; i < SIZE; i++) sumSq += buffer[i] * buffer[i];
@@ -1213,21 +1353,10 @@
         if (!cfg.data || cfg.data.length !== sampleRate * 10) { cfg.data = new Float32Array(sampleRate * 10); } cfg.index = 0;
 
         try {
-            const idA = micSelectA ? micSelectA.value : '', idB = micSelectB ? micSelectB.value : '';
-            const isSharedDevice = (idA === idB) && (idA !== '');
-            const otherChannelId = channelId === 'A' ? 'B' : 'A';
-            const otherCfg = channelConfig[otherChannelId];
-            
+            const idA = micSelectA ? micSelectA.value : '', idB = micSelectB ? micSelectB.value : '', isSharedDevice = (idA === idB);
             const baseConstraints = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
-            
-            // FIX: Xử lý dùng chung thiết bị không mở mic 2 lần
-            if (mode === '2' && isSharedDevice && otherCfg.active && otherCfg.stream) {
-                cfg.stream = otherCfg.stream;
-            } else {
-                let audioConstraints = { audio: { deviceId: deviceId ? { exact: deviceId } : undefined, ...baseConstraints } };
-                cfg.stream = await navigator.mediaDevices.getUserMedia(audioConstraints).catch(e => { return navigator.mediaDevices.getUserMedia({ audio: true, ...baseConstraints }); });
-            }
-
+            let audioConstraints = { audio: (mode === '2' && isSharedDevice) ? { deviceId: deviceId ? { exact: deviceId } : undefined, channelCount: 2, ...baseConstraints } : { deviceId: deviceId ? { exact: deviceId } : undefined, ...baseConstraints } };
+            cfg.stream = await navigator.mediaDevices.getUserMedia(audioConstraints).catch(e => { return navigator.mediaDevices.getUserMedia({ audio: true, ...baseConstraints }); });
             cfg.source = audioCtx.createMediaStreamSource(cfg.stream);
             let finalSourceNode = cfg.source;
             if (mode === '2' && isSharedDevice) { const splitter = audioCtx.createChannelSplitter(2); cfg.source.connect(splitter); const channelSelector = audioCtx.createGain(); splitter.connect(channelSelector, (channelId === 'A') ? 0 : 1); finalSourceNode = channelSelector; }
@@ -1255,7 +1384,7 @@
                     isPaused = true;
                     pauseButton.textContent = "Đo / Dừng";
                     pauseButton.className = "btn-green";
-                    infoMessageText.innerHTML = "Đã khóa sóng &mdash; Có thể click lên đồ thị để đo đạc.";
+                    infoMessageText.innerHTML = "Đã khóa sóng &mdash; Sẵn sàng khảo sát";
                     infoMessageText.style.color = "#dc2626";
                     updateAnalysisButtonState();
                     drawFrame();
@@ -1267,9 +1396,10 @@
     pauseButton.addEventListener('click', () => {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
+        analysisPoints = [];
         if (isPaused) {
             isPaused = false;
-            pickedPoints = []; // Reset điểm đo
+            pauseButton.disabled = false;
             if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; }
             if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
             isUserZoomed = false; detectedFrequency = 0; lockedFrequency = 440; totalTimeOnScreen = 5 * (1.0 / lockedFrequency);
@@ -1278,7 +1408,8 @@
             if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A</span>";
             if (channelConfig.A.active && channelConfig.B.active) text += " &amp; ";
             if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B</span>";
-            infoMessageText.innerHTML = text; lastDrawTime = performance.now(); updateAnalysisButtonState();
+            infoMessageText.innerHTML = text; infoMessageText.style.color = "#0284c7";
+            lastDrawTime = performance.now(); updateAnalysisButtonState();
             if (!animFrameId) draw();
             if (!isContinuousMode) triggerAutoStop();
             else clearTimeout(stopTimer);
@@ -1287,7 +1418,7 @@
             clearTimeout(stopTimer);
             pauseButton.textContent = "Đo / Dừng";
             pauseButton.className = "btn-green";
-            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ." : "Đã khóa sóng an toàn &mdash; Có thể click lên đồ thị để đo đạc.";
+            infoMessageText.innerHTML = isContinuousMode ? "Đã tạm dừng vẽ. Nhấp vào thanh cột để xem chi tiết." : "Đã khóa sóng an toàn. Click vào đồ thị để đo 2 điểm.";
             infoMessageText.style.color = "#dc2626";
             updateAnalysisButtonState();
             drawFrame();
@@ -1296,12 +1427,159 @@
 
     resetButton.addEventListener('click', () => {
         resetFeaturesAndAdjustments();
-        isPaused = true; clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green";
-        pickedPoints = []; // Reset điểm đo
+        isPaused = true; clearTimeout(stopTimer);
+        pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green"; pauseButton.disabled = false;
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         if (channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; } if (channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
+        dbHistoryA = [];
+        dbHistoryB = [];
+        selectedBarIndexA = -1;
+        selectedBarIndexB = -1;
+        analysisPoints = [];
         updateUIState(); drawFrame(true);
     });
+
+    function renderSingleDbChart(ctx, dbHistory, selectedIndex, titleText, titleColor, boxX, boxY, boxW, boxH) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+
+        const bottomPadding = 42;
+        const topPadding = 25;
+        const leftPadding = 55;
+        const rightPadding = 20;
+        const chartH = boxH - topPadding - bottomPadding;
+        const chartW = boxW - leftPadding - rightPadding;
+
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const dbTicks = [30, 52.5, 75, 97.5, 120];
+        for (let i = 0; i < dbTicks.length; i++) {
+            let dbStep = dbTicks[i];
+            let y = (boxY + boxH - bottomPadding) - ((dbStep - 30) / 90) * chartH;
+            ctx.moveTo(boxX + leftPadding, y); ctx.lineTo(boxX + boxW - rightPadding, y);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 10px "Inter", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${dbStep} dB`, boxX + leftPadding - 6, y + 3);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(boxX + leftPadding, boxY + boxH - bottomPadding); ctx.lineTo(boxX + boxW - rightPadding, boxY + boxH - bottomPadding);
+        ctx.moveTo(boxX + leftPadding, boxY + topPadding); ctx.lineTo(boxX + leftPadding, boxY + boxH - bottomPadding);
+        ctx.stroke();
+
+        ctx.fillStyle = titleColor;
+        ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(titleText, boxX + leftPadding + 6, boxY + topPadding - 10);
+
+        if (dbHistory.length > 0) {
+            let barWidth = chartW / 120;
+            let timeIntervalMs = 50;
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '500 9.5px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+
+            for (let i = 0; i < dbHistory.length; i += 30) {
+                let x = boxX + leftPadding + i * barWidth + barWidth / 2;
+                ctx.beginPath();
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1;
+                ctx.moveTo(x, boxY + boxH - bottomPadding);
+                ctx.lineTo(x, boxY + boxH - bottomPadding + 4);
+                ctx.stroke();
+
+                let timeOffsetMs = i * timeIntervalMs;
+                ctx.fillText(`${timeOffsetMs} ms`, x, boxY + boxH - bottomPadding + 16);
+            }
+
+            for (let i = 0; i < dbHistory.length; i++) {
+                let item = dbHistory[i];
+                let barHeight = ((item.db - 30) / 90) * chartH;
+                let x = boxX + leftPadding + i * barWidth;
+                let y = (boxY + boxH - bottomPadding) - barHeight;
+
+                let isSelected = (i === selectedIndex);
+                if (isSelected) {
+                    ctx.fillStyle = '#f59e0b';
+                } else {
+                    ctx.fillStyle = (item.db > SAFETY_THRESHOLD_DB) ? '#ea580c' : titleColor;
+                }
+                
+                ctx.fillRect(x, y, Math.max(2, barWidth - 1), barHeight);
+
+                if (isSelected) {
+                    ctx.strokeStyle = '#d97706';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, Math.max(2, barWidth - 1), barHeight);
+                }
+            }
+
+            if (selectedIndex >= 0 && selectedIndex < dbHistory.length) {
+                let selItem = dbHistory[selectedIndex];
+                let selX = boxX + leftPadding + selectedIndex * barWidth + barWidth / 2;
+                let selY = (boxY + boxH - bottomPadding) - ((selItem.db - 30) / 90) * chartH;
+
+                let relTime = (selectedIndex - (dbHistory.length - 1)) * 50;
+                let tooltipText = `📍 ${selItem.db.toFixed(1)} dB | ${relTime} ms`;
+
+                ctx.save();
+                ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
+                let tWidth = ctx.measureText(tooltipText).width + 12;
+                let ttX = Math.min(boxW - tWidth - 10, Math.max(10, selX - tWidth / 2));
+                let ttY = Math.max(boxY + 5, selY - 28);
+
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                ctx.fillRect(ttX, ttY, tWidth, 22);
+
+                ctx.fillStyle = (selItem.db > SAFETY_THRESHOLD_DB) ? '#fca5a5' : '#38bdf8';
+                ctx.textAlign = 'left';
+                ctx.fillText(tooltipText, ttX + 6, ttY + 15);
+                ctx.restore();
+            }
+        }
+    }
+
+    function drawDbBarChart(ctx, width, height) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, width, height);
+
+        let chunkSize = 1024;
+        let mode = getActiveChannelMode();
+
+        if (channelConfig.A.active && channelConfig.A.data) {
+            let lenA = channelConfig.A.data.length, idxA = channelConfig.A.index;
+            for (let i = 0; i < chunkSize; i++) sharedDbChunkA[i] = channelConfig.A.data[((idxA - chunkSize + i) % lenA + lenA) % lenA];
+            let currentDbA = calculateRMSdB(sharedDbChunkA);
+            if (!isPaused) {
+                dbHistoryA.push({ time: performance.now(), db: currentDbA });
+                if (dbHistoryA.length > 120) dbHistoryA.shift();
+            }
+        }
+
+        if (mode === '2' && channelConfig.B.active && channelConfig.B.data) {
+            let lenB = channelConfig.B.data.length, idxB = channelConfig.B.index;
+            for (let i = 0; i < chunkSize; i++) sharedDbChunkB[i] = channelConfig.B.data[((idxB - chunkSize + i) % lenB + lenB) % lenB];
+            let currentDbB = calculateRMSdB(sharedDbChunkB);
+            if (!isPaused) {
+                dbHistoryB.push({ time: performance.now(), db: currentDbB });
+                if (dbHistoryB.length > 120) dbHistoryB.shift();
+            }
+        }
+
+        if (mode === '2') {
+            let subH = height / 2;
+            renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#dc2626', 0, 0, width, subH);
+            renderSingleDbChart(ctx, dbHistoryB, selectedBarIndexB, '🔵 KÊNH B - MỨC CƯỜNG ĐỘ ÂM (dB)', '#2563eb', 0, subH, width, subH);
+        } else {
+            renderSingleDbChart(ctx, dbHistoryA, selectedBarIndexA, '🔴 KÊNH A - MỨC CƯỜNG ĐỘ ÂM (dB)', '#10b981', 0, 0, width, height);
+        }
+    }
 
     function drawFrame(isReset = false) {
         let now = performance.now();
@@ -1309,7 +1587,8 @@
             if (now - lastCorrelateTime > 300) {
                 let mainCfg = channelConfig.A.active ? channelConfig.A : channelConfig.B;
                 if (mainCfg.active && mainCfg.index > 2048) {
-                    let recentData = new Float32Array(2048), len = mainCfg.data.length, currentIdx = mainCfg.index;
+                    let recentData = (mainCfg === channelConfig.A) ? sharedRecA : sharedRecB;
+                    let len = mainCfg.data.length, currentIdx = mainCfg.index;
                     for (let i = 0; i < 2048; i++) recentData[i] = mainCfg.data[((currentIdx - 2048 + i) % len + len) % len];
                     let freq = autoCorrelate(recentData, sampleRate);
                     if (freq > 0) { detectedFrequency = (detectedFrequency === 0) ? freq : (detectedFrequency * 0.7 + freq * 0.3); if (Math.abs(detectedFrequency - lockedFrequency) / lockedFrequency > 0.08) lockedFrequency = detectedFrequency; if (typeof updateFoxLiveFrequency === 'function') updateFoxLiveFrequency(lockedFrequency || detectedFrequency); }
@@ -1317,11 +1596,18 @@
                 lastCorrelateTime = now;
             }
         }
-        if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
+
         if (isTwoSourceModalOpen) return;
 
         const width = canvas.clientWidth, height = canvas.clientHeight;
+
+        if (getDisplayMode() === 'dbMeter') {
+            drawDbBarChart(canvasCtx, width, height);
+            return;
+        }
+
         canvasCtx.fillStyle = '#f8fafc'; canvasCtx.fillRect(0, 0, width, height);
+        if (!isUserZoomed) totalTimeOnScreen = Math.max(0.002, Math.min(5 * (1.0 / ((lockedFrequency > 0) ? lockedFrequency : 440)), 2.4));
 
         const mode = getActiveChannelMode();
         let boxA_Y = 0, boxA_H = height, boxB_Y = 0, boxB_H = 0;
@@ -1334,75 +1620,40 @@
         if (channelConfig.A.active && channelConfig.A.data && channelConfig.A.index > samplesNeeded) {
             let offset = isContinuousMode ? 0 : findZeroCrossingOffset(channelConfig.A, channelConfig.A.index, samplesNeeded);
             drawWaveform(canvasCtx, channelConfig.A.data, channelConfig.A.index, offset, samplesNeeded, 0, boxA_Y, width, boxA_H, '#ef4444');
-            
-            // Vẽ các điểm phân tích đã chọn
-            if (isPaused && mode === '1' && pickedPoints.length > 0) {
-                let startIdx = channelConfig.A.index - offset - samplesNeeded;
-                let len = channelConfig.A.data.length;
-                let validPoints = [];
-
-                pickedPoints.forEach((pt, index) => {
-                    let relativeI = pt.bufferIdx - startIdx;
-                    if (relativeI < 0) relativeI += len;
-                    if (relativeI > len / 2 && startIdx > pt.bufferIdx) relativeI = relativeI - len; // bù đắp cuốn chiếu
-
-                    if (relativeI >= 0 && relativeI <= samplesNeeded) {
-                        let drawX = (relativeI / samplesNeeded) * width;
-                        let drawY = height / 2 - (pt.val * currentZoomY * height / 2);
-                        
-                        canvasCtx.fillStyle = '#f59e0b';
-                        canvasCtx.beginPath();
-                        canvasCtx.arc(drawX, drawY, 5.5, 0, Math.PI * 2);
-                        canvasCtx.fill();
-                        canvasCtx.strokeStyle = '#ffffff';
-                        canvasCtx.lineWidth = 1.5;
-                        canvasCtx.stroke();
-                        
-                        let timeMs = (relativeI / sampleRate) * 1000;
-                        let text = `P${index + 1}: t=${timeMs.toFixed(2)}ms, u=${pt.val.toFixed(2)}`;
-                        drawLabelWithPill(canvasCtx, text, drawX, drawY - 14, 'center', 'bottom', '#d97706');
-                        
-                        pt.drawX = drawX;
-                        pt.drawY = drawY;
-                        pt.currentTimeMs = timeMs;
-                        validPoints.push(pt);
-                    }
-                });
-
-                if (validPoints.length === 2) {
-                    let p1 = validPoints[0], p2 = validPoints[1];
-                    canvasCtx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
-                    canvasCtx.lineWidth = 2;
-                    canvasCtx.setLineDash([4, 4]);
-                    canvasCtx.beginPath();
-                    canvasCtx.moveTo(p1.drawX, p1.drawY);
-                    canvasCtx.lineTo(p2.drawX, p2.drawY);
-                    canvasCtx.stroke();
-                    canvasCtx.setLineDash([]);
-                    
-                    let dt = Math.abs(p2.currentTimeMs - p1.currentTimeMs);
-                    let freq = dt > 0 ? 1000 / dt : 0;
-                    let midX = (p1.drawX + p2.drawX) / 2;
-                    let midY = (p1.drawY + p2.drawY) / 2;
-                    
-                    let resText = `Chu kỳ T = ${dt.toFixed(2)} ms | f = ${freq.toFixed(1)} Hz`;
-                    drawLabelWithPill(canvasCtx, resText, midX, midY - 10, 'center', 'bottom', '#0f172a');
-                }
-            }
         }
 
         if (mode === '2') {
-            drawMainGrid(canvasCtx, 0, boxB_Y, width, boxB_H, '#2563eb', channelConfig.B.active ? 'Biên độ' : 'Kênh B (Khóa)', true);
+            drawMainGrid(canvasCtx, 0, boxB_Y, width, boxB_H, '#3b82f6', channelConfig.B.active ? 'Biên độ' : 'Kênh B (Khóa)', true);
             if (channelConfig.B.active && channelConfig.B.data && channelConfig.B.index > samplesNeeded) {
                 let offset = isContinuousMode ? 0 : findZeroCrossingOffset(channelConfig.B, channelConfig.B.index, samplesNeeded);
                 drawWaveform(canvasCtx, channelConfig.B.data, channelConfig.B.index, offset, samplesNeeded, 0, boxB_Y, width, boxB_H, '#3b82f6');
             }
         }
 
-        // TÍNH NĂNG MỚI: Hiện box thông số 1 ô
-        if (modeSelect && modeSelect.value === 'auto' && isPaused) {
-            let timePerGrid = (totalTimeOnScreen / 10) * 1000;
-            drawLabelWithPill(canvasCtx, `1 ô = ${timePerGrid.toFixed(4).replace('.', ',')} ms`, 10, 10, 'left', 'top', '#0f172a');
+        if (isPaused && getDisplayMode() === 'oscilloscope' && modeSelect && modeSelect.value === 'auto' && getActiveChannelMode() === '1') {
+            let timePerGrid = totalTimeOnScreen * 100; 
+            drawLabelWithPill(canvasCtx, `1 ô = ${timePerGrid.toFixed(4).replace('.',',')} ms`, 8, 8, 'left', 'top', '#0369a1');
+
+            if (analysisPoints.length > 0) {
+                analysisPoints.forEach((pt, i) => {
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(pt.screenX, pt.screenY, 5, 0, 2*Math.PI);
+                    canvasCtx.fillStyle = '#facc15'; canvasCtx.fill();
+                    canvasCtx.lineWidth = 1.5; canvasCtx.strokeStyle = '#b45309'; canvasCtx.stroke();
+                    drawLabelWithPill(canvasCtx, `P${i+1}: ${pt.time.toFixed(2)}ms, A: ${pt.amp.toFixed(2)}`, pt.screenX, pt.screenY - 12, 'center', 'bottom', '#b45309');
+                });
+                
+                if (analysisPoints.length === 2) {
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(analysisPoints[0].screenX, analysisPoints[0].screenY);
+                    canvasCtx.lineTo(analysisPoints[1].screenX, analysisPoints[1].screenY);
+                    canvasCtx.setLineDash([4, 4]); canvasCtx.strokeStyle = '#f59e0b'; canvasCtx.stroke(); canvasCtx.setLineDash([]);
+                    
+                    let dt = Math.abs(analysisPoints[1].time - analysisPoints[0].time);
+                    let freq = dt > 0 ? (1000 / dt) : 0;
+                    drawLabelWithPill(canvasCtx, `T = ${dt.toFixed(2)} ms | f = ${freq.toFixed(1)} Hz`, width/2, 45, 'center', 'top', '#10b981');
+                }
+            }
         }
     }
 
@@ -1426,46 +1677,218 @@
     function resetFeaturesAndAdjustments() {
         const fftOverlay = document.getElementById('fftModalOverlay');
         if (fftOverlay) { fftOverlay.classList.remove('animUI-visible'); fftOverlay.style.display = 'none'; }
+
+        closeMcdModal();
+
         isTwoSourceModalOpen = false; isTsPaused = true; showTsResults = false; showTsEquations = false;
         const twoSourceOverlay = document.getElementById('twoSourceModalOverlay');
         if (twoSourceOverlay) { twoSourceOverlay.classList.remove('animUI-visible'); twoSourceOverlay.style.display = 'none'; }
         const hudResults = document.getElementById('hudResults'); if (hudResults) hudResults.style.display = 'none';
         const hudEquations = document.getElementById('hudEquations'); if (hudEquations) hudEquations.style.display = 'none';
+
         const chatWidget = document.getElementById('fox-chat-widget');
         if (chatWidget && chatWidget.classList.contains('open')) { chatWidget.classList.remove('open'); }
+
         const settingsDropdown = document.getElementById('settingsDropdown');
         if (settingsDropdown && settingsDropdown.classList.contains('open')) { settingsDropdown.classList.remove('open'); }
-        const qrPanel = document.getElementById('qrPanel'); if (qrPanel) qrPanel.style.display = 'none';
+
+        const qrPanel = document.getElementById('qrPanel');
+        if (qrPanel) qrPanel.style.display = 'none';
+
         isUserZoomed = false; currentZoomY = 2.0; detectedFrequency = 0; lockedFrequency = 440; totalTimeOnScreen = 5 * (1.0 / 440);
-        if (modeSelect) modeSelect.value = 'continuous'; isContinuousMode = true; clearTimeout(stopTimer);
-        if (speedSelect) speedSelect.value = 'fast'; targetFPS = 60;
-        const groupSpeed = document.getElementById('groupSpeed'); if (groupSpeed) groupSpeed.style.display = 'block';
+        analysisPoints = [];
+
+        if (modeSelect) modeSelect.value = 'continuous';
+        isContinuousMode = true; clearTimeout(stopTimer);
+        if (speedSelect) speedSelect.value = 'fast';
+        targetFPS = 60;
+        const groupSpeed = document.getElementById('groupSpeed');
+        if (groupSpeed) groupSpeed.style.display = 'block';
+
         document.querySelectorAll('#groupMode .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'continuous'); });
         document.querySelectorAll('#groupSpeed .settings-item').forEach(el => { el.classList.toggle('active', el.dataset.value === 'fast'); });
+
         if (typeof saveAppState === 'function') saveAppState();
     }
 
     function handleAppReturn() {
         resetFeaturesAndAdjustments();
-        const hasActiveSource = (channelConfig && channelConfig.A && channelConfig.A.active) || (channelConfig && channelConfig.B && channelConfig.B.active);
-        if (hasActiveSource) {
-            if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
-            if (channelConfig.A && channelConfig.A.data) { channelConfig.A.data.fill(0); channelConfig.A.index = 0; }
-            if (channelConfig.B && channelConfig.B.data) { channelConfig.B.data.fill(0); channelConfig.B.index = 0; }
-            isPaused = false; clearTimeout(stopTimer); isContinuousMode = (modeSelect && modeSelect.value === 'continuous');
-            pauseButton.textContent = "Đang đo..."; pauseButton.className = "btn-red"; pauseButton.disabled = false; resetButton.disabled = false;
-            let text = "Đang quét tín hiệu: ";
-            if (channelConfig.A.active) text += "<span class='channel-tag-a'>Kênh A</span>";
-            if (channelConfig.A.active && channelConfig.B.active) text += " &amp; ";
-            if (channelConfig.B.active) text += "<span class='channel-tag-b'>Kênh B</span>";
-            infoMessageText.innerHTML = text; infoMessageText.style.color = "#0284c7";
-            lastDrawTime = performance.now(); updateAnalysisButtonState(); resizeCanvas();
-            if (!animFrameId && typeof draw === 'function') draw();
-            if (!isContinuousMode) triggerAutoStop(); else clearTimeout(stopTimer);
+
+        isPaused = true;
+        clearTimeout(stopTimer);
+
+        pauseButton.textContent = "Đo / Dừng";
+        pauseButton.className = "btn-green";
+        pauseButton.disabled = true;
+        resetButton.disabled = false;
+
+        infoMessageText.innerHTML = "⚠️ Ứng dụng vừa quay lại. Vui lòng bấm <span class='info-badge'>Làm mới</span> để tiếp tục đo.";
+        infoMessageText.style.color = "#dc2626";
+
+        updateAnalysisButtonState();
+        drawFrame(false);
+    }
+
+    function openMcdModal() {
+        const overlay = document.getElementById('mcdModalOverlay');
+        overlay.style.display = 'flex';
+        document.getElementById('distanceResultBox').style.display = 'none';
+        if (typeof calculateDopplerEffect === 'function') calculateDopplerEffect();
+
+        function buildDbHistory(historyArr, channelCfg) {
+            if (historyArr.length === 0 && channelCfg && channelCfg.data && channelCfg.active && channelCfg.index > 1024) {
+                let chunkSize = 1024;
+                let maxSamples = Math.min(channelCfg.index, sampleRate * 1);
+                let chunks = Math.floor(maxSamples / chunkSize);
+                if (chunks > 120) chunks = 120;
+                
+                let len = channelCfg.data.length;
+                let cIdx = channelCfg.index;
+                let now = performance.now();
+                
+                for (let c = chunks - 1; c >= 0; c--) {
+                    let chunkStart = cIdx - (c + 1) * chunkSize;
+                    let chunk = new Float32Array(chunkSize);
+                    for (let i = 0; i < chunkSize; i++) {
+                        chunk[i] = channelCfg.data[((chunkStart + i) % len + len) % len];
+                    }
+                    historyArr.push({ time: now - c * 50, db: calculateRMSdB(chunk) });
+                }
+            }
+        }
+
+        buildDbHistory(dbHistoryA, channelConfig.A);
+        buildDbHistory(dbHistoryB, channelConfig.B);
+
+        const mode = getActiveChannelMode();
+        const tableHeaderTitle = document.getElementById('mcdTableHeaderTitle');
+        const tableBody = document.getElementById('mcdTableBody');
+
+        if (mode === '2') {
+            tableHeaderTitle.innerHTML = "BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM 2 VỊ TRÍ ĐO (KÊNH A & KÊNH B)";
+            let dbA = dbHistoryA.map(h => h.db);
+            let dbB = dbHistoryB.map(h => h.db);
+
+            let avgA = dbA.length > 0 ? (dbA.reduce((a, b) => a + b, 0) / dbA.length) : 0;
+            let avgB = dbB.length > 0 ? (dbB.reduce((a, b) => a + b, 0) / dbB.length) : 0;
+            let maxA = dbA.length > 0 ? Math.max(...dbA) : 0;
+            let maxB = dbB.length > 0 ? Math.max(...dbB) : 0;
+
+            if (dbA.length === 0 && dbB.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="3" style="padding: 10px; text-align: center; color: #64748b;">Chưa có dữ liệu cường độ âm. Vui lòng bật Micro và quét tín hiệu.</td></tr>`;
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #dc2626;">Kênh A (Vị trí 1) - MCĐ Trung bình (L<sub>A</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${avgA.toFixed(1)} dB (L<sub>max</sub>: ${maxA.toFixed(1)} dB)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgA > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                            ${avgA > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #2563eb;">Kênh B (Vị trí 2) - MCĐ Trung bình (L<sub>B</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${avgB.toFixed(1)} dB (L<sub>max</sub>: ${maxB.toFixed(1)} dB)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgB > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                            ${avgB > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Chênh lệch Mức Cường độ âm (ΔL = L<sub>A</sub> - L<sub>B</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #8b5cf6;">${(avgA - avgB).toFixed(1)} dB</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: #475569;">Cơ sở tính khoảng cách tương đối giữa 2 điểm đo</td>
+                    </tr>
+                `;
+            }
         } else {
-            isPaused = true; clearTimeout(stopTimer); updateUIState(); resizeCanvas(); drawFrame(true);
+            tableHeaderTitle.innerHTML = "BẢNG THỐNG KÊ MỨC CƯỜNG ĐỘ ÂM THU ĐƯỢC (1 NGUỒN / KÊNH A)";
+            if (dbHistoryA.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="3" style="padding: 10px; text-align: center; color: #64748b;">Chưa có dữ liệu cường độ âm. Vui lòng bật Micro và quét tín hiệu.</td></tr>`;
+            } else {
+                let dbValues = dbHistoryA.map(h => h.db);
+                let maxDb = Math.max(...dbValues);
+                let minDb = Math.min(...dbValues);
+                let avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
+
+                tableBody.innerHTML = `
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Lớn nhất (L<sub>max</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${maxDb.toFixed(1)} dB</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${maxDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                            ${maxDb > SAFETY_THRESHOLD_DB ? `⚠️ VƯỢT NGƯỠNG AN TOÀN (>${SAFETY_THRESHOLD_DB} dB)` : '✅ An toàn thính giác'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Nhỏ nhất (L<sub>min</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">${minDb.toFixed(1)} dB</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: #059669; font-weight: bold;">✅ Bình thường</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">Mức cường độ âm Trung bình (L<sub>tb</sub>)</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#0f172a'};">${avgDb.toFixed(1)} dB</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; color: ${avgDb > SAFETY_THRESHOLD_DB ? '#dc2626' : '#059669'}; font-weight: bold;">
+                            ${avgDb > SAFETY_THRESHOLD_DB ? '⚠️ CẢNH BÁO Ô NHIỄM TIẾNG ỒN' : '✅ Đạt chuẩn môi trường'}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        let dopSrcFreq = document.getElementById('dopSrcFreq');
+        if (dopSrcFreq && lockedFrequency > 20) {
+            dopSrcFreq.value = Math.round(lockedFrequency);
         }
     }
+
+    function closeMcdModal() {
+        const overlay = document.getElementById('mcdModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    function calculateAvgDistance() {
+        const mode = getActiveChannelMode();
+        const box = document.getElementById('distanceResultBox');
+        box.style.display = 'block';
+
+        let r0 = 1.0, L0 = 90.0;
+
+        if (mode === '2') {
+            if (dbHistoryA.length === 0 || dbHistoryB.length === 0) {
+                box.innerHTML = "⚠️ Chưa đủ dữ liệu đo ở cả 2 kênh A và B!";
+                return;
+            }
+
+            let avgDbA = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let avgDbB = dbHistoryB.reduce((sum, item) => sum + item.db, 0) / dbHistoryB.length;
+
+            let rA = r0 * Math.pow(10, (L0 - avgDbA) / 20);
+            let rB = r0 * Math.pow(10, (L0 - avgDbB) / 20);
+            let deltaR = Math.abs(rA - rB);
+            let ratio = Math.pow(10, (avgDbA - avgDbB) / 20);
+
+            box.innerHTML = `
+                📍 <b>KẾT QUẢ PHÂN TÍCH KHOẢNG CÁCH NGUỒN ÂM (2 VỊ TRÍ ĐO):</b><br>
+                • MCĐ Trung bình Kênh A (Vị trí 1): <b>${avgDbA.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>A</sub> ≈ <span style="color:#dc2626; font-size:15px; font-weight:bold;">${rA.toFixed(2)} m</span><br>
+                • MCĐ Trung bình Kênh B (Vị trí 2): <b>${avgDbB.toFixed(1)} dB</b> ➔ Khoảng cách r<sub>B</sub> ≈ <span style="color:#2563eb; font-size:15px; font-weight:bold;">${rB.toFixed(2)} m</span><br>
+                • <b>Khoảng cách giữa 2 vị trí đo:</b> Δr = |r<sub>A</sub> - r<sub>B</sub>| ≈ <span style="color:#059669; font-size:16px; font-weight:bold;">${deltaR.toFixed(2)} m</span><br>
+                • <b>Tỷ số khoảng cách chính xác từ nguồn phát ra âm thanh:</b> r<sub>B</sub> / r<sub>A</sub> = 10<sup>(L<sub>A</sub> - L<sub>B</sub>)/20</sup> ≈ <span style="color:#8b5cf6; font-size:16px; font-weight:bold;">${ratio.toFixed(3)}</span> lần
+            `;
+        } else {
+            if (dbHistoryA.length === 0) {
+                box.innerHTML = "⚠️ Chưa có dữ liệu đo cường độ âm!";
+                return;
+            }
+            let avgDb = dbHistoryA.reduce((sum, item) => sum + item.db, 0) / dbHistoryA.length;
+            let estimatedDistance = r0 * Math.pow(10, (L0 - avgDb) / 20);
+
+            box.innerHTML = `
+                📍 <b>KẾT QUẢ TÍNH KHOẢNG CÁCH TRUNG BÌNH (1 NGUỒN ĐO):</b><br>
+                • Mức cường độ âm trung bình thu được: <b>${avgDb.toFixed(1)} dB</b><br>
+                • Khoảng cách ước tính từ nguồn âm tới điểm khảo sát: <span style="font-size: 16px; color: #dc2626; font-weight: bold;">r ≈ ${estimatedDistance.toFixed(2)} m</span>
+            `;
+        }
+    }
+
+    
 
     function openFFTModal() {
         if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
@@ -1490,7 +1913,7 @@
 
         fCtx.fillStyle = '#f8fafc'; fCtx.fillRect(0, 0, cw, ch);
 
-        let fftSize = 4096, recentData = new Float32Array(fftSize), len = channelConfig.A.data.length, cIdx = channelConfig.A.index;
+        let fftSize = 4096, recentData = sharedFFTRec, len = channelConfig.A.data.length, cIdx = channelConfig.A.index;
         for (let i = 0; i < fftSize; i++) {
             let multiplier = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)));
             recentData[i] = channelConfig.A.data[((cIdx - fftSize + i) % len + len) % len] * multiplier;
@@ -1662,8 +2085,14 @@
             if (btn) { btn.innerHTML = '▶ Tiếp tục'; btn.className = "btn-green"; }
             if (resBtn) resBtn.style.setProperty('display', 'inline-flex', 'important');
             if (eqBtn) eqBtn.style.setProperty('display', 'inline-flex', 'important');
-            if (channelConfig && channelConfig.A && channelConfig.A.data) snapDataA = Array.from(channelConfig.A.data);
-            if (channelConfig && channelConfig.B && channelConfig.B.data) snapDataB = Array.from(channelConfig.B.data);
+            if (channelConfig && channelConfig.A && channelConfig.A.data) {
+                snapDataA = Array.from(channelConfig.A.data);
+                snapIdxA = channelConfig.A.index;
+            }
+            if (channelConfig && channelConfig.B && channelConfig.B.data) {
+                snapDataB = Array.from(channelConfig.B.data);
+                snapIdxB = channelConfig.B.index;
+            }
             calculatePhaseAndDrawLive();
         }
     }
@@ -1691,7 +2120,7 @@
                 if (now - lastCorrelateTime > 300) {
                     let sqA = 0, sqB = 0;
                     if (cIdxA > 2048) {
-                        let recA = new Float32Array(2048);
+                        let recA = sharedRecA;
                         for (let i = 0; i < 2048; i++) {
                             let v = activeDataA[((cIdxA - 2048 + i) % len + len) % len];
                             recA[i] = v; sqA += v * v;
@@ -1701,7 +2130,7 @@
                         currentAmpA = (Math.sqrt(sqA / 2048) * 1.414).toFixed(2);
                     }
                     if (cIdxB > 2048) {
-                        let recB = new Float32Array(2048);
+                        let recB = sharedRecB;
                         for (let i = 0; i < 2048; i++) {
                             let v = activeDataB[((cIdxB - 2048 + i) % len + len) % len];
                             recB[i] = v; sqB += v * v;
@@ -1724,9 +2153,12 @@
                 }
             }
 
-            let offsetA = 0;
-            if (isTsPaused) { offsetA = findZeroCrossingOffset({ active: true, data: snapDataA }, snapDataA.length, samplesDraw); }
-            else { offsetA = findZeroCrossingOffset(channelConfig.A, cIdxA, samplesDraw); }
+            let refDataA = isTsPaused ? snapDataA : activeDataA;
+            let refDataB = isTsPaused ? snapDataB : activeDataB;
+            let refIdxA = isTsPaused ? snapIdxA : cIdxA;
+            let refIdxB = isTsPaused ? snapIdxB : cIdxB;
+
+            let offsetA = findZeroCrossingOffset({ active: true, data: refDataA }, refIdxA, samplesDraw);
 
             ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
             let step = Math.max(1, Math.floor(samplesDraw / (cw * 2.0)));
@@ -1736,9 +2168,8 @@
 
                 ctx.strokeStyle = '#ef4444'; ctx.beginPath();
                 for (let i = 0; i < samplesDraw; i += step) {
-                    let idxA = isTsPaused ? Math.max(0, Math.min(snapDataA.length - 1, snapDataA.length - offsetA - samplesDraw + i))
-                        : ((cIdxA - offsetA - samplesDraw + i) % len + len) % len;
-                    let val = isTsPaused ? snapDataA[idxA] : activeDataA[idxA];
+                    let idxA = ((refIdxA - offsetA - samplesDraw + i) % len + len) % len;
+                    let val = refDataA[idxA];
                     let x = (i / samplesDraw) * cw, y = ch / 2 - (val * currentZoomY * ch / 2);
                     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
@@ -1746,9 +2177,8 @@
 
                 ctx.strokeStyle = '#3b82f6'; ctx.beginPath();
                 for (let i = 0; i < samplesDraw; i += step) {
-                    let idxB = isTsPaused ? Math.max(0, Math.min(snapDataB.length - 1, snapDataB.length - offsetA - samplesDraw + i))
-                        : ((cIdxB - offsetA - samplesDraw + i) % len + len) % len;
-                    let val = isTsPaused ? snapDataB[idxB] : activeDataB[idxB];
+                    let idxB = ((refIdxB - offsetA - samplesDraw + i) % len + len) % len;
+                    let val = refDataB[idxB];
                     let x = (i / samplesDraw) * cw, y = ch / 2 - (val * currentZoomY * ch / 2);
                     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
@@ -1765,9 +2195,9 @@
                     document.getElementById('tsWarningText').style.display = 'none';
                     ctx.strokeStyle = '#8b5cf6'; ctx.beginPath();
                     for (let i = 0; i < samplesDraw; i += step) {
-                        let idxA = isTsPaused ? Math.max(0, Math.min(snapDataA.length - 1, snapDataA.length - offsetA - samplesDraw + i)) : ((cIdxA - offsetA - samplesDraw + i) % len + len) % len;
-                        let idxB = isTsPaused ? Math.max(0, Math.min(snapDataB.length - 1, snapDataB.length - offsetA - samplesDraw + i)) : ((cIdxB - offsetA - samplesDraw + i) % len + len) % len;
-                        let val = (isTsPaused ? snapDataA[idxA] : activeDataA[idxA]) + (isTsPaused ? snapDataB[idxB] : activeDataB[idxB]);
+                        let idxA = ((refIdxA - offsetA - samplesDraw + i) % len + len) % len;
+                        let idxB = ((refIdxB - offsetA - samplesDraw + i) % len + len) % len;
+                        let val = refDataA[idxA] + refDataB[idxB];
 
                         let x = (i / samplesDraw) * cw, y = ch / 2 - (val * currentZoomY * ch / 2);
                         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -1779,20 +2209,65 @@
         if (isTwoSourceModalOpen && !isTsPaused) requestAnimationFrame(calculatePhaseAndDrawLive);
     }
 
-    function formatMathText(text) {
+        function formatMathText(text) {
         if (!text) return '';
-        let formatted = text
-            .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
-            .replace(/\(([^()]+)\)\s*\/\s*\(([^()]+)\)/g, '<span class="math-fraction"><span class="math-numerator">$1</span><span class="math-denominator">$2</span></span>')
-            .replace(/\\omega/g, 'ω').replace(/\\lambda/g, 'λ').replace(/\\pi/g, 'π')
-            .replace(/\\varphi/g, 'φ').replace(/\\Delta/g, 'Δ')
-            .replace(/\\cos/g, 'cos').replace(/\\sin/g, 'sin').replace(/\\tan/g, 'tan')
-            .replace(/\\left\(/g, '(').replace(/\\right\)/g, ')')
-            .replace(/\\left\[/g, '[').replace(/\\right\]/g, ']')
-            .replace(/\\cdot/g, '·').replace(/\\([a-zA-Z]+)/g, '$1')
-            .replace(/\$([a-zA-Z])_([0-9a-zA-Z]+)\$/g, '<span class="math-symbol">$1<sub>$2</sub></span>')
-            .replace(/\$([^$]+)\$/g, (match, p1) => { let subFormatted = p1.replace(/([a-zA-Z])_([0-9a-zA-Z]+)/g, '$1<sub>$2</sub>'); return `<span class="math-symbol">${subFormatted}</span>`; })
-            .replace(/\n/g, '<br>');
+
+        let processMathExpr = function (expr) {
+            return expr
+                .replace(/\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-fraction" style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 4px;font-size:0.95em;"><span style="border-bottom:1px solid currentColor;padding-bottom:1px;line-height:1.1;">$1</span><span style="padding-top:1px;line-height:1.1;">$2</span></span>')
+                .replace(/\text\{([^}]+)\}/g, '$1')
+                .replace(/([a-zA-Z0-9_>)]+)\cos/g, '$1·cos')
+                .replace(/([a-zA-Z0-9_>)]+)\sin/g, '$1·sin')
+                .replace(/([a-zA-Z0-9_>)]+)\tan/g, '$1·tan')
+                .replace(/\cos/g, 'cos')
+                .replace(/\sin/g, 'sin')
+                .replace(/\tan/g, 'tan')
+                .replace(/\omega/g, 'ω')
+                .replace(/\lambda/g, 'λ')
+                .replace(/\pi/g, 'π')
+                .replace(/\varphi/g, 'φ')
+                .replace(/\Delta/g, 'Δ')
+                .replace(/\alpha/g, 'α')
+                .replace(/\beta/g, 'β')
+                .replace(/\gamma/g, 'γ')
+                .replace(/\theta/g, 'θ')
+                .replace(/\mu/g, 'μ')
+                .replace(/\cdot/g, '·')
+                .replace(/\pm/g, '±')
+                .replace(/\approx/g, '≈')
+                .replace(/\neq/g, '≠')
+                .replace(/\left\(/g, '(')
+                .replace(/\right\)/g, ')')
+                .replace(/\left\[/g, '[')
+                .replace(/\right\]/g, ']')
+                .replace(/\lg/g, 'lg')
+                .replace(/\log/g, 'log')
+                .replace(/\^{([^}]+)}/g, '<sup>$1</sup>')
+                .replace(/(?<=[a-zA-Z0-9)\].$])\^([0-9a-zA-Z+\-.]+)/g, '<sup>$1</sup>')
+                .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+                .replace(/_([0-9a-zA-Z]+)/g, '<sub>$1</sub>');
+        };
+
+        // 1. Process block math $$...$$
+        let formatted = text.replace(/\$\$([\s\S]+?)\$\$/g, function (m, p1) {
+            return '<span class="math-symbol">' + processMathExpr(p1) + '</span>';
+        });
+
+        // 2. Process inline math $...$
+        formatted = formatted.replace(/\$([^$]+)\$/g, function (m, p1) {
+            return '<span class="math-symbol">' + processMathExpr(p1) + '</span>';
+        });
+
+        // 3. Process plain text superscripts, subscripts, spacing outside math blocks (e.g. W/m^2, 10^-12, Acos)
+        formatted = formatted
+            .replace(/\^{([^}]+)}/g, '<sup>$1</sup>')
+            .replace(/(?<=[a-zA-Z0-9)\].$])\^([0-9a-zA-Z+\-.]+)/g, '<sup>$1</sup>')
+            .replace(/([a-zA-Z])cos/g, '$1·cos')
+            .replace(/([a-zA-Z])sin/g, '$1·sin')
+            .replace(/([a-zA-Z])tan/g, '$1·tan')
+            .replace(/
+/g, '<br>');
+
         return formatted;
     }
 
@@ -1826,7 +2301,7 @@
         const row = document.createElement('div'); row.className = `fox-msg-row ${sender === 'user' ? 'fox-msg-user' : 'fox-msg-bot'}`;
         let html = ''; if (sender === 'bot') html += `<div class="fox-msg-avatar">${FOX_AVATAR_SVG}</div>`;
         const formattedText = sender === 'bot' ? formatMathText(text) : text;
-        let copyStr = text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        let copyStr = text.replace(/'/g, "'").replace(/"/g, '&quot;').replace(/\n/g, '\n');
         let copyBtn = sender === 'bot' ? `<button class="fox-copy-btn" onclick="copyFoxText(this, '${copyStr}')">Copy</button>` : '';
         html += `<div class="fox-msg-group"><div class="fox-msg-bubble">${formattedText} ${copyBtn}</div></div>`;
         row.innerHTML = html; chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight;
@@ -1839,5 +2314,26 @@
     }
     function removeTypingIndicator(id) { const el = document.getElementById(id); if (el) el.remove(); }
 </script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    console.log('ServiceWorker registered:', reg.scope);
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Phiên bản mới đã được tải ngầm.');
+                            }
+                        };
+                    };
+                })
+                .catch(err => console.log('ServiceWorker registration failed:', err));
+        });
+    }
+</script>
+
 </body>
 </html>
