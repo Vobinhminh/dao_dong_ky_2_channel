@@ -4674,7 +4674,7 @@ if ('serviceWorker' in navigator) {
         document.body.classList.remove("printing-exp-report");
     };
 
-    // Chuyển sang trang báo cáo độc lập (report.html / reprt.html) đã được đồng bộ đầy đủ dữ liệu
+    // Mở trang báo cáo độc lập (report.html) ở tab mới, giữ nguyên trang đo FOX_LAB cũ đang chạy
     window.navigateToStandaloneReport = function () {
         syncFoxLabToReport(false);
         const payload = saveExpReportToStorage(true);
@@ -4683,8 +4683,23 @@ if ('serviceWorker' in navigator) {
             bc.postMessage({ type: "SYNC_REPORT_DATA", payload });
             bc.close();
         } catch (e) {}
+
         const targetPage = window.FOX_REPORT_PAGE || "report.html";
-        window.location.href = targetPage;
+        const reportWin = window.open(targetPage, "_blank", "noopener");
+        if (!reportWin) {
+            const link = document.createElement("a");
+            link.href = targetPage;
+            link.target = "_blank";
+            link.rel = "noopener";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Ẩn modal báo cáo trên tab cũ để lộ màn hình đo FOX_LAB đang chạy (không ghi đè trạng thái live)
+        const overlay = document.getElementById("expReportModalOverlay");
+        if (overlay) overlay.style.display = "none";
+        document.body.classList.remove("printing-exp-report");
     };
 
     // Thu thập tự động số liệu và ảnh đồ thị đang đo từ FOX_LAB

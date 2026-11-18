@@ -4836,7 +4836,7 @@
       <div class="exp-rep-tb-left">
         <button type="button" class="exp-rep-btn exp-rep-btn-danger" onclick="closeExpReportModal()" title="Quay lại màn hình đo chính FOX_LAB">⬅ Quay lại</button>
         <button type="button" class="exp-rep-btn exp-rep-btn-info" onclick="syncFoxLabToReport(true)" title="Đồng bộ số liệu và đồ thị mới nhất từ máy đo FOX_LAB">🔄 Đồng bộ dữ liệu</button>
-        <button type="button" class="exp-rep-btn exp-rep-btn-secondary" onclick="navigateToStandaloneReport()" title="Mở sang trang báo cáo riêng (report.html)">↗ Trang riêng</button>
+        <button type="button" class="exp-rep-btn exp-rep-btn-secondary" onclick="navigateToStandaloneReport()" title="Mở sang trang báo cáo riêng (report.html) ở tab mới">↗ Trang riêng</button>
       </div>
 
       <div class="exp-rep-tb-right">
@@ -5530,7 +5530,7 @@
         document.body.classList.remove("printing-exp-report");
     };
 
-    // Chuyển sang trang báo cáo độc lập (report.html / reprt.html) đã được đồng bộ đầy đủ dữ liệu
+    // Mở trang báo cáo độc lập (report.html) ở tab mới, giữ nguyên trang đo FOX_LAB cũ đang chạy
     window.navigateToStandaloneReport = function () {
         syncFoxLabToReport(false);
         const payload = saveExpReportToStorage(true);
@@ -5539,8 +5539,23 @@
             bc.postMessage({ type: "SYNC_REPORT_DATA", payload });
             bc.close();
         } catch (e) {}
+
         const targetPage = window.FOX_REPORT_PAGE || "report.html";
-        window.location.href = targetPage;
+        const reportWin = window.open(targetPage, "_blank", "noopener");
+        if (!reportWin) {
+            const link = document.createElement("a");
+            link.href = targetPage;
+            link.target = "_blank";
+            link.rel = "noopener";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Ẩn modal báo cáo trên tab cũ để lộ màn hình đo FOX_LAB đang chạy (không ghi đè trạng thái live)
+        const overlay = document.getElementById("expReportModalOverlay");
+        if (overlay) overlay.style.display = "none";
+        document.body.classList.remove("printing-exp-report");
     };
 
     // Thu thập tự động số liệu và ảnh đồ thị đang đo từ FOX_LAB
