@@ -1,31 +1,3 @@
-
-// Tự động out sau 30 phút sử dụng
-setTimeout(() => {
-    try {
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#fff;font-family:sans-serif;text-align:center;padding:20px;"><div><h2 style="font-size:24px;margin-bottom:12px;">Đã kết thúc phiên sử dụng (30 phút).</h2><p style="color:#94a3b8;">Cảm ơn bạn đã trải nghiệm phần mềm!</p></div></div>';
-    } catch(e) {
-        window.location.reload();
-    }
-}, 30 * 60 * 1000);
-
-window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true,
-                processEnvironments: true,
-                packages: ['base', 'ams', 'noerrors', 'noundefined']
-            },
-            options: {
-                ignoreHtmlClass: 'tex2jax_ignore',
-                processHtmlClass: 'tex2jax_process|fox-msg-bubble|hud-overlay'
-            },
-            chtml: {
-                scale: 1.05,
-                displayAlign: 'left'
-            }
-        };
-
 async function checkAppVersion() {
         try {
             const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
@@ -112,7 +84,6 @@ async function checkAppVersion() {
     }
 
     const FOX_AVATAR_SVG = `<svg viewBox="0 0 100 100" fill="none"><polygon points="22,12 10,48 36,40" fill="#ff7a30"/><polygon points="23,19 16,44 32,38" fill="#1e293b"/><path d="M 19 36 Q 23 32 28 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="78,12 64,40 90,48" fill="#ff7a30"/><polygon points="77,19 68,38 84,44" fill="#1e293b"/><path d="M 81 36 Q 77 32 72 34" stroke="#38bdf8" stroke-width="1.3" stroke-linecap="round"/><polygon points="50,22 36,40 50,46" fill="#ff8f4a"/><polygon points="50,22 50,46 64,40" fill="#ff7a30"/><polygon points="36,40 10,48 20,68 38,58" fill="#d4380d"/><polygon points="64,40 38,58 50,46" fill="#e04006"/><polygon points="64,40 50,46 62,58" fill="#d4380d"/><polygon points="64,40 90,48 80,68 62,58" fill="#d4380d"/><polygon points="20,68 12,74 26,76 34,68" fill="#e2e8f0"/><polygon points="80,68 88,74 74,76 66,68" fill="#cbd5e1"/><polygon points="38,58 50,46 50,78 36,68" fill="#ff7a30"/><polygon points="62,58 50,46 50,78 64,68" fill="#e04006"/><polygon points="50,78 36,68 44,88 50,88" fill="#f8fafc"/><polygon points="50,78 64,68 56,88 50,88" fill="#e2e8f0"/><polygon points="50,88 45,82 55,82" fill="#0f172a"/><polygon points="25,48 50,54 75,48 71,59 50,65 29,59" fill="#090d16" stroke="rgba(56,189,248,0.5)" stroke-width="0.9"/><circle cx="34.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="44.5" cy="60" r="1.5" fill="#ffffff"/><circle cx="54.5" cy="48" r="1.5" fill="#ffffff"/><circle cx="64.5" cy="60" r="1.5" fill="#ffffff"/></svg>`;
-    const LICENSE_GAS_ID = "AKfycbwC9gwiwBdIsfvv2nGZQNrkeR1O43GTW9lhMCu6fEn-LGjjbmMEcy-3153DZRkOaLdx3Q";
     const CHAT_GAS_ID = "AKfycbwllsi_eXt98JRwTDyHPtD8qtgx6nnyhnDD8sSk5mIgEeB0EGLHkIwydpATOWohKJLuEg";
 
     const btnStartA = document.getElementById('btnStartA'), btnStartB = document.getElementById('btnStartB');
@@ -128,19 +99,12 @@ async function checkAppVersion() {
 
     if (btnCalib) {
         btnCalib.addEventListener('click', () => {
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Hiệu chuẩn Micro bị khóa ở bản Dùng thử Demo. Vui lòng kích hoạt bản Full để sử dụng!");
-                openLicenseModal();
-                return;
-            }
             openCalibModal();
         });
     }
-
     let micCalibOffsetA = parseFloat(localStorage.getItem('fox_mic_calib_offset_a') || '0.0');
     let micCalibOffsetB = parseFloat(localStorage.getItem('fox_mic_calib_offset_b') || '0.0');
 
-    let isDemoMode = false; let demoTimer = null; let demoChatCount = 0; const MAX_DEMO_CHAT = 5;
     let isManualAnalysisMode = false;
     let manualPoints = []; // [{ absIdx, y }]
     let detectedFrequency = 0, lockedFrequency = 440;
@@ -182,200 +146,8 @@ async function checkAppVersion() {
         return Math.max(30.0, Math.min(120.0, calibDb));
     }
 
-    function getDeviceId() {
-        let deviceId = localStorage.getItem('fox_device_id');
-        if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-            localStorage.setItem('fox_device_id', deviceId);
-        }
-        return deviceId;
-    }
-
-    function selectMode(mode) {
-        if (mode === 'demo') {
-            isDemoMode = false; document.getElementById('licenseModalOverlay').style.display = 'none';
-            const gearBtn = document.querySelector('.license-gear-btn');
-            if (gearBtn) gearBtn.style.display = 'inline-flex';
-            // Mặc định khi vào Demo: 1 nguồn âm, đo tự dừng
-            if (channelModeSelect) {
-                channelModeSelect.value = '1';
-                const cardB = document.getElementById('cardChannelB');
-                if (cardB) cardB.style.display = 'none';
-                stopAudioChannel('B');
-                document.querySelectorAll('#groupChannelMode .settings-item').forEach(el => {
-                    el.classList.toggle('active', el.dataset.value === '1');
-                });
-            }
-            if (modeSelect) {
-                modeSelect.value = 'auto';
-                isContinuousMode = false;
-                clearTimeout(stopTimer);
-                document.querySelectorAll('#groupMode .settings-item').forEach(el => {
-                    el.classList.toggle('active', el.dataset.value === 'auto');
-                });
-                const speedGroup = document.getElementById('groupSpeed');
-                if (speedGroup) speedGroup.style.display = 'none';
-            }
-            updateToolbarButtonsVisibility();
-            updateAnalysisButtonState();
-        } else {
-            document.getElementById('keyInputContainer').style.display = 'block';
-        }
-    }
-
-    // =========================================================================
-    // INTERNAL SECURITY: Khởi tạo Endpoint ngầm từ ID
-    // =========================================================================
     const _getGasEndpoint = (id) => (typeof atob === 'function' ? atob("aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy8=") : "https://script.google.com/macros/s/") + id + "/exec";
-    const LICENSE_GAS_URL = _getGasEndpoint(LICENSE_GAS_ID);
     const CHAT_GAS_URL = _getGasEndpoint(CHAT_GAS_ID);
-
-    function openLicenseModal() {
-        document.getElementById('licenseModalOverlay').style.display = 'flex';
-        document.getElementById('keyInputContainer').style.display = 'none';
-    }
-
-    window.handleLicenseAction = async function (action) {
-        let key = localStorage.getItem('fox_license_key');
-        if (!key) { alert("Bạn chưa kích hoạt Key nào hoặc đang ở chế độ Dùng thử!"); return; }
-
-        if (action === 'logout') {
-            if (confirm("🚪 Bạn muốn Đăng xuất khỏi thiết bị này?\n(Key vẫn giữ quyền sử dụng trên hệ thống)")) {
-                forceLogout(false);
-            }
-        } else if (action === 'change') {
-            if (confirm("🔄 Bạn muốn Đổi thiết bị?\n(Thiết bị này sẽ bị gỡ bỏ khỏi Google Sheet để bạn kích hoạt trên máy mới - Tối đa 3 lần đổi/Key)")) {
-                try {
-                    infoMessageText.innerHTML = "Đang gửi yêu cầu giải phóng device ID...";
-                    await fetch(LICENSE_GAS_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: "releaseDevice", key: key, deviceId: getDeviceId() })
-                    });
-                    alert("✅ Đã tự động xóa Device ID trên Google Sheet! Bạn có thể nhập Key này trên máy mới.");
-                } catch (e) {
-                    console.log("Lỗi gửi releaseDevice:", e);
-                }
-                forceLogout(false);
-            }
-        } else if (action === 'delete') {
-            if (confirm("🗑 XÓA KEY VĨNH VIỄN?\nBạn có chắc chắn muốn xóa Key và xóa Device ID khỏi Google Sheet? (Thao tác không thể hoàn tác)")) {
-                try {
-                    infoMessageText.innerHTML = "Đang xóa Key & Device ID trên Google Sheet...";
-                    await fetch(LICENSE_GAS_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: "deleteKey", key: key, deviceId: getDeviceId() })
-                    });
-                    alert("✅ Đã gửi lệnh xóa Key & Device ID vĩnh viễn khỏi hệ thống!");
-                } catch (e) {
-                    console.log("Lỗi xóa key:", e);
-                }
-                forceLogout(false);
-            }
-        }
-        document.getElementById('settingsDropdown').classList.remove('open');
-    }
-
-    function activateFullMode(key) {
-        isDemoMode = false; localStorage.setItem('fox_license_key', key); localStorage.setItem('fox_last_verify_time', Date.now().toString());
-        if (demoTimer) clearTimeout(demoTimer);
-        document.getElementById('licenseModalOverlay').style.display = 'none';
-        infoMessageText.innerHTML = "✅ Bản Full Chính Thức đã kích hoạt thành công!";
-        const gearBtn = document.querySelector('.license-gear-btn');
-        if (gearBtn) gearBtn.style.display = 'none';
-
-        // Mặc định khi đăng nhập / kích hoạt Full: 1 nguồn âm, đo tự dừng
-        if (channelModeSelect) {
-            channelModeSelect.value = '1';
-            const cardB = document.getElementById('cardChannelB');
-            if (cardB) cardB.style.display = 'none';
-            stopAudioChannel('B');
-            document.querySelectorAll('#groupChannelMode .settings-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.value === '1');
-            });
-        }
-        if (modeSelect) {
-            modeSelect.value = 'auto';
-            isContinuousMode = false;
-            clearTimeout(stopTimer);
-            document.querySelectorAll('#groupMode .settings-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.value === 'auto');
-            });
-            const speedGroup = document.getElementById('groupSpeed');
-            if (speedGroup) speedGroup.style.display = 'none';
-        }
-        updateToolbarButtonsVisibility();
-        updateAnalysisButtonState(); checkAndShowQR();
-    }
-
-    async function verifyKeyWithServer(key, type, isSilent = false) {
-        if (!isSilent) infoMessageText.innerHTML = "Đang kiểm tra Key bản Full với Google Sheets...";
-        try {
-            const response = await fetch(LICENSE_GAS_URL, {
-                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "verifyKey", key: key, deviceId: getDeviceId(), type: type })
-            });
-            const result = await response.json();
-            if (result.status === "success") {
-                activateFullMode(key);
-            } else {
-                if (!isSilent) {
-                    let confirmChange = confirm(`❌ Lỗi: ${result.message}\n\nMã Key này có thể đang được sử dụng ở thiết bị khác.\nBạn có muốn XÁC NHẬN ĐỔI THIẾT BỊ (tự động đăng xuất máy cũ, lưu vào máy mới - tối đa 3 lần) không?`);
-                    if (confirmChange) {
-                        forceChangeDevice(key, type);
-                    } else {
-                        forceLogout();
-                    }
-                } else { forceLogout(); }
-            }
-        } catch (e) {
-            if (isSilent) { activateFullMode(key); infoMessageText.innerHTML = "✅ Bản Full (Ngoại tuyến)"; }
-            else { alert("Lỗi mạng khi kiểm tra Key."); forceLogout(); }
-        }
-    }
-
-    async function forceChangeDevice(key, type) {
-        infoMessageText.innerHTML = "Đang gửi yêu cầu Đổi thiết bị...";
-        try {
-            const response = await fetch(LICENSE_GAS_URL, {
-                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "changeDevice", key: key, deviceId: getDeviceId(), type: type })
-            });
-            const result = await response.json();
-            if (result.status === "success") {
-                alert("✅ Đổi thiết bị thành công! Key đã được gán cho máy này.");
-                activateFullMode(key);
-            } else {
-                alert(`❌ Không thể đổi thiết bị: ${result.message}\n(Có thể mã Key này đã hết số lần Đổi thiết bị)`);
-                forceLogout();
-            }
-        } catch (e) { alert("Lỗi kết nối khi yêu cầu đổi thiết bị!"); forceLogout(); }
-    }
-
-    async function verifyEnteredKey(actionType = 'verify') {
-        const keyInput = document.getElementById('licenseKeyInput').value.trim();
-        if (!keyInput) { alert("⚠️ Vui lòng nhập mã Key hợp lệ!"); return; }
-        if (actionType === 'change') {
-            await forceChangeDevice(keyInput, "full");
-        } else {
-            await verifyKeyWithServer(keyInput, "full");
-        }
-    }
-
-    function forceLogout(isManual = false) {
-        localStorage.removeItem('fox_license_key'); isDemoMode = false;
-        document.getElementById('settingsDropdown').classList.remove('open');
-        stopAudioChannel('A'); stopAudioChannel('B');
-        document.getElementById('keyInputContainer').style.display = 'none';
-        document.getElementById('licenseKeyInput').value = '';
-        document.getElementById('licenseModalOverlay').style.display = 'flex';
-        const gearBtn = document.querySelector('.license-gear-btn');
-        if (gearBtn) gearBtn.style.display = 'inline-flex';
-        infoMessageText.innerHTML = "Bản Dùng thử Demo (Khóa tính năng nâng cao)."; infoMessageText.style.color = "#dc2626";
-        isPaused = true; clearTimeout(stopTimer); pauseButton.textContent = "Đo / Dừng"; pauseButton.className = "btn-green";
-        updateUIState(); checkAndShowQR(); drawFrame(true);
-    }
 
     function saveAppState() {
         localStorage.setItem('fox_channel_mode', channelModeSelect.value);
@@ -411,7 +183,7 @@ async function checkAppVersion() {
         document.getElementById('cardChannelB').style.display = 'none'; updateToolbarButtonsVisibility();
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('trigger-fox-icon-container').innerHTML = FOX_AVATAR_SVG;
         document.getElementById('header-fox-icon-container').innerHTML = FOX_AVATAR_SVG;
         document.getElementById('msg-fox-icon-container').innerHTML = FOX_AVATAR_SVG;
@@ -422,24 +194,26 @@ async function checkAppVersion() {
         const kinOverlay = document.getElementById('kinematicsModalOverlay');
         if (kinOverlay) kinOverlay.addEventListener('click', closeKinematicsModal);
 
+        try {
+            localStorage.removeItem('fox_license_key');
+            localStorage.removeItem('fox_last_verify_time');
+            localStorage.removeItem('fox_device_id');
+            sessionStorage.removeItem('foxlab_session_start_ts');
+            sessionStorage.removeItem('foxlab_session_expired');
+        } catch (e) {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('key') && window.history && window.history.replaceState) {
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        }
+
         restoreAppState();
         resizeCanvas();
         updateUIState();
+        checkAndShowQR();
         drawFrame(true);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const keyParam = urlParams.get('key');
-        if (keyParam) {
-            localStorage.setItem('fox_license_key', keyParam);
-            if (window.history && window.history.replaceState) {
-                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-            }
-        }
-
-        activateFullMode("FULL_UNLOCKED");
-
-     // Tối ưu: Kiểm tra bản quyền định kỳ mỗi 5 phút (300.000 ms) thay vì 45s để tiết kiệm băng thông và hạn mức GAS
+    });
 
     function checkAndShowQR() {
         const qrPanel = document.getElementById('qrPanel'), container = document.getElementById('qrCodeContainer');
@@ -519,10 +293,6 @@ async function checkAppVersion() {
             e.stopPropagation();
             const group = header.parentElement;
             settingsMenu.querySelectorAll('.settings-group').forEach(g => { if (g !== group) g.classList.remove('expanded'); });
-            if (header.dataset.group === 'license') {
-                group.classList.toggle('expanded');
-                return;
-            }
             if (group.classList.toggle('expanded')) { requestAnimationFrame(() => updateSettingsPill(group.querySelector('.settings-group-items'), null, false)); }
         });
     });
@@ -534,7 +304,6 @@ async function checkAppVersion() {
         item.addEventListener('mouseenter', () => updateSettingsPill(item.parentElement, item, true));
         item.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isDemoMode && item.dataset.target === 'speedSelect' && item.dataset.value === 'slow') { alert("Tốc độ quét 'Chậm' chỉ hỗ trợ trên bản Full."); return; }
             const targetSelect = document.getElementById(item.dataset.target);
             item.parentElement.querySelectorAll('.settings-item').forEach(s => s.classList.remove('active'));
             item.classList.add('active');
@@ -575,13 +344,6 @@ async function checkAppVersion() {
         }
 
         btnAnalysis.style.display = 'inline-block';
-        if (isDemoMode) {
-            btnAnalysis.disabled = true;
-            btnAnalysis.textContent = (getDisplayMode() === 'dbMeter') ? "Phân tích MCĐ (Bản Full)" : (mode === '1' ? "Phân tích FFT (Bản Full)" : "Xử lý nguồn âm (Bản Full)");
-            btnAnalysis.className = 'btn-slate';
-            return;
-        }
-
         if (getDisplayMode() === 'dbMeter') {
             let hasHistory = (mode === '2') ? (dbHistoryA.length > 0 || dbHistoryB.length > 0) : (dbHistoryA.length > 0);
             if (isPaused && hasHistory) {
@@ -606,29 +368,13 @@ async function checkAppVersion() {
 
     btnAnalysis.addEventListener('click', () => {
         if (getDisplayMode() === 'dbMeter') {
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Phân tích Mức cường độ âm bị khóa ở chế độ Dùng thử Demo. Vui lòng nhập Key bản Full!");
-                openLicenseModal();
-                return;
-            }
             openMcdModal();
         } else if (getActiveChannelMode() === '1') {
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Phân tích Họa âm FFT chỉ dành cho bản Full.");
-                openLicenseModal();
-                return;
-            }
             openFFTModal();
         } else {
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Xử lý 2 Nguồn âm chỉ dành cho bản Full.");
-                openLicenseModal();
-                return;
-            }
             openTwoSourceModal();
         }
     });
-
     speedSelect.addEventListener('change', (e) => { targetFPS = (e.target.value === 'slow') ? 15 : 60; saveAppState(); });
     modeSelect.addEventListener('change', (e) => {
         isContinuousMode = (e.target.value === 'continuous'); clearTimeout(stopTimer);
@@ -693,15 +439,6 @@ async function checkAppVersion() {
         if (analysisPointDropdown) analysisPointDropdown.style.display = 'inline-flex';
         btnManualAnalysis.style.display = 'inline-block';
 
-        if (isDemoMode) {
-            btnManualAnalysis.disabled = true;
-            btnManualAnalysis.textContent = "Phân tích đồ thị (Bản Full)";
-            btnManualAnalysis.className = "btn-slate";
-            if (analysisPointDropdown) analysisPointDropdown.classList.remove('open');
-            if (isManualAnalysisMode) resetManualAnalysisState();
-            return;
-        }
-
         if (!isManualAnalysisMode) {
             btnManualAnalysis.textContent = "Phân tích đồ thị ▼";
             btnManualAnalysis.className = "btn-purple";
@@ -739,11 +476,6 @@ async function checkAppVersion() {
             if (isContinuousMode || (modeSelect && modeSelect.value === 'continuous')) {
                 return;
             }
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Phân tích đồ thị bị khóa ở chế độ Dùng thử Demo. Vui lòng nhập Key bản Full!");
-                openLicenseModal();
-                return;
-            }
             if (!isPaused || getActiveChannelMode() !== '1' || getDisplayMode() !== 'oscilloscope' || !channelConfig.A.active) {
                 alert("⚠️ Chức năng Phân tích đồ thị chỉ khả dụng ở chế độ đo Tự dừng, 1 nguồn âm, hiển thị Dao động ký và đã bấm Dừng đo!");
                 return;
@@ -768,11 +500,6 @@ async function checkAppVersion() {
     if (optPickTwoPoints) {
         optPickTwoPoints.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isDemoMode) {
-                alert("⚠️ Chức năng Chọn 2 điểm đo chỉ dành cho bản Full.");
-                openLicenseModal();
-                return;
-            }
             analysisPointDropdown.classList.remove('open');
             isManualAnalysisMode = true;
             manualPoints = [];
@@ -804,11 +531,6 @@ async function checkAppVersion() {
 
     function openKinematicsModal() {
         if (isContinuousMode || (modeSelect && modeSelect.value === 'continuous')) {
-            return;
-        }
-        if (isDemoMode) {
-            alert("⚠️ Chức năng Vẽ các đồ thị liên quan (u-t, v-t, a-t) chỉ dành cho bản Full.");
-            openLicenseModal();
             return;
         }
         const winInfo = getVisibleChannelAWindow();
@@ -1822,7 +1544,6 @@ async function checkAppVersion() {
         else { pauseButton.disabled = true; infoMessageText.innerHTML = "Nhấn vào <span class='info-badge'>Kênh A</span> hoặc <span class='info-badge'>Kênh B</span> để bật mic."; infoMessageText.style.color = "#0284c7"; }
         updateAnalysisButtonState();
         updateManualAnalysisButtonState();
-        const gearBtn = document.querySelector('.license-gear-btn'); if (gearBtn) { gearBtn.style.display = isDemoMode ? 'inline-flex' : 'none'; }
     }
 
     async function initAudioChannel(channelId, deviceId = null) {
@@ -3022,7 +2743,6 @@ async function checkAppVersion() {
     }
 
     function openFFTModal() {
-        if (isDemoMode) { alert("Chức năng Phân tích Họa âm FFT chỉ có trên bản Full."); return; }
         if (typeof resetManualAnalysisState === 'function') resetManualAnalysisState();
         stopFftSweepAnimation();
         closeFftHarmonicTable(true);
@@ -4167,14 +3887,6 @@ async function checkAppVersion() {
     async function sendFoxMessage() {
         const text = chatInput.value.trim();
         if (!text && !uploadedImageBase64) return;
-        if (isDemoMode) {
-            if (demoChatCount >= MAX_DEMO_CHAT) {
-                alert(`⚠️ Bản Demo chỉ cho phép hỏi AI tối đa ${MAX_DEMO_CHAT} lần. Vui lòng nhập Key Bản Full để sử dụng tiếp!`);
-                openLicenseModal();
-                return;
-            }
-            demoChatCount++;
-        }
         
         const isQuickPreset = pendingQuickPrompt;
         pendingQuickPrompt = false;
@@ -4284,25 +3996,6 @@ async function checkAppVersion() {
         chatContent.appendChild(row); chatContent.scrollTop = chatContent.scrollHeight; return id;
     }
     function removeTypingIndicator(id) { const el = document.getElementById(id); if (el) el.remove(); }
-
-if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('ServiceWorker registered:', reg.scope);
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('Phiên bản mới đã được tải ngầm.');
-                            }
-                        };
-                    };
-                })
-                .catch(err => console.log('ServiceWorker registration failed:', err));
-        });
-    }
-
 /**
  * graph-snapshot.js
  * Module tự động gắn nút "📷 Xuất ảnh đồ thị" lên TẤT CẢ các vùng đồ thị (<canvas>)

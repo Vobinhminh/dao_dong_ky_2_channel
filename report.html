@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
-  <link rel="apple-touch-icon" href="icon-512.png" />
   <title>FOX_LAB - Báo Cáo Thí Nghiệm Sóng Âm</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
@@ -941,46 +939,6 @@
 
   
   <script>
-    // =========================================================================
-    // ĐỒNG BỘ GIỚI HẠN PHIÊN 30 PHÚT VỚI TRANG CHÍNH FOX_LAB
-    // =========================================================================
-    (function syncReportSessionLimit() {
-      const SESSION_LIMIT_MS = 30 * 60 * 1000;
-      const SESSION_START_KEY = "foxlab_session_start_ts";
-      const SESSION_EXPIRED_KEY = "foxlab_session_expired";
-
-      function silentExitReport() {
-        try { sessionStorage.setItem(SESSION_EXPIRED_KEY, "1"); } catch (e) {}
-        try { window.close(); } catch (e) {}
-        try { window.location.replace("about:blank"); } catch (e) {
-          document.documentElement.innerHTML = "";
-        }
-      }
-
-      if (sessionStorage.getItem(SESSION_EXPIRED_KEY) === "1") {
-        silentExitReport();
-        return;
-      }
-      let startTs = parseInt(sessionStorage.getItem(SESSION_START_KEY) || "0", 10);
-      if (!startTs || isNaN(startTs)) {
-        startTs = Date.now();
-        sessionStorage.setItem(SESSION_START_KEY, String(startTs));
-      }
-
-      const check = () => {
-        if (sessionStorage.getItem(SESSION_EXPIRED_KEY) === "1" || (Date.now() - startTs) >= SESSION_LIMIT_MS) {
-          silentExitReport();
-        }
-      };
-      check();
-      setInterval(check, 5000);
-      try {
-        const bc = new BroadcastChannel("foxlab_session_sync");
-        bc.onmessage = (ev) => {
-          if (ev && ev.data && ev.data.type === "SESSION_EXPIRED") silentExitReport();
-        };
-      } catch (e) {}
-    })();
 
     const STORAGE_KEY = "daodongki_report_data";
     const DEFAULT_TITLE = "BÁO CÁO KẾT QUẢ THỰC HÀNH KHẢO SÁT SÓNG ÂM";

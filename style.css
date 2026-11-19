@@ -138,26 +138,6 @@
         }
         .settings-item.active { color: #ffffff; font-weight: 700; }
 
-        .settings-action-btn {
-            padding: 8px 10px; font-size: 11.5px; color: #f8fafc; cursor: pointer; border-radius: 4px;
-            text-align: left; font-weight: 600; background: #1e293b; border: 1px solid #334155;
-            transition: 0.2s; display: block; width: 100%; box-sizing: border-box;
-        }
-        .settings-action-btn:hover { background: #334155; border-color: #475569; }
-        .settings-action-btn.btn-danger { color: #fca5a5; border-color: #7f1d1d; }
-        .settings-action-btn.btn-danger:hover { background: #7f1d1d; color: #fff; }
-
-        
-        
-        .license-selection-box h2 { color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 700; }
-        .license-selection-box p { color: #475569; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
-        
-        
-        
-        
-        
-        .contact-box b { color: #0284c7; }
-
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
             background: rgba(15, 23, 42, 0.95); z-index: 100000; display: none;
