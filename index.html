@@ -53,7 +53,7 @@
             <option value="2">2 nguồn âm</option>
         </select>
         <select id="modeSelect" style="display:none">
-            <option value="auto" selected>Khảo sát tần số (Tự dừng)</option>
+            <option value="auto" selected>Khảo sát tần số</option>
             <option value="continuous">Khảo sát liên tục</option>
         </select>
         <select id="displayModeSelect" style="display:none">
@@ -161,7 +161,7 @@
 <div id="fftModalOverlay" class="modal-overlay">
     <div id="fftModal" class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <span>Phân tích Họa âm (Spectrum)</span>
+            <span>Phân tích Họa âm</span>
         </div>
         <div class="modal-controls">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -356,7 +356,7 @@
             <!-- PHẦN 1: HIỆU CHUẨN ĐỘ NHẠY MICRO -->
             <div style="margin-bottom: 14px;">
                 <div style="font-weight: 700; color: #059669; font-size: 13.5px; margin-bottom: 4px; text-transform: uppercase;">
-                    1. Hiệu chuẩn độ nhạy Micro (Tùy chọn theo máy chuẩn)
+                    1. Hiệu chuẩn độ nhạy Micro
                 </div>
                 <p style="margin: 0 0 10px 0; color:#475569; font-size: 12.5px;">
                     Đồng bộ độ nhạy Micro với <i>Máy đo Mức cường độ âm (dB) chuẩn</i> thực tế để loại bỏ sai số phần cứng (nếu có).
@@ -637,7 +637,7 @@
     if (btnCalib) {
         btnCalib.addEventListener('click', () => {
             if (isDemoMode) {
-                alert("⚠️ Chức năng Hiệu chuẩn Micro bị khóa ở bản Dùng thử Demo. Vui lòng kích hoạt bản Full để sử dụng!");
+                alert("⚠️ Chức năng Hiệu chuẩn Micro bị khóa");
                 openLicenseModal();
                 return;
             }
